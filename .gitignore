@@ -1,0 +1,37 @@
+## Android & IntelliJ
+*.iml
+.gradle
+**/build/
+!src/**/build/
+local.properties
+.idea
+captures
+.externalNativeBuild
+.cxx
+
+# Kotlin Multiplatform / Native
+.konan/
+.kotlin
+.kotlin/
+
+# iOS (Xcode) 추가 보완
+xcuserdata
+**/DerivedData/
+*.moved-aside
+*.xcuserstate
+**/.bundle/
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+# Gradle 추가
+.gradle/
+build/
+
+# OS specific & ETC
+.DS_Store
+Thumbs.db
+node_modules/
