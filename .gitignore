@@ -27,6 +27,10 @@ xcuserdata
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 
+# Firebase configuration files
+**/google-services.json
+**/GoogleService-Info.plist
+
 # Gradle 추가
 .gradle/
 build/
