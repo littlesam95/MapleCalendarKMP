@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -25,17 +27,30 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
-            // Ktor 공통
+            // ViewModel
+            implementation(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+            // Ktor
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
 
-            // Koin 공통
+            // Koin
             implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
 
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
+
+            // Firebase Messaging
+            implementation("dev.gitlive:firebase-messaging:2.4.0")
+
+            // Napier
+            implementation("io.github.aakira:napier:2.7.1")
         }
 
         androidMain.dependencies {
