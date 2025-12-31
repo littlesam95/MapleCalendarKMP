@@ -23,6 +23,10 @@ kotlin {
 
             // Android용 DataStore (Context 관련 기능 때문)
             implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+            // Android 전용 Firebase BOM
+            implementation(project.dependencies.platform("com.google.firebase:firebase-bom:32.7.0"))
+            implementation("com.google.firebase:firebase-messaging-ktx")
         }
         commonMain.dependencies {
             // Shared Component
