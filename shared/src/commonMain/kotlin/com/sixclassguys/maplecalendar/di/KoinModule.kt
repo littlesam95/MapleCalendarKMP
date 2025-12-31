@@ -12,7 +12,7 @@ import org.koin.dsl.module
 // 모듈 정의: 어떤 인터페이스에 어떤 구현체를 넣을지 결정
 val repositoryModule = module {
     // NotificationRepository 인터페이스 요청 시 FirebaseNotificationRepository 인스턴스를 싱글톤으로 주입
-    single<NotificationRepository> { FirebaseNotificationRepository(get()) }
+    single<NotificationRepository> { FirebaseNotificationRepository(get(), get()) }
 }
 
 val useCaseModule = module {
@@ -30,5 +30,12 @@ val viewModelModule = module {
 fun initKoin(appDeclaration: KoinAppDeclaration = {}) =
     startKoin {
         appDeclaration()
-        modules(repositoryModule, networkModule, useCaseModule, viewModelModule)
+        modules(
+            repositoryModule,
+            networkModule,
+            useCaseModule,
+            viewModelModule,
+            sharedModule,
+            platformModule
+        )
     }
