@@ -6,8 +6,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
 
 class EventDataSourceImpl(
     private val httpClient: HttpClient
@@ -15,8 +13,7 @@ class EventDataSourceImpl(
 
     override suspend fun fetchMonthlyEvents(year: Int, month: Int): List<EventResponse> {
         val response = try {
-            httpClient.get("http://10.0.2.2:8080/api/events") {
-                contentType(ContentType.Application.Json)
+            httpClient.get("events") {
                 parameter("year", year)
                 parameter("month", month)
             }

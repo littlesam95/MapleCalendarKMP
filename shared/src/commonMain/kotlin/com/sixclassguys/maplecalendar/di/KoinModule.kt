@@ -7,9 +7,10 @@ import com.sixclassguys.maplecalendar.domain.repository.NotificationRepository
 import com.sixclassguys.maplecalendar.domain.usecase.GetFcmTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetMonthlyEventsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.RegisterTokenUseCase
-import com.sixclassguys.maplecalendar.presentation.NotificationViewModel
+import com.sixclassguys.maplecalendar.presentation.notification.NotificationViewModel
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarReducer
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
+import com.sixclassguys.maplecalendar.presentation.notification.NotificationReducer
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
@@ -30,11 +31,12 @@ val useCaseModule = module {
 
 val viewModelModule = module {
     // ViewModel (화면마다 생명주기를 관리하기 위해 factory 사용)
-    factory { NotificationViewModel(get(), get()) }
+    factory { NotificationViewModel(get(), get(), get(), get()) }
     factory { CalendarViewModel(get(), get()) }
 
     // Reducer
     single { CalendarReducer() }
+    single { NotificationReducer() }
 }
 
 // 공통 초기화 함수: 안드로이드와 iOS 앱 시작 시 호출됨
