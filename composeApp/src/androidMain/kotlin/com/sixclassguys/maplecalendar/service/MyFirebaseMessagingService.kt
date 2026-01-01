@@ -1,18 +1,16 @@
 package com.sixclassguys.maplecalendar.service
 
-import android.R
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.sixclassguys.maplecalendar.MainActivity
+import com.sixclassguys.maplecalendar.data.local.AppPreferences
 import com.sixclassguys.maplecalendar.domain.repository.NotificationRepository
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -25,33 +23,37 @@ import org.koin.core.component.inject
 class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
 
     private val notificationRepository: NotificationRepository by inject()
+    private val dataStore: AppPreferences by inject()
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // 토큰이 갱신되면 즉시 백엔드에 등록합니다.
+
+        // 토큰이 갱신되면 즉시 백엔드에 등록
         CoroutineScope(Dispatchers.IO).launch {
             notificationRepository.registerToken(token).first()
         }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        super.onMessageReceived(message)
+        CoroutineScope(Dispatchers.IO).launch {
+            val isEnabled = dataStore.isNotificationMode.first()
 
-        // 🔥 중요: Napier 대신 우선 기본 안드로이드 Log를 써보세요 (초기화 문제 방지)
-        android.util.Log.d("FCM_TEST", "포그라운드 메시지 수신 성공!")
-        android.util.Log.d("FCM_TEST", "Title: ${message.notification?.title}")
-        android.util.Log.d("FCM_TEST", "Data: ${message.data}")
+            if (isEnabled) {
+                super.onMessageReceived(message)
 
-        val title = message.notification?.title ?: message.data["title"] ?: "알림"
-        val body = message.notification?.body ?: message.data["body"] ?: "내용이 없습니다."
+                val title = message.notification?.title ?: message.data["title"] ?: "알림"
+                val body = message.notification?.body ?: message.data["body"] ?: "내용이 없습니다."
 
-        showNotification(title, body)
+                showNotification(title, body)
+            } else {
+                Napier.d("알림이 꺼져 있습니다.")
+            }
+        }
     }
 
     private fun showNotification(title: String?, body: String?) {
-        // 🔥 채널 ID를 기존과 다르게 설정 (예: 끝에 _V3 추가)
-        val channelId = "MAPLE_CALENDAR_HIGH_V3"
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "MAPLE_CALENDAR_HIGH_V3" // 채널명
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(

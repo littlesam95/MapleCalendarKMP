@@ -7,11 +7,8 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.LaunchedEffect
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.sixclassguys.maplecalendar.presentation.NotificationViewModel
-import org.koin.compose.viewmodel.koinViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -22,11 +19,6 @@ class MainActivity : ComponentActivity() {
         askNotificationPermission(this)
 
         setContent {
-            val viewModel: NotificationViewModel = koinViewModel()
-            LaunchedEffect(Unit) {
-                viewModel.initNotification()
-            }
-
             App()
         }
     }

@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.flowOn
 
 class FirebaseNotificationRepository(
     private val notificationDataSource: NotificationDataSource,
-    private val tokenStorage: AppPreferences
+    private val dataStore: AppPreferences
 ) : NotificationRepository {
 
     override suspend fun getFcmToken(): String? {
@@ -35,7 +35,7 @@ class FirebaseNotificationRepository(
         emit(ApiState.Loading) // 로딩 시작 알림
 
         // 로컬에 저장된 마지막 토큰 확인
-        val lastToken = tokenStorage.lastSentToken.first()
+        val lastToken = dataStore.lastSentToken.first()
 
         if (lastToken != token) {
             try {
@@ -47,7 +47,7 @@ class FirebaseNotificationRepository(
                 )
 
                 if (response.status.isSuccess()) {
-                    tokenStorage.saveToken(token) // 성공했을 경우에만 DataStore에 저장
+                    dataStore.saveToken(token) // 성공했을 경우에만 DataStore에 저장
                     emit(ApiState.Success(Unit)) // 성공 알림
                 } else {
                     emit(ApiState.Error("서버 에러: ${response.status}")) // 서버 측 에러

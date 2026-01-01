@@ -30,6 +30,13 @@ class AppPreferences(
     val isDarkMode: Flow<Boolean> = dataStore.data.map { it[KEY_IS_DARK_MODE] ?: false }
     suspend fun setDarkMode(enabled: Boolean) = dataStore.edit { it[KEY_IS_DARK_MODE] = enabled }
 
+    // --- 알림 설정 관련 ---
+    val isNotificationMode: Flow<Boolean> =
+        dataStore.data.map { it[KEY_IS_NOTIFICATION_MODE] ?: false }
+
+    suspend fun setNotificationMode(enabled: Boolean) =
+        dataStore.edit { it[KEY_IS_NOTIFICATION_MODE] = enabled }
+
     // 필요 시 모든 설정을 한 번에 초기화 (로그아웃 등)
     suspend fun clearAll() = dataStore.edit { it.clear() }
 
@@ -38,5 +45,6 @@ class AppPreferences(
         private val KEY_LAST_SENT_FCM_TOKEN = stringPreferencesKey("last_sent_fcm_token")
         private val KEY_CHARACTER_OCID = stringPreferencesKey("character_ocid")
         private val KEY_IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
+        private val KEY_IS_NOTIFICATION_MODE = booleanPreferencesKey("is_notification_mode")
     }
 }
