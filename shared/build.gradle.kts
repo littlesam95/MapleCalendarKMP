@@ -72,10 +72,6 @@ kotlin {
         iosMain.dependencies {
             // iOS 전용 엔진(Darwin) 및 Koin
             implementation(libs.ktor.client.darwin)
-            implementation(libs.koin.android)
-
-            // Android용 DataStore (Context 관련 기능 때문)
-            implementation("androidx.datastore:datastore-preferences:1.1.1")
         }
 
         commonTest.dependencies {

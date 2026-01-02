@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		58DC99A62F081BB90030D842 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 58DC99A52F081BB90030D842 /* FirebaseAnalytics */; };
+		58DC99A82F081BB90030D842 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 58DC99A72F081BB90030D842 /* FirebaseMessaging */; };
 		58DCE0D82F02EDBE009FC386 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 58DCE0D72F02EDBD009FC386 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
@@ -46,6 +48,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				58DC99A82F081BB90030D842 /* FirebaseMessaging in Frameworks */,
+				58DC99A62F081BB90030D842 /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -91,6 +95,8 @@
 			);
 			name = iosApp;
 			packageProductDependencies = (
+				58DC99A52F081BB90030D842 /* FirebaseAnalytics */,
+				58DC99A72F081BB90030D842 /* FirebaseMessaging */,
 			);
 			productName = iosApp;
 			productReference = DE013FA731F4C59A563B08C9 /* MapleCalendar.app */;
@@ -120,6 +126,9 @@
 			);
 			mainGroup = 0E30F97F5E96F2F0CF6F1817;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				58DC99A42F081BB90030D842 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AFE2A029C55E60B304B05765 /* Products */;
 			projectDirPath = "";
@@ -196,6 +205,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sixclassguys.maplecalendar;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -347,6 +358,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = "-ObjC";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -375,6 +387,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		58DC99A42F081BB90030D842 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		58DC99A52F081BB90030D842 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 58DC99A42F081BB90030D842 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		58DC99A72F081BB90030D842 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 58DC99A42F081BB90030D842 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 07C13E557E4697E4469D811E /* Project object */;
 }
