@@ -1,11 +1,11 @@
-import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.skie)
 }
 
 kotlin {
@@ -16,11 +16,12 @@ kotlin {
     }
     
     listOf(
+        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "Shared"
+            baseName = "shared"
             isStatic = true
         }
     }
@@ -54,7 +55,7 @@ kotlin {
             implementation("androidx.datastore:datastore:1.1.1")
 
             // Firebase Messaging
-            implementation("dev.gitlive:firebase-messaging:2.4.0")
+            implementation("dev.gitlive:firebase-messaging:2.1.0")
 
             // Napier
             implementation("io.github.aakira:napier:2.7.1")
@@ -87,7 +88,23 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    buildFeatures {
+
+        buildConfig = true
+    }
+
+    // local.properties 파일 읽기 로직
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localProperties.load(localPropertiesFile.inputStream())
+    }
+
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
+        val apiKey = localProperties.getProperty("NEXON_API_KEY") ?: ""
+
+        buildConfigField("String", "NEXON_API_KEY", apiKey)
     }
 }
