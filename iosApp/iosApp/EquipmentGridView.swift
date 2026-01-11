@@ -1,87 +1,57 @@
-//
-//  EquipmentGridView.swift
-//  iosApp
-//
-//  Created by 이상혁 on 1/6/26.
-//
-
 import SwiftUI
-struct EquipmentGridView: View {
-    let columnCount = 4
-    let itemCount = 23   // 실제 아이템 개수
 
-    let columns = Array(
-        repeating: GridItem(.flexible(), spacing: 8),
-        count: 5
-    )
+// 1. 모델
+struct GameEvent: Identifiable {
+    let id = UUID()
+    let title: String
+    let dateRange: String
+    let imageURL: String
+}
 
+// 2. 개별 카드 뷰
+struct EventCardView: View {
+    let event: GameEvent
+    
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 8) {
-            ForEach(gridSlots.indices, id: \.self) { slotIndex in
-                if let itemIndex = gridSlots[slotIndex] {
-                    EquipmentItemView(index: itemIndex + 1)
-                } else {
-                    Color.clear
-                        .frame(height: 70)
+        VStack(alignment: .leading, spacing: 8) {
+            Image("event") // 데이터 바인딩
+                .resizable()
+                .aspectRatio(16/9, contentMode: .fill)
+                .frame(maxWidth: .infinity)
+                .frame(height: 144) // 높이를 명시적으로 지정하면 더 안정적입니다
+                .clipped()
+                .cornerRadius(15)
+            
+            Text(event.title)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.black)
+            
+            Text(event.dateRange)
+                .font(.system(size: 14))
+                .foregroundColor(.gray.opacity(0.8))
+        }
+        .padding(.vertical, 8)
+    }
+}
+
+// 3. 리스트 뷰
+struct EventListView: View {
+    let eventList: [GameEvent] = [
+        GameEvent(title: "스페셜 선데이 메이플", dateRange: "2026.01.11 ~ 2026.01.11", imageURL: "https://lwi.nexon.com/maplestory/2026/0109_board/761538DC629D31D7.png"),
+        GameEvent(title: "겨울 업데이트 기념 이벤트", dateRange: "2025.12.18 ~ 2026.02.12", imageURL: "https://lwi.nexon.com/maplestory/2026/0109_board/761538DC629D31D7.png"),
+        GameEvent(title: "테라 버닝 프로젝트", dateRange: "2025.12.18 ~ 2026.01.25", imageURL: "https://lwi.nexon.com/maplestory/2026/0109_board/761538DC629D31D7.png")
+    ]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("오늘 진행하는 이벤트")
+                .font(.system(size: 20, weight: .bold))
+            
+            LazyVStack(spacing: 16) {
+                ForEach(eventList) { event in
+                    EventCardView(event: event)
                 }
             }
         }
     }
-
-    /// Grid 슬롯 정의
-    var gridSlots: [Int?] {
-        var slots: [Int?] = []
-        var currentItemIndex = 0
-        var row = 0
-
-        while currentItemIndex < itemCount {
-            for column in 0..<columnCount {
-
-                // 첫 줄 or 마지막 줄의 3번째 칸 비우기
-                if (row == 0 && column == 2) {
-                    slots.append(nil)
-                    continue
-                }
-
-                // 마지막 줄 판단은 "아이템이 거의 끝났을 때"
-                let remainingItems = itemCount - currentItemIndex
-                if remainingItems <= columnCount &&
-                   column == 2 {
-                    slots.append(nil)
-                    continue
-                }
-
-                if currentItemIndex < itemCount {
-                    slots.append(currentItemIndex)
-                    currentItemIndex += 1
-                }
-            }
-            row += 1
-        }
-
-        return slots
-    }
-
 }
-struct EquipmentItemView: View {
-    let index: Int
-
-    var body: some View {
-        ZStack {
-            Rectangle()
-                .fill(Color(.darkGray))
-                .overlay(
-                    Rectangle().stroke(Color.yellow, lineWidth: 1)
-                )
-
-            Text("\(index)")
-                .foregroundColor(.white)
-                .bold()
-        }
-        .frame(height: 70)
-    }
-}
-
-
-
-
