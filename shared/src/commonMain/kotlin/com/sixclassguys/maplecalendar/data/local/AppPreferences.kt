@@ -22,7 +22,10 @@ class AppPreferences(
         }
     }
 
-    // --- 캐릭터 정보 (OCID) 관련 ---
+    // --- 로그인 관련 ---
+    val openApiKey: Flow<String?> = dataStore.data.map { it[OPEN_API_KEY] }
+    suspend fun saveOpenApiKey(key: String) = dataStore.edit { it[OPEN_API_KEY] = key }
+
     val characterOcid: Flow<String?> = dataStore.data.map { it[KEY_CHARACTER_OCID] }
     suspend fun saveCharacterOcid(ocid: String) = dataStore.edit { it[KEY_CHARACTER_OCID] = ocid }
 
@@ -43,6 +46,7 @@ class AppPreferences(
     companion object {
 
         private val KEY_LAST_SENT_FCM_TOKEN = stringPreferencesKey("last_sent_fcm_token")
+        private val OPEN_API_KEY = stringPreferencesKey("open_api_key")
         private val KEY_CHARACTER_OCID = stringPreferencesKey("character_ocid")
         private val KEY_IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
         private val KEY_IS_NOTIFICATION_MODE = booleanPreferencesKey("is_notification_mode")
