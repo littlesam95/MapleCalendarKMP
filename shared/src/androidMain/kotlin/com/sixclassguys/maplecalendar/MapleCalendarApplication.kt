@@ -1,6 +1,7 @@
 package com.sixclassguys.maplecalendar
 
 import android.app.Application
+import com.sixclassguys.maplecalendar.di.androidNetworkModule
 import com.sixclassguys.maplecalendar.di.initKoin
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
@@ -15,7 +16,7 @@ class MapleCalendarApplication : Application() {
         Napier.base(DebugAntilog())
 
         // Koin 시작
-        initKoin {
+        initKoin(listOf(androidNetworkModule)) {
             androidContext(this@MapleCalendarApplication)
         }
     }

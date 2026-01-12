@@ -52,6 +52,9 @@ kotlin {
             implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc01")
             implementation("io.coil-kt.coil3:coil-network-ktor3:3.0.0-rc01")
 
+            // Jetpack Compose Navigation
+            implementation(libs.androidx.navigation.compose)
+
             // Ktor
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)

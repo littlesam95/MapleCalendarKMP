@@ -82,6 +82,7 @@
 			buildConfigurationList = 96590084D903AB5BC4100FA1 /* Build configuration list for PBXNativeTarget "iosApp" */;
 			buildPhases = (
 				D496C9AD5DA442A72DE14B86 /* Compile Kotlin Framework */,
+				58DC99DE2F08C7BE0030D842 /* ShellScript */,
 				4B5C558CFD87D060C737824F /* Sources */,
 				27ADFC86481973CB42D143C7 /* Frameworks */,
 				6E34DF21B2B1A65E25032F71 /* Resources */,
@@ -151,6 +152,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		58DC99DE2F08C7BE0030D842 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\ncd \"$SRCROOT/..\"\n./gradlew :shared:embedAndSignAppleFrameworkForXcode\n";
+		};
 		D496C9AD5DA442A72DE14B86 /* Compile Kotlin Framework */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
