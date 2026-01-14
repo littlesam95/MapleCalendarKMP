@@ -22,6 +22,22 @@ class FirebaseNotificationRepository(
     private val dataStore: AppPreferences
 ) : NotificationRepository {
 
+    override suspend fun getGlobalAlarmStatus(): Flow<ApiState<Boolean>> = flow {
+        emit(ApiState.Loading)
+
+        val apiKey = dataStore.isNotificationMode.first()
+
+        emit(ApiState.Success(apiKey))
+    }
+
+    override suspend fun getSavedFcmToken(): Flow<ApiState<String?>> = flow {
+        emit(ApiState.Loading)
+
+        val apiKey = dataStore.lastSentToken.first()
+
+        emit(ApiState.Success(apiKey))
+    }
+
     override suspend fun getFcmToken(): String? {
         return try {
             Firebase.messaging.getToken()
@@ -60,4 +76,23 @@ class FirebaseNotificationRepository(
             emit(ApiState.Success(Unit)) // 토큰이 같으면 서버에 전송할 필요 없음
         }
     }.flowOn(Dispatchers.IO)
+
+    override suspend fun unregisterToken(apiKey: String, token: String): Flow<ApiState<Unit>> = flow {
+        emit(ApiState.Loading) // 로딩 시작 알림
+
+        val response = notificationDataSource.unregisterToken(
+            apiKey = apiKey,
+            request = TokenRequest(
+                token = token,
+                platform = getPlatform().name
+            )
+        )
+
+        if (response.status.isSuccess()) {
+            dataStore.deleteToken()
+            emit(ApiState.Success(Unit)) // 성공 알림
+        } else {
+            emit(ApiState.Error("서버 에러: ${response.status}")) // 서버 측 에러
+        }
+    }
 }

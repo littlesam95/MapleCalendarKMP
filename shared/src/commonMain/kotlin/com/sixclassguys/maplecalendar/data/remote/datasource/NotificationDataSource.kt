@@ -6,4 +6,6 @@ import io.ktor.client.statement.HttpResponse
 interface NotificationDataSource {
 
     suspend fun registerToken(request: TokenRequest): HttpResponse
+
+    suspend fun unregisterToken(apiKey: String, request: TokenRequest): HttpResponse
 }

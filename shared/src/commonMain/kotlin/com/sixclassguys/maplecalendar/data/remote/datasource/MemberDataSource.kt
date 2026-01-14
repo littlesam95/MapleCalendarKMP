@@ -8,4 +8,6 @@ interface MemberDataSource {
         apiKey: String,
         request: RepresentativeOcidRequest
     )
+
+    suspend fun toggleGlobalAlarmStatus(apiKey: String): Boolean
 }
