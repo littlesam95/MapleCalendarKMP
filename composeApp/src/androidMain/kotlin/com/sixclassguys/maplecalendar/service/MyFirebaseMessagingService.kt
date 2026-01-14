@@ -11,6 +11,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.sixclassguys.maplecalendar.MainActivity
 import com.sixclassguys.maplecalendar.data.local.AppPreferences
+import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
 import com.sixclassguys.maplecalendar.domain.repository.NotificationRepository
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -20,9 +21,11 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
+
 class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
 
     private val notificationRepository: NotificationRepository by inject()
+    private val eventBus: NotificationEventBus by inject()
     private val dataStore: AppPreferences by inject()
 
     override fun onNewToken(token: String) {
@@ -37,6 +40,15 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
     override fun onMessageReceived(message: RemoteMessage) {
         CoroutineScope(Dispatchers.IO).launch {
             val isEnabled = dataStore.isNotificationMode.first()
+
+            super.onMessageReceived(message)
+
+            // 데이터에서 eventId 추출
+            val eventIdStr = message.data["eventId"]
+            val eventId = eventIdStr?.toLongOrNull()
+
+            // 💡 EventBus에 eventId를 실어서 보냄
+            eventBus.emitEvent(eventId ?: 0L)
 
             if (isEnabled) {
                 super.onMessageReceived(message)
@@ -72,10 +84,13 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
         }
 
         val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
         }
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent, PendingIntent.FLAG_IMMUTABLE
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
@@ -86,7 +101,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
             .setPriority(NotificationCompat.PRIORITY_HIGH) // 구버전 대응
             .setDefaults(NotificationCompat.DEFAULT_ALL)   // 소리, 진동 필수
             .setContentIntent(pendingIntent)
-            .setFullScreenIntent(pendingIntent, true)      // 팝업을 더 강하게 유도
 
         notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
     }
