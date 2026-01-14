@@ -3,9 +3,11 @@ package com.sixclassguys.maplecalendar.presentation.home
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sixclassguys.maplecalendar.data.local.AppPreferences
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.usecase.AutoLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetApiKeyUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetFcmTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetTodayEventsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,6 +22,7 @@ class HomeViewModel(
     val savedStateHandle: SavedStateHandle,
     private val reducer: HomeReducer,
     private val getApiKeyUseCase: GetApiKeyUseCase,
+    private val getFcmTokenUseCase: GetFcmTokenUseCase,
     private val autoLoginUseCase: AutoLoginUseCase,
     private val getTodayEventsUseCase: GetTodayEventsUseCase
 ) : ViewModel() {
@@ -51,10 +54,16 @@ class HomeViewModel(
 
     private fun getCharacterBasic(apiKey: String) {
         viewModelScope.launch {
-            autoLoginUseCase(apiKey).collect { state ->
+            val fcmToken = getFcmTokenUseCase() ?: ""
+            autoLoginUseCase(apiKey, fcmToken).collect { state ->
                 when (state) {
                     is ApiState.Success -> {
-                        onIntent(HomeIntent.LoadCharacterBasicSuccess(state.data))
+                        onIntent(
+                            HomeIntent.LoadCharacterBasicSuccess(
+                                state.data.characterBasic,
+                                state.data.isGlobalAlarmEnabled
+                            )
+                        )
                     }
 
                     is ApiState.Error -> {
@@ -76,7 +85,8 @@ class HomeViewModel(
             getTodayEventsUseCase(
                 today.year,
                 today.monthNumber,
-                today.dayOfMonth
+                today.dayOfMonth,
+                _uiState.value.nexonApiKey ?: ""
             ).collect { state ->
                 when (state) {
                     is ApiState.Success -> {

@@ -48,6 +48,7 @@ fun HomeScreen(
 
     LaunchedEffect(loginSuccess) {
         if (loginSuccess) {
+            Toast.makeText(context, "로그인에 성공했습니다!", Toast.LENGTH_SHORT).show()
             viewModel.onIntent(HomeIntent.LoadApiKey)
             // 처리가 끝났다면 다시 false로 돌려준다.
             viewModel.savedStateHandle["loginSuccess"] = false
@@ -83,7 +84,6 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 when {
                     uiState.characterBasic != null -> {
-                        Toast.makeText(context, "로그인에 성공했습니다!", Toast.LENGTH_SHORT).show()
                         CharacterBasicCard(basic = uiState.characterBasic!!)
                     }
                     uiState.isLoading -> {

@@ -11,7 +11,10 @@ sealed class HomeIntent {
 
     data class LoadCharacterBasic(val apiKey: String) : HomeIntent()
 
-    data class LoadCharacterBasicSuccess(val characterBasic: CharacterBasic) : HomeIntent()
+    data class LoadCharacterBasicSuccess(
+        val characterBasic: CharacterBasic?,
+        val isGlobalAlarmEnabled: Boolean
+    ) : HomeIntent()
 
     data class LoadCharacterBasicFailed(val message: String) : HomeIntent()
 
@@ -22,6 +25,8 @@ sealed class HomeIntent {
     data class LoadEventsFailed(val message: String) : HomeIntent()
 
     data object Login : HomeIntent()
+
+    data object Logout : HomeIntent()
 
     data object NavigationHandled : HomeIntent()
 }

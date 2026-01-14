@@ -8,6 +8,7 @@ data class HomeUiState(
     val isAutoLoginFinished: Boolean = false,
     val nexonApiKey: String? = null,
     val characterBasic: CharacterBasic? = null,
+    val isGlobalAlarmEnabled: Boolean = false,
     val events: List<MapleEvent> = emptyList(),
     val isNavigateToLogin: Boolean = false,
     val errorMessage: String? = null

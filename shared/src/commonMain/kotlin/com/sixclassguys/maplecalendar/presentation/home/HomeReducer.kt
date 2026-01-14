@@ -28,7 +28,8 @@ class HomeReducer {
             currentState.copy(
                 isLoading = false,
                 isAutoLoginFinished = true,
-                characterBasic = intent.characterBasic
+                characterBasic = intent.characterBasic,
+                isGlobalAlarmEnabled = intent.isGlobalAlarmEnabled
             )
         }
 
@@ -62,6 +63,15 @@ class HomeReducer {
 
         is HomeIntent.Login -> {
             currentState.copy(isNavigateToLogin = true)
+        }
+
+        is HomeIntent.Logout -> {
+            currentState.copy(
+                isLoading = false,
+                isAutoLoginFinished = false,
+                characterBasic = null,
+                isGlobalAlarmEnabled = false
+            )
         }
 
         is HomeIntent.NavigationHandled -> {

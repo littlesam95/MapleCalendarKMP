@@ -2,12 +2,14 @@ package com.sixclassguys.maplecalendar.data.remote.datasource
 
 import com.sixclassguys.maplecalendar.data.remote.dto.AutoLoginResponse
 import com.sixclassguys.maplecalendar.data.remote.dto.LoginResponse
+import com.sixclassguys.maplecalendar.data.remote.dto.TokenRequest
 import com.sixclassguys.maplecalendar.util.ApiException
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 
@@ -44,11 +46,12 @@ class AuthDataSourceImpl(
         }
     }
 
-    override suspend fun autoLogin(apiKey: String): AutoLoginResponse {
+    override suspend fun autoLogin(apiKey: String, request: TokenRequest): AutoLoginResponse {
         val response = try {
             httpClient.post("auth/auto-login") {
                 // 헤더 추가 부분
                 header("x-nxopen-api-key", apiKey)
+                setBody(request)
 
                 // Content-Type 설정 (필요 시)
                 contentType(ContentType.Application.Json)
