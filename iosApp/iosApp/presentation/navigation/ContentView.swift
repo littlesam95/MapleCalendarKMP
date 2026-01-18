@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var selectedTab = 0
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var loginViewModel = LoginViewModel()
+    @StateObject private var settingViewModel = SettingViewModel()
     
     @State private var path = NavigationPath()
     @State private var showLogin = false
@@ -22,7 +23,11 @@ struct ContentView: View {
                         case 0: HomeScreen(viewModel: homeViewModel)
                         case 1: Text("이벤트 화면 준비 중").frame(maxWidth: .infinity, maxHeight: .infinity)
                         case 2: Text("캘린더 화면 준비 중").frame(maxWidth: .infinity, maxHeight: .infinity)
-                        case 3: Text("더보기 화면 준비 중").frame(maxWidth: .infinity, maxHeight: .infinity)
+                        case 3: SettingScreen(viewModel: settingViewModel, homeViewModel: homeViewModel,
+                            onNavigateToLogin: {
+                                showLogin = true
+                            }
+                        )
                         default: HomeScreen(viewModel: homeViewModel)
                         }
                     }
