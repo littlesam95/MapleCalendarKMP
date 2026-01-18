@@ -35,13 +35,18 @@ class AppPreferences(
 
     // --- 알림 설정 관련 ---
     val isNotificationMode: Flow<Boolean> =
-        dataStore.data.map { it[KEY_IS_NOTIFICATION_MODE] ?: true }
+        dataStore.data.map { it[KEY_IS_NOTIFICATION_MODE] ?: false }
 
     suspend fun setNotificationMode(enabled: Boolean) =
         dataStore.edit { it[KEY_IS_NOTIFICATION_MODE] = enabled }
 
     // 필요 시 모든 설정을 한 번에 초기화 (로그아웃 등)
-    suspend fun clearAll() = dataStore.edit { it.clear() }
+    suspend fun clearAll() = dataStore.edit { preferences ->
+        preferences.remove(KEY_LAST_SENT_FCM_TOKEN)
+        preferences.remove(OPEN_API_KEY)
+        preferences.remove(KEY_CHARACTER_OCID)
+        preferences.remove(KEY_IS_NOTIFICATION_MODE)
+    }
 
     companion object {
 

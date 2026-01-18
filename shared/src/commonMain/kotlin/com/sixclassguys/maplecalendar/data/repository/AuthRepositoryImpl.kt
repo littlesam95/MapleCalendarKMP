@@ -27,7 +27,7 @@ class AuthRepositoryImpl(
 
             // 데이터 계층의 모델을 도메인 모델로 변환
             val loginResult = response.toDomain()
-
+            dataStore.setNotificationMode(loginResult.isGlobalAlarmEnabled)
             emit(ApiState.Success(loginResult))
         } catch (e: Exception) {
             emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))

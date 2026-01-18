@@ -25,9 +25,9 @@ class FirebaseNotificationRepository(
     override suspend fun getGlobalAlarmStatus(): Flow<ApiState<Boolean>> = flow {
         emit(ApiState.Loading)
 
-        val apiKey = dataStore.isNotificationMode.first()
+        val isNotificationMode = dataStore.isNotificationMode.first()
 
-        emit(ApiState.Success(apiKey))
+        emit(ApiState.Success(isNotificationMode))
     }
 
     override suspend fun getSavedFcmToken(): Flow<ApiState<String?>> = flow {
