@@ -7,9 +7,11 @@ struct ContentView: View {
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var loginViewModel = LoginViewModel()
     @StateObject private var settingViewModel = SettingViewModel()
+    @StateObject private var calendarViewModel = CalendarViewModel()
     
     @State private var path = NavigationPath()
     @State private var showLogin = false
+    @State private var showCalendar = false
 
     var body: some View {
         
@@ -21,8 +23,8 @@ struct ContentView: View {
                     Group {
                         switch selectedTab {
                         case 0: HomeScreen(viewModel: homeViewModel)
-                        case 1: Text("이벤트 화면 준비 중").frame(maxWidth: .infinity, maxHeight: .infinity)
-                        case 2: Text("캘린더 화면 준비 중").frame(maxWidth: .infinity, maxHeight: .infinity)
+                        case 1: Text("플레이리스트 화면 준비 중").frame(maxWidth: .infinity, maxHeight: .infinity)
+                        case 2: Text("모아보기 화면 준비 중").frame(maxWidth: .infinity, maxHeight: .infinity)
                         case 3: SettingScreen(viewModel: settingViewModel, homeViewModel: homeViewModel,
                             onNavigateToLogin: {
                                 showLogin = true
@@ -33,9 +35,26 @@ struct ContentView: View {
                     }
                     Spacer(minLength: 75)
                 }
-                BottomTabBarView(selectedTab: $selectedTab)
+                BottomTabBarView(selectedTab: $selectedTab, onCalendarClick: {
+                    showCalendar = true
+                })
             }
             .ignoresSafeArea(.container, edges: .bottom)
+            .fullScreenCover(isPresented: $showCalendar) {
+                NavigationStack {
+                    MapleCalendarScreen(
+                        viewModel: calendarViewModel,
+                        onNavigateToEventDetail: { eventId in
+                            // 상세 페이지 로직
+                        }
+                    )
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("닫기") { showCalendar = false }
+                        }
+                    }
+                }
+            }
             
             .navigationDestination(isPresented: $showLogin) {
                 LoginScreen(
