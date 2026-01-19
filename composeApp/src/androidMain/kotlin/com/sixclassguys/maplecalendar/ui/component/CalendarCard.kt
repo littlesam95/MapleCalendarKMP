@@ -1,5 +1,7 @@
 package com.sixclassguys.maplecalendar.ui.component
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +42,7 @@ import com.sixclassguys.maplecalendar.utils.plusMonths
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarCard(
     uiState: CalendarUiState,
