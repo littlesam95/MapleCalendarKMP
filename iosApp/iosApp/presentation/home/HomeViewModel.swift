@@ -15,7 +15,7 @@ class HomeViewModel: ObservableObject {
         errorMessage: nil
     )
 
-    private lazy var helper = KMPHelper()
+    private lazy var helper = KMPHelperKt.getKMPHelper()
         
     private lazy var getApiKeyUseCase = helper.getApiKeyUseCase
     private lazy var getTodayEventsUseCase = helper.getTodayEventsUseCase
@@ -25,41 +25,6 @@ class HomeViewModel: ObservableObject {
 
     init() {
         onIntent(intent: HomeIntent.LoadApiKey())
-    }
-    
-    private func getHelper() -> KMPHelper {
-        return KMPHelperKt.getKMPHelper()
-    }
-
-    func onIntent(intent: HomeIntent) {
-        // UI 상태 업데이트는 반드시 메인 스레드에서 수행
-        Task { @MainActor in
-            let newState = helper.homeReducer.reduce(currentState: self.uiState, intent: intent)
-            self.uiState = newState
-            
-            // 디버깅용 로그: 실제 데이터가 담겼는지 확인
-            if intent is HomeIntent.LoadCharacterBasicSuccess {
-                print("✅ UIState Updated: Name = \(self.uiState.characterBasic?.characterName ?? "None")")
-                print("✅ UIState Updated: Loading = \(self.uiState.isLoading)")
-            }
-        }
-
-        // Side Effect 처리는 기존 로직 유지 (비동기 함수 호출)
-        switch intent {
-        case is HomeIntent.LoadApiKey:
-            getNexonOpenApiKey()
-            
-        case let i as HomeIntent.LoadCharacterBasic:
-            getCharacterBasic(apiKey: i.apiKey)
-            
-        case is HomeIntent.LoadApiKeyFailed,
-             is HomeIntent.LoadCharacterBasicSuccess,
-             is HomeIntent.LoadCharacterBasicFailed:
-            getTodayEvents()
-            
-        default:
-            break
-        }
     }
 
     private func getNexonOpenApiKey() {
@@ -137,6 +102,37 @@ class HomeViewModel: ObservableObject {
             } catch {
                 print("Today Events Load Error: \(error)")
             }
+        }
+    }
+    
+    func onIntent(intent: HomeIntent) {
+        // UI 상태 업데이트는 반드시 메인 스레드에서 수행
+        Task { @MainActor in
+            let newState = helper.homeReducer.reduce(currentState: self.uiState, intent: intent)
+            self.uiState = newState
+            
+            // 디버깅용 로그: 실제 데이터가 담겼는지 확인
+            if intent is HomeIntent.LoadCharacterBasicSuccess {
+                print("✅ UIState Updated: Name = \(self.uiState.characterBasic?.characterName ?? "None")")
+                print("✅ UIState Updated: Loading = \(self.uiState.isLoading)")
+            }
+        }
+
+        // Side Effect 처리는 기존 로직 유지 (비동기 함수 호출)
+        switch intent {
+        case is HomeIntent.LoadApiKey:
+            getNexonOpenApiKey()
+            
+        case let i as HomeIntent.LoadCharacterBasic:
+            getCharacterBasic(apiKey: i.apiKey)
+            
+        case is HomeIntent.LoadApiKeyFailed,
+             is HomeIntent.LoadCharacterBasicSuccess,
+             is HomeIntent.LoadCharacterBasicFailed:
+            getTodayEvents()
+            
+        default:
+            break
         }
     }
 }
