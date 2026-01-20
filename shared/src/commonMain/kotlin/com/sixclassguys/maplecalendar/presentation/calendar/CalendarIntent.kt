@@ -52,13 +52,13 @@ sealed class CalendarIntent {
 
     data class SubmitNotificationTimesFailed(val message: String) : CalendarIntent()
 
-    // 캡슐화를 위한 internal class : 앱 내부 로직(ViewModel, API)에 의해 발생하는 비동기 결과
-    internal data class SaveEventsByDay(
+    // 캡슐화를 위한 class : 앱 내부 로직(ViewModel, API)에 의해 발생하는 비동기 결과
+    data class SaveEventsByDay(
         val key: String,
         val apiState: ApiState<List<MapleEvent>>
     ) : CalendarIntent()
 
-    internal data class SaveEventsByMonth(
+    data class SaveEventsByMonth(
         val key: String,
         val apiState: ApiState<List<MapleEvent>>
     ) : CalendarIntent()

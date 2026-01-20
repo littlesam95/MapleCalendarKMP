@@ -1,5 +1,6 @@
 package com.sixclassguys.maplecalendar.ui.component
 
+import android.annotation.SuppressLint
 import android.view.MotionEvent
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -15,6 +16,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.sixclassguys.maplecalendar.ui.calendar.COLLAPSED_TOP_BAR_HEIGHT
 import com.sixclassguys.maplecalendar.utils.convertToMobileUrl
 
+@SuppressLint("ClickableViewAccessibility", "ConfigurationScreenWidthHeight",
+    "SetJavaScriptEnabled"
+)
 @Composable
 fun EventWebView(
     url: String,

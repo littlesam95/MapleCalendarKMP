@@ -82,7 +82,8 @@ class CalendarReducer {
             is CalendarIntent.FetchGlobalAlarmStatusSuccess -> {
                 currentState.copy(
                     isLoading = false,
-                    isGlobalAlarmEnabled = intent.isEnabled
+                    isGlobalAlarmEnabled = intent.isEnabled,
+                    selectedDate = getTodayDate()
                 )
             }
 
@@ -100,7 +101,7 @@ class CalendarReducer {
                     year = targetDate.year,
                     month = targetDate.month,
                     days = generateDays(targetDate.year, targetDate.month),
-                    selectedDate = getTodayDate()
+                    selectedDate = currentState.selectedDate
                 )
             }
 

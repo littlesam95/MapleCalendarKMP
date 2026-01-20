@@ -27,11 +27,15 @@ struct TabCurveShape: Shape {
         return path
     }
 }
+
 struct BottomTabBarView: View {
+    
     @Binding var selectedTab: Int
+    var onCalendarClick: () -> Void // 💡 추가
     let mainColor = Color.mapleOrange
     
     var body: some View {
+        
         ZStack(alignment: .top) {
             // 1. 투명하게 뚫린 배경 쉐이프
             // Shape 자체가 파여 있으므로 .fill을 하면 파인 윗부분은 자동으로 투명해집니다.
@@ -54,7 +58,7 @@ struct BottomTabBarView: View {
             .padding(.top, 15)
             
             // 3. 중앙 돌출 버튼
-            Button(action: { /* 액션 */ }) {
+            Button(action: { onCalendarClick() }) {
                 ZStack {
                     // 배경에 흰색 원을 넣지 않아야 뒤쪽 콘텐츠가 보입니다.
                     Circle()

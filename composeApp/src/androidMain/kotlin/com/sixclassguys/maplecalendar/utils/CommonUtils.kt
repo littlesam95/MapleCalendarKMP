@@ -1,5 +1,7 @@
 package com.sixclassguys.maplecalendar.utils
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toJavaLocalDateTime
@@ -8,10 +10,12 @@ import java.time.format.DateTimeFormatter
 object MapleDateFormatters {
 
     // Java의 DateTimeFormatter를 그대로 활용합니다.
+    @RequiresApi(Build.VERSION_CODES.O)
     val notificationFormatter: DateTimeFormatter =
         DateTimeFormatter.ofPattern("yyyy년 M월 d일 HH시 mm분")
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun LocalDateTime.toMapleNotificationString(): String {
     // kotlinx -> java 변환 후 포맷팅
     return this.toJavaLocalDateTime().format(MapleDateFormatters.notificationFormatter)
