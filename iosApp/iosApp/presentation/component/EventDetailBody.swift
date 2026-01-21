@@ -26,22 +26,23 @@ struct EventDetailBody: View {
     }
     
     private var tagsSection: some View {
-        HStack(spacing: 8) {
-            Text("선데이")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
-                .background(Color.blue.opacity(0.4))
-                .cornerRadius(16)
-            
-            Spacer()
+        Group {
+            if let eventTypes = viewModel.uiState.selectedEvent?.eventTypes, !eventTypes.isEmpty {
+                // 태그가 많을 경우를 대비해 ScrollView 또는 Flow 형태를 고려하세요.
+                // 여기서는 일단 ScrollView로 가로 스크롤이 가능하게 처리했습니다.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(eventTypes, id: \.self) { type in
+                            EventTypeTag(typeName: type)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
+                .padding(.vertical, 12)
+            }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
     }
     
-    // MARK: - 알림 설정 영역
     private var notificationSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             // 타이틀 및 스위치 영역
@@ -100,5 +101,27 @@ struct EventDetailBody: View {
             }
         }
         .padding(16)
+    }
+}
+
+struct EventTypeTag: View {
+    
+    let typeName: String
+    
+    var body: some View {
+        
+        let type = MapleEventType.fromString(typeName)
+        
+        Text(type.rawValue)
+            .font(.system(size: 10, weight: .bold))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .foregroundColor(type.color)
+            .background(type.color.opacity(0.1))
+            .cornerRadius(4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(type.color.opacity(0.5), lineWidth: 1)
+            )
     }
 }
