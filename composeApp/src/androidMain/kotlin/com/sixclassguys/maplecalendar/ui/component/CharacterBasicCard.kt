@@ -1,7 +1,7 @@
 package com.sixclassguys.maplecalendar.ui.component
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -21,21 +20,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.sixclassguys.maplecalendar.R
 import com.sixclassguys.maplecalendar.domain.model.CharacterBasic
 import com.sixclassguys.maplecalendar.theme.MapleOrange
+import com.sixclassguys.maplecalendar.utils.MapleWorld
 
 @Composable
 fun CharacterBasicCard(
     basic: CharacterBasic
 ) {
+    val worldMark = MapleWorld.getWorld(basic.worldName)?.iconRes ?: R.drawable.ic_world_scania
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -46,76 +49,89 @@ fun CharacterBasicCard(
     ) {
         Row(
             modifier = Modifier
-                .padding(20.dp)
+                .padding(16.dp) // 전체 여백 살짝 조정
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically // 세로 중앙 정렬
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // 1. 캐릭터 이미지 (Coil 사용)
+            // 1. 캐릭터 이미지 영역
             Box(
                 modifier = Modifier
-                    .size(140.dp) // 카드 크기에 맞춰 조절
-                    .clip(RoundedCornerShape(8.dp)),
+                    .size(140.dp),
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
                     model = basic.characterImage,
                     contentDescription = "캐릭터 아바타",
                     modifier = Modifier
-                        .size(200.dp)
+                        .size(240.dp) // 와이어프레임처럼 크게 강조
                         .graphicsLayer(
-                            scaleX = 2.7f,
-                            scaleY = 2.7f,
-                            // [핵심] 음수 값을 주어 캐릭터를 위로 올립니다.
-                            // 캐릭터 위치에 따라 -40f ~ -80f 사이에서 조절해 보세요.
-                            translationY = -60f
+                            scaleX = 2.8f,
+                            scaleY = 2.8f,
+                            translationY = -40f // 와이어프레임 높이에 맞춰 조정
                         ),
                     contentScale = ContentScale.Fit
                 )
             }
 
-            Spacer(modifier = Modifier.width(24.dp)) // 이미지와 텍스트 사이 간격 확대
+            Spacer(modifier = Modifier.width(16.dp))
 
             // 2. 캐릭터 정보 열
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp) // 행 사이 간격
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // 이름과 길드 버튼 행
+                // 이름 / 월드아이콘 / 길드 버튼 행
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween // 이름은 왼쪽, 길드는 오른쪽
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = basic.characterName,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp, // 더 크게 강조
+                        fontWeight = FontWeight.ExtraBold,
                         color = Color.Black
                     )
 
-                    // 길드 표시 (Pill 모양)
+                    Image(
+                        painter = painterResource(id = worldMark),
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // 길드 표시
                     Surface(
-                        border = BorderStroke(1.dp, Color.Gray),
-                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Color.Black),
+                        shape = RoundedCornerShape(16.dp),
                         color = Color.White
                     ) {
                         Text(
-                            text = "${basic.characterGuildName}",
-                            fontSize = 11.sp,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                            color = Color.DarkGray
+                            text = basic.characterGuildName,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp),
+                            color = Color.Black
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Lv. ${basic.characterLevel}  ${basic.characterExpRate}%",
+                    fontSize = 15.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold
+                )
 
-                // 상세 정보들
-                CharacterDetailRow("Lv. ${basic.characterLevel}  ${basic.characterExpRate}%")
-                CharacterDetailRow(basic.characterClass)
+                Text(
+                    text = basic.characterClass,
+                    fontSize = 15.sp,
+                    color = Color.Black
+                )
 
-                // 유니온, 무릉 등은 character/basic 외 별도 API가 필요하지만 일단 레이아웃 유지
-                CharacterDetailRow("유니온", "10,597") // 예시 데이터
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // 서버에서 아직 이 정보들을 보내주지 않음
+                CharacterDetailRow("유니온", "10,597")
                 CharacterDetailRow("인기도", "141")
                 CharacterDetailRow("무릉", "100층")
                 CharacterDetailRow("종합", "10,597위")
@@ -126,21 +142,22 @@ fun CharacterBasicCard(
 }
 
 @Composable
-fun CharacterDetailRow(label: String, value: String? = null) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+fun CharacterDetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
             text = label,
-            fontSize = 13.sp,
-            color = Color.Black
+            fontSize = 14.sp,
+            color = Color.Black,
+            modifier = Modifier.width(50.dp) // 레이블 너비 고정으로 정렬 유지
         )
-        if (value != null) {
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = value,
-                fontSize = 13.sp,
-                color = Color.Black,
-                fontWeight = FontWeight.Medium
-            )
-        }
+        Text(
+            text = value,
+            fontSize = 14.sp,
+            color = Color.Black,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
