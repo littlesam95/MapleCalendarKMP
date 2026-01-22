@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +42,7 @@ import com.sixclassguys.maplecalendar.ui.component.TodayEventsCard
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
+    snackbarHostState: SnackbarHostState,
     onNavigateToLogin: () -> Unit
 ) {
     val context = LocalContext.current
@@ -61,6 +63,13 @@ fun HomeScreen(
         if (uiState.isNavigateToLogin) {
             onNavigateToLogin()
             viewModel.onIntent(HomeIntent.NavigationHandled)
+        }
+    }
+
+    LaunchedEffect(uiState.errorMessage) {
+        val message = uiState.errorMessage
+        if (message != null) {
+            snackbarHostState.showSnackbar(message = message)
         }
     }
 

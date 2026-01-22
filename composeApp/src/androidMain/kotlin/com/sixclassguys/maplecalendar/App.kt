@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,7 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sixclassguys.maplecalendar.navigation.Navigation
@@ -44,6 +45,7 @@ fun App() {
     val homeViewModel: HomeViewModel = koinViewModel(viewModelStoreOwner = activity)
     val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
+    val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -75,6 +77,7 @@ fun App() {
             modifier = Modifier.weight(1f),
             // 시스템 바 인셋을 Scaffold가 자동으로 소비하지 않도록 0으로 설정
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             bottomBar = {
                 // 커스텀 Bottom Navigation Bar 적용
                 if (currentRoute in screenWithBottomBar) {
@@ -103,6 +106,7 @@ fun App() {
                     .background(Color.Transparent),
                 navController = navController,
                 startDestination = "main_flow",
+                snackbarHostState = snackbarHostState,
                 homeViewModel = homeViewModel
             )
         }

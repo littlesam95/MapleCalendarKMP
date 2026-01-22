@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -36,6 +37,7 @@ fun NavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     startDestination: String,
+    snackbarHostState: SnackbarHostState,
     homeViewModel: HomeViewModel
 ) {
     val activity = LocalContext.current as ComponentActivity
@@ -53,6 +55,7 @@ fun NavHost(
                 // val homeViewModel: HomeViewModel = koinViewModel(viewModelStoreOwner = activity)
                 SplashScreen(
                     viewModel = homeViewModel,
+                    snackbarHostState = snackbarHostState,
                     onNavigateToHome = {
                         navController.navigate(Navigation.Home.destination) {
                             popUpTo(Navigation.Splash.destination) { inclusive = true }
@@ -67,6 +70,7 @@ fun NavHost(
                 // 이제 이 homeViewModel은 "main_flow"의 핸들을 가지고 있음
                 HomeScreen(
                     viewModel = homeViewModel,
+                    snackbarHostState = snackbarHostState,
                     onNavigateToLogin = {
                         navController.navigate("login_flow")
                     }
@@ -109,7 +113,8 @@ fun NavHost(
 
         composable(Navigation.Setting.destination) {
             SettingScreen(
-                homeViewModel = homeViewModel
+                homeViewModel = homeViewModel,
+                snackbarHostState = snackbarHostState
             ) {
                 navController.navigate("login_flow")
             }
