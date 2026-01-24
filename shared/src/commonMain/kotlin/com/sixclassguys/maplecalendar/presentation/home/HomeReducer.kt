@@ -11,10 +11,19 @@ class HomeReducer {
             )
         }
 
+        is HomeIntent.LoadEmptyApiKey -> {
+            currentState.copy(
+                isLoading = false,
+                isAutoLoginFinished = true,
+                isLoginSuccess = false
+            )
+        }
+
         is HomeIntent.LoadApiKeyFailed -> {
             currentState.copy(
                 isLoading = false,
                 isAutoLoginFinished = true,
+                isLoginSuccess = false,
                 errorMessage = intent.message
             )
         }
@@ -30,6 +39,7 @@ class HomeReducer {
             currentState.copy(
                 isLoading = false,
                 isAutoLoginFinished = true,
+                isLoginSuccess = true,
                 characterBasic = intent.characterBasic,
                 characterDojangRanking = intent.characterDojangRanking,
                 characterOverallRanking = intent.characterOverallRanking,
@@ -102,7 +112,13 @@ class HomeReducer {
             currentState.copy(
                 isLoading = false,
                 isAutoLoginFinished = false,
+                isLoginSuccess = false,
+                nexonApiKey = null,
                 characterBasic = null,
+                characterDojangRanking = null,
+                characterOverallRanking = null,
+                characterServerRanking = null,
+                characterUnion = null,
                 isGlobalAlarmEnabled = false
             )
         }

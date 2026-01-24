@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -109,7 +110,7 @@ fun SettingScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         // 💡 로그인 상태에 따른 UI 분기
-        if (!homeUiState.isAutoLoginFinished) {
+        if (!homeUiState.isLoginSuccess) {
             MapleButton(
                 text = "로그인",
                 onClick = onNavigateToLogin,
@@ -157,6 +158,7 @@ fun SettingScreen(
                 onClick = {
                     viewModel.onIntent(SettingIntent.Logout)
                     homeViewModel.onIntent(HomeIntent.Logout)
+                    Toast.makeText(context, "로그아웃에 성공했어요.", Toast.LENGTH_SHORT).show()
                 },
                 containerColor = Color(0xFFFF7E7E) // 로그아웃용 붉은 계열
             )

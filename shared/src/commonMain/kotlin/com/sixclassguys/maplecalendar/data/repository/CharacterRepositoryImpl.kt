@@ -22,7 +22,7 @@ class CharacterRepositoryImpl(
         val ocid = dataStore.characterOcid.first()
         
         if (ocid == null) {
-            emit(ApiState.Error("No OCID found"))
+            emit(ApiState.Success(""))
         } else {
             emit(ApiState.Success(ocid))
         }
@@ -57,7 +57,7 @@ class CharacterRepositoryImpl(
         val apiKey = dataStore.openApiKey.first()
 
         if (apiKey == null) {
-            emit(ApiState.Error("No API Key found"))
+            emit(ApiState.Success(""))
         } else {
             emit(ApiState.Success(apiKey))
         }

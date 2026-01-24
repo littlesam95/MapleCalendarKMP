@@ -43,7 +43,11 @@ class HomeViewModel(
             getApiKeyUseCase().collect { state ->
                 when (state) {
                     is ApiState.Success -> {
-                        onIntent(HomeIntent.LoadCharacterBasic(state.data))
+                        if (state.data == "") {
+                            onIntent(HomeIntent.LoadEmptyApiKey)
+                        } else {
+                            onIntent(HomeIntent.LoadCharacterBasic(state.data))
+                        }
                     }
 
                     is ApiState.Error -> {
@@ -166,6 +170,10 @@ class HomeViewModel(
 
             is HomeIntent.LoadCharacterBasic -> {
                 getCharacterBasic(intent.apiKey)
+            }
+
+            is HomeIntent.LoadEmptyApiKey -> {
+                getTodayEvents()
             }
 
             is HomeIntent.LoadApiKeyFailed -> {

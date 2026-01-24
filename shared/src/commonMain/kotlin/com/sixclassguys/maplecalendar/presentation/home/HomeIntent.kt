@@ -10,6 +10,8 @@ sealed class HomeIntent {
 
     data object LoadApiKey : HomeIntent()
 
+    data object LoadEmptyApiKey : HomeIntent()
+
     data class LoadApiKeyFailed(val message: String) : HomeIntent()
 
     data class LoadCharacterBasic(val apiKey: String) : HomeIntent()

@@ -9,6 +9,7 @@ import com.sixclassguys.maplecalendar.domain.model.MapleEvent
 data class HomeUiState(
     val isLoading: Boolean = false,
     val isAutoLoginFinished: Boolean = false,
+    val isLoginSuccess: Boolean = false,
     val nexonApiKey: String? = null,
     val characterBasic: CharacterBasic? = null,
     val characterDojangRanking: CharacterDojangRanking? = null,
