@@ -8,6 +8,10 @@ local.properties
 captures
 .externalNativeBuild
 .cxx
+*.aab
+*.apk
+*.ap_
+*.dex
 
 # Kotlin Multiplatform / Native
 .konan/
