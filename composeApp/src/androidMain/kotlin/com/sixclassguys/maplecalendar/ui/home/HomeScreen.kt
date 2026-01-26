@@ -48,15 +48,12 @@ fun HomeScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
-    val loginSuccess by viewModel.savedStateHandle.getStateFlow("loginSuccess", false)
-        .collectAsState()
 
-    LaunchedEffect(loginSuccess) {
-        if (loginSuccess) {
+    LaunchedEffect(uiState.member) {
+        val member = uiState.member
+        if (member != null) {
             Toast.makeText(context, "로그인에 성공했습니다!", Toast.LENGTH_SHORT).show()
-            viewModel.onIntent(HomeIntent.LoadApiKey)
-            // 처리가 끝났다면 다시 false로 돌려준다.
-            viewModel.savedStateHandle["loginSuccess"] = false
+            // viewModel.onIntent(HomeIntent.LoadApiKey)
         }
     }
 

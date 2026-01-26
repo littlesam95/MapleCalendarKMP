@@ -17,6 +17,7 @@ import com.sixclassguys.maplecalendar.navigation.Navigation
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
 import com.sixclassguys.maplecalendar.presentation.home.HomeViewModel
+import com.sixclassguys.maplecalendar.presentation.login.LoginIntent
 import com.sixclassguys.maplecalendar.presentation.login.LoginViewModel
 import com.sixclassguys.maplecalendar.ui.board.BoardScreen
 import com.sixclassguys.maplecalendar.ui.calendar.MapleCalendarScreen
@@ -28,6 +29,7 @@ import com.sixclassguys.maplecalendar.ui.playlist.PlaylistScreen
 import com.sixclassguys.maplecalendar.ui.setting.SettingScreen
 import com.sixclassguys.maplecalendar.ui.splash.SplashScreen
 import io.github.aakira.napier.Napier
+import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -133,11 +135,17 @@ fun NavHost(
 
                 LoginScreen(
                     viewModel = loginViewModel,
-                    onNavigateToCharacterSelection = { navController.navigate(Navigation.SelectRepresentativeCharacter.destination) },
-                    onNavigateToHome = {
-                        Napier.d("Login 성공 - 값을 넣는 VM ID: ${homeViewModel.hashCode()}")
-                        homeViewModel.savedStateHandle["loginSuccess"] = true
-
+                    onBackClick = { navController.popBackStack() },
+                    onGoogleLoginClick = {
+                        loginViewModel.onIntent(LoginIntent.ClickGoogleLogin)
+                    },
+                    onNavigateToRegistration = {
+                        // navController.navigate(Navigation.CharacterRegistration.destination)
+                    },
+                    onNavigateToHome = { member ->
+                        // 홈 화면에 로그인 정보 전달
+                        val memberJson = Json.encodeToString(member)
+                        homeViewModel.savedStateHandle["login_member"] = memberJson
                         navController.navigate(Navigation.Home.destination) {
                             popUpTo(navController.graph.startDestinationId) {
                                 inclusive = true

@@ -1,5 +1,8 @@
 package com.sixclassguys.maplecalendar.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class CharacterBasic(
     val characterName: String,
     val worldName: String,

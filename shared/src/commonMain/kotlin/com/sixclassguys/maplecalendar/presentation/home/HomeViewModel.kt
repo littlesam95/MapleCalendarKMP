@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sixclassguys.maplecalendar.PermissionChecker
 import com.sixclassguys.maplecalendar.domain.model.ApiState
+import com.sixclassguys.maplecalendar.domain.model.Member
 import com.sixclassguys.maplecalendar.domain.usecase.AutoLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetFcmTokenUseCase
@@ -19,6 +20,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.json.Json
 
 class HomeViewModel(
     val savedStateHandle: SavedStateHandle,
@@ -36,6 +38,17 @@ class HomeViewModel(
 
     init {
         onIntent(HomeIntent.LoadApiKey)
+        viewModelScope.launch {
+            savedStateHandle.getStateFlow<String?>("login_member", null)
+                .collect { json ->
+                    if (json != null) {
+                        val member = Json.decodeFromString<Member>(json)
+                        Napier.d("Member: $member")
+                        _uiState.update { it.copy(isLoginSuccess = true, member = member) }
+                        savedStateHandle["login_member"] = null
+                    }
+                }
+        }
     }
 
     private fun getNexonOpenApiKey() {
