@@ -1,7 +1,7 @@
 package com.sixclassguys.maplecalendar.data.remote.dto
 
 import com.sixclassguys.maplecalendar.domain.model.AccountCharacter
-import com.sixclassguys.maplecalendar.domain.model.LoginResult
+import com.sixclassguys.maplecalendar.domain.model.LoginInfo
 import com.sixclassguys.maplecalendar.domain.model.Member
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -52,8 +52,8 @@ data class AutoLoginResponse(
     val characterDojang: DojangRankingResponse? = null
 )
 
-fun LoginResponse.toDomain(): LoginResult {
-    return LoginResult(
+fun LoginResponse.toDomain(): LoginInfo {
+    return LoginInfo(
         representativeOcid = this.representativeOcid,
         characters = this.characters.mapValues { entry ->
             entry.value.map { it.toDomain() }
@@ -73,6 +73,9 @@ fun AccountCharacterResponse.toDomain(): AccountCharacter {
 
 fun AutoLoginResponse.toDomain(): Member {
     return Member(
+        email = "",
+        nickname = "",
+        profileImageUrl = "",
         isGlobalAlarmEnabled = this.isGlobalAlarmEnabled,
         characterBasic = this.characterBasic?.toDomain(),
         characterPopularity = this.characterPopularity ?: 0,
