@@ -7,6 +7,8 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 
 class EventDataSourceImpl(
     private val httpClient: HttpClient
@@ -16,6 +18,8 @@ class EventDataSourceImpl(
         val response = try {
             httpClient.get("events/$eventId") {
                 header("x-nxopen-api-key", apiKey)
+
+                contentType(ContentType.Application.Json)
             }
         } catch (e: Exception) {
             // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
@@ -55,6 +59,8 @@ class EventDataSourceImpl(
                 parameter("year", year)
                 parameter("month", month)
                 parameter("day", day)
+
+                contentType(ContentType.Application.Json)
             }
         } catch (e: Exception) {
             // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
@@ -87,6 +93,8 @@ class EventDataSourceImpl(
             httpClient.get("events") {
                 parameter("year", year)
                 parameter("month", month)
+
+                contentType(ContentType.Application.Json)
             }
         } catch (e: Exception) {
             throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")

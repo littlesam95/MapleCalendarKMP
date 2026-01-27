@@ -6,6 +6,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 
 class NexonOpenApiDataSourceImpl(
     private val httpClient: HttpClient
@@ -15,6 +17,8 @@ class NexonOpenApiDataSourceImpl(
         val response = try {
             httpClient.get("character/basic") {
                 parameter("ocid", ocid)
+
+                contentType(ContentType.Application.Json)
             }
         } catch (e: Exception) {
             throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
