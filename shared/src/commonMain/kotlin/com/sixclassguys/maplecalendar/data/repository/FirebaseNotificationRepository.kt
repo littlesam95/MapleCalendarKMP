@@ -2,7 +2,7 @@ package com.sixclassguys.maplecalendar.data.repository
 
 import com.sixclassguys.maplecalendar.data.local.AppPreferences
 import com.sixclassguys.maplecalendar.data.remote.datasource.NotificationDataSource
-import com.sixclassguys.maplecalendar.data.remote.dto.TokenRequest
+import com.sixclassguys.maplecalendar.data.remote.dto.FcmTokenRequest
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.repository.NotificationRepository
 import com.sixclassguys.maplecalendar.getPlatform
@@ -70,7 +70,7 @@ class FirebaseNotificationRepository(
         if (lastToken != token) {
             try {
                 val response = notificationDataSource.registerToken(
-                    TokenRequest(
+                    FcmTokenRequest(
                         token = token,
                         platform = getPlatform().name
                     )
@@ -102,7 +102,7 @@ class FirebaseNotificationRepository(
 
         val response = notificationDataSource.unregisterToken(
             apiKey = apiKey,
-            request = TokenRequest(
+            request = FcmTokenRequest(
                 token = token,
                 platform = getPlatform().name
             )

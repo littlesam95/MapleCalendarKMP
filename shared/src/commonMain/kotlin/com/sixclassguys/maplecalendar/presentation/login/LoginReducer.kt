@@ -9,6 +9,48 @@ class LoginReducer {
             )
         }
 
+        is LoginIntent.ClickGoogleLogin -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is LoginIntent.GoogleLoginSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                isLoginSuccess = true,
+                member = intent.member,
+                showRegistrationDialog = intent.isNewMember
+            )
+        }
+
+        is LoginIntent.GoogleLoginFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
+        is LoginIntent.ClickAppleLogin -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is LoginIntent.AppleLoginSuccess -> {
+            currentState.copy(
+                isLoading = false,
+
+            )
+        }
+
+        is LoginIntent.AppleLoginFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
         is LoginIntent.UpdateApiKey -> {
             currentState.copy(
                 isLoading = false,

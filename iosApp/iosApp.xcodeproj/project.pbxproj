@@ -14,6 +14,8 @@
 		583D63B22F1F003B00CB5A37 /* ScalingHeaderScrollView in Frameworks */ = {isa = PBXBuildFile; productRef = 583D63B12F1F003B00CB5A37 /* ScalingHeaderScrollView */; };
 		58BD8E5B2F18D87700C8C5C7 /* shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 58BD8E592F18D75C00C8C5C7 /* shared.framework */; };
 		58BD8E5C2F18D87700C8C5C7 /* shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 58BD8E592F18D75C00C8C5C7 /* shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		58D21CAD2F25FDD500CFA07A /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 58D21CAC2F25FDD500CFA07A /* GoogleSignIn */; };
+		58D21CAF2F25FDD500CFA07A /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 58D21CAE2F25FDD500CFA07A /* GoogleSignInSwift */; };
 		58DC99A62F081BB90030D842 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 58DC99A52F081BB90030D842 /* FirebaseAnalytics */; };
 		58DC99A82F081BB90030D842 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 58DC99A72F081BB90030D842 /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
@@ -74,9 +76,11 @@
 			files = (
 				583C740D2F1A40BA008EAD6F /* Kingfisher in Frameworks */,
 				58BD8E5B2F18D87700C8C5C7 /* shared.framework in Frameworks */,
+				58D21CAF2F25FDD500CFA07A /* GoogleSignInSwift in Frameworks */,
 				58DC99A82F081BB90030D842 /* FirebaseMessaging in Frameworks */,
 				58DC99A62F081BB90030D842 /* FirebaseAnalytics in Frameworks */,
 				583D63B22F1F003B00CB5A37 /* ScalingHeaderScrollView in Frameworks */,
+				58D21CAD2F25FDD500CFA07A /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -132,6 +136,8 @@
 				58DC99A72F081BB90030D842 /* FirebaseMessaging */,
 				583C740C2F1A40BA008EAD6F /* Kingfisher */,
 				583D63B12F1F003B00CB5A37 /* ScalingHeaderScrollView */,
+				58D21CAC2F25FDD500CFA07A /* GoogleSignIn */,
+				58D21CAE2F25FDD500CFA07A /* GoogleSignInSwift */,
 			);
 			productName = iosApp;
 			productReference = DE013FA731F4C59A563B08C9 /* MapleCalendar.app */;
@@ -165,6 +171,7 @@
 				58DC99A42F081BB90030D842 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				583C740B2F1A40BA008EAD6F /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				583D63B02F1F003B00CB5A37 /* XCRemoteSwiftPackageReference "ScalingHeaderScrollView" */,
+				58D21CAB2F25FDD500CFA07A /* XCLocalSwiftPackageReference "../../Downloads/GoogleSignIn-iOS-main" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AFE2A029C55E60B304B05765 /* Products */;
@@ -462,6 +469,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		58D21CAB2F25FDD500CFA07A /* XCLocalSwiftPackageReference "../../Downloads/GoogleSignIn-iOS-main" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../../Downloads/GoogleSignIn-iOS-main";
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		583C740B2F1A40BA008EAD6F /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -499,6 +513,14 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 583D63B02F1F003B00CB5A37 /* XCRemoteSwiftPackageReference "ScalingHeaderScrollView" */;
 			productName = ScalingHeaderScrollView;
+		};
+		58D21CAC2F25FDD500CFA07A /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GoogleSignIn;
+		};
+		58D21CAE2F25FDD500CFA07A /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GoogleSignInSwift;
 		};
 		58DC99A52F081BB90030D842 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;

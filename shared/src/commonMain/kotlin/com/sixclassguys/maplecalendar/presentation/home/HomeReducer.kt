@@ -5,6 +5,53 @@ import io.github.aakira.napier.Napier
 class HomeReducer {
 
     fun reduce(currentState: HomeUiState, intent: HomeIntent): HomeUiState = when (intent) {
+        is HomeIntent.AutoLogin -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is HomeIntent.AutoLoginSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                isAutoLoginFinished = true,
+                isLoginSuccess = true,
+                member = intent.member
+            )
+        }
+
+        is HomeIntent.EmptyAccessToken -> {
+            currentState.copy(
+                isLoading = false,
+                isAutoLoginFinished = true,
+                isLoginSuccess = false
+            )
+        }
+
+        is HomeIntent.ReissueJwtToken -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is HomeIntent.AutoLoginFailed -> {
+            currentState.copy(
+                isLoading = false,
+                isAutoLoginFinished = true,
+                isLoginSuccess = false,
+                errorMessage = intent.message
+            )
+        }
+
+        is HomeIntent.LoginSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                isLoginSuccess = intent.isLoginSuccess,
+                member = intent.member,
+                errorMessage = null
+            )
+        }
+
         is HomeIntent.LoadApiKey -> {
             currentState.copy(
                 isLoading = true

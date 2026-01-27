@@ -38,11 +38,6 @@ fun MapleCalendarScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit) {
-        viewModel.onIntent(CalendarIntent.FetchNexonOpenApiKey)
-        viewModel.onIntent(CalendarIntent.FetchGlobalAlarmStatus)
-    }
-
     LaunchedEffect(uiState.errorMessage) {
         val message = uiState.errorMessage
         if (message != null) {

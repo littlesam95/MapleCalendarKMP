@@ -5,8 +5,21 @@ import com.sixclassguys.maplecalendar.domain.model.CharacterDojangRanking
 import com.sixclassguys.maplecalendar.domain.model.CharacterRanking
 import com.sixclassguys.maplecalendar.domain.model.CharacterUnion
 import com.sixclassguys.maplecalendar.domain.model.MapleEvent
+import com.sixclassguys.maplecalendar.domain.model.Member
 
 sealed class HomeIntent {
+
+    data object AutoLogin : HomeIntent()
+
+    data class AutoLoginSuccess(val member: Member) : HomeIntent()
+
+    data object EmptyAccessToken : HomeIntent()
+
+    data object ReissueJwtToken : HomeIntent()
+
+    data class AutoLoginFailed(val message: String) : HomeIntent()
+
+    data class LoginSuccess(val isLoginSuccess: Boolean, val member: Member) : HomeIntent()
 
     data object LoadApiKey : HomeIntent()
 

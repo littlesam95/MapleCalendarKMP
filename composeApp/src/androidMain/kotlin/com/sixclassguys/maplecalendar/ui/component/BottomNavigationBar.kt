@@ -151,8 +151,7 @@ fun BottomNavigationBar(
             containerColor = MapleOrange,
             contentColor = MapleWhite,
             shape = CircleShape,
-            modifier = Modifier
-                .size(60.dp)
+            modifier = Modifier.size(60.dp)
                 .align(Alignment.TopCenter)
                 // FAB 위치는 고정 (시스템 바 패딩에 영향받지 않도록)
                 .offset(y = (-10).dp)

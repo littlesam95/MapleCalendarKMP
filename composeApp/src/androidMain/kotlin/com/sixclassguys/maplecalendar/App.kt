@@ -1,6 +1,9 @@
 package com.sixclassguys.maplecalendar
 
+import android.annotation.SuppressLint
+import android.os.Build
 import androidx.activity.ComponentActivity
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
@@ -29,6 +32,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sixclassguys.maplecalendar.navigation.Navigation
 import com.sixclassguys.maplecalendar.navigation.navhost.NavHost
+import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
+import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
+import com.sixclassguys.maplecalendar.presentation.character.MapleCharacterViewModel
 import com.sixclassguys.maplecalendar.presentation.home.HomeViewModel
 import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleWhite
@@ -37,12 +43,16 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 
+@RequiresApi(Build.VERSION_CODES.O)
+@SuppressLint("ContextCastToActivity")
 @OptIn(KoinExperimentalAPI::class)
 @Composable
 @Preview
 fun App() {
     val activity = LocalContext.current as ComponentActivity
     val homeViewModel: HomeViewModel = koinViewModel(viewModelStoreOwner = activity)
+    val calendarViewModel: CalendarViewModel = koinViewModel(viewModelStoreOwner = activity)
+    val mapleCharacterViewModel: MapleCharacterViewModel = koinViewModel(viewModelStoreOwner = activity)
     val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -87,6 +97,8 @@ fun App() {
                             if (homeUiState.characterBasic == null) {
                                 navController.navigate("login_flow")
                             } else {
+                                calendarViewModel.onIntent(CalendarIntent.FetchNexonOpenApiKey)
+                                calendarViewModel.onIntent(CalendarIntent.FetchGlobalAlarmStatus)
                                 navController.navigate("calendar_flow")
                             }
                         }
@@ -107,7 +119,9 @@ fun App() {
                 navController = navController,
                 startDestination = "main_flow",
                 snackbarHostState = snackbarHostState,
-                homeViewModel = homeViewModel
+                homeViewModel = homeViewModel,
+                calendarViewModel = calendarViewModel,
+                mapleCharacterViewModel = mapleCharacterViewModel
             )
         }
     }

@@ -5,8 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.usecase.DoLoginWithApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetCharacterBasicUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetFcmTokenUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GoogleLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SetOpenApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SubmitRepresentativeCharacterUseCase
+import com.sixclassguys.maplecalendar.util.AuthManager
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -18,7 +22,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
+    private val authManager: AuthManager,
     private val reducer: LoginReducer,
+    private val getFcmTokenUseCase: GetFcmTokenUseCase,
+    private val googleLoginUseCase: GoogleLoginUseCase,
     private val doLoginWithApiKeyUseCase: DoLoginWithApiKeyUseCase,
     private val submitRepresentativeCharacterUseCase: SubmitRepresentativeCharacterUseCase,
     private val setOpenApiKeyUseCase: SetOpenApiKeyUseCase,
@@ -30,6 +37,46 @@ class LoginViewModel(
 
     init {
         initUiState()
+    }
+
+    private fun loginWithGoogle() {
+        viewModelScope.launch {
+            val idToken = authManager.signInWithGoogle()
+
+            if (idToken != null) {
+                // 💡 여기서 이제 서버(Spring)에 토큰을 보내는 UseCase를 호출해야 합니다.
+                // 예: authenticateWithGoogleUseCase(idToken).collect { ... }
+                println("구글 토큰 획득 성공: $idToken")
+
+                // 임시로 성공 처리하거나 다음 스텝(서버 검증)으로 넘김
+                submitUserInfo("google", idToken)
+            } else {
+                onIntent(LoginIntent.LoginFailed("구글 로그인에 실패했습니다."))
+            }
+        }
+    }
+
+    private fun submitUserInfo(platform: String, idToken: String) {
+        viewModelScope.launch {
+            val fcmToken = getFcmTokenUseCase() ?: ""
+            Napier.d("FCM 토큰: $fcmToken")
+            googleLoginUseCase(platform, idToken, fcmToken).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        val member = state.data.member
+                        val isNewMember = state.data.isNewMember
+                        Napier.d("멤버: $member")
+                        onIntent(LoginIntent.GoogleLoginSuccess(member, isNewMember))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(LoginIntent.LoginFailed("구글 로그인에 실패했습니다."))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
     }
 
     private fun loginWithApiKey() {
@@ -163,6 +210,10 @@ class LoginViewModel(
         }
 
         when (intent) {
+            is LoginIntent.ClickGoogleLogin -> {
+                loginWithGoogle()
+            }
+
             is LoginIntent.ClickLogin -> {
                 loginWithApiKey()
             }

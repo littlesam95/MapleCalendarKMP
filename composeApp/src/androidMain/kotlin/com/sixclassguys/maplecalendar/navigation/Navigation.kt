@@ -31,4 +31,10 @@ sealed class Navigation(
     data object Login : Navigation("login")
 
     data object SelectRepresentativeCharacter : Navigation("selectRepresentativeCharacter")
+
+    data object MapleCharacterList : Navigation("mapleCharacterList")
+
+    data object MapleCharacterFetch : Navigation("mapleCharacterFetch")
+
+    data object MapleCharacterSubmit : Navigation("mapleCharacterSubmit")
 }

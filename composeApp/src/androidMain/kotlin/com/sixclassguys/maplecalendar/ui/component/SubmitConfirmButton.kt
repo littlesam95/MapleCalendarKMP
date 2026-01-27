@@ -18,7 +18,7 @@ import com.sixclassguys.maplecalendar.theme.MapleWhite
 import com.sixclassguys.maplecalendar.theme.Typography
 
 @Composable
-fun RepresentativeConfirmButton(
+fun SubmitConfirmButton(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -26,8 +26,7 @@ fun RepresentativeConfirmButton(
     val textColor = if (isSelected) MapleWhite else MapleBlack
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
             .navigationBarsPadding() // 시스템 네비게이션 바와 겹침 방지
             .background(buttonColor)
             .clickable(enabled = isSelected) { onClick() }
@@ -35,7 +34,7 @@ fun RepresentativeConfirmButton(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "대표 캐릭터 선택",
+            text = "캐릭터 등록",
             style = Typography.titleMedium,
             color = textColor
         )

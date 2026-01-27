@@ -21,7 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.sixclassguys.maplecalendar.R
-import com.sixclassguys.maplecalendar.domain.model.AccountCharacter
+import com.sixclassguys.maplecalendar.domain.model.CharacterSummary
 import com.sixclassguys.maplecalendar.theme.MapleBlack
 import com.sixclassguys.maplecalendar.theme.MapleGray
 import com.sixclassguys.maplecalendar.theme.MapleOrange
@@ -29,7 +29,7 @@ import com.sixclassguys.maplecalendar.theme.Typography
 
 @Composable
 fun CharacterItemCard(
-    character: AccountCharacter,
+    character: CharacterSummary,
     characterImage: String,
     isSelected: Boolean,
     onClick: () -> Unit
@@ -55,8 +55,8 @@ fun CharacterItemCard(
                 contentDescription = "캐릭터 이미지",
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 contentScale = ContentScale.Fit,
-                placeholder = painterResource(R.drawable.ic_profile_default),
-                error = painterResource(R.drawable.ic_profile_default)
+                placeholder = painterResource(R.drawable.ic_character_silhouette),
+                error = painterResource(R.drawable.ic_character_silhouette)
             )
         } else {
             AsyncImage(
@@ -77,7 +77,8 @@ fun CharacterItemCard(
 
         Text(
             text = character.characterName,
-            style = Typography.bodyLarge
+            style = Typography.bodyLarge,
+            maxLines = 1
         )
         Text(
             text = "Lv.${character.characterLevel}",

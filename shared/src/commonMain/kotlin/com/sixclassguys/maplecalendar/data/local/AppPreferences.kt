@@ -23,6 +23,17 @@ class AppPreferences(
     suspend fun deleteToken() = dataStore.edit { it.remove(KEY_LAST_SENT_FCM_TOKEN) }
 
     // --- 로그인 관련 ---
+    val accessToken: Flow<String> = dataStore.data.map { it[ACCESS_TOKEN] ?: "" }
+    val refreshToken: Flow<String> = dataStore.data.map { it[REFRESH_TOKEN] ?: "" }
+    suspend fun saveJwtTokens(accessToken: String, refreshToken: String) = dataStore.edit {
+        if (accessToken.isNotBlank()) {
+            it[ACCESS_TOKEN] = accessToken
+        }
+        if (refreshToken.isNotBlank()) {
+            it[REFRESH_TOKEN] = refreshToken
+        }
+    }
+
     val openApiKey: Flow<String?> = dataStore.data.map { it[OPEN_API_KEY] }
     suspend fun saveOpenApiKey(key: String) = dataStore.edit { it[OPEN_API_KEY] = key }
 
@@ -49,6 +60,10 @@ class AppPreferences(
     }
 
     companion object {
+
+        private val ACCESS_TOKEN = stringPreferencesKey("access_token")
+
+        private val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
 
         private val KEY_LAST_SENT_FCM_TOKEN = stringPreferencesKey("last_sent_fcm_token")
         private val OPEN_API_KEY = stringPreferencesKey("open_api_key")

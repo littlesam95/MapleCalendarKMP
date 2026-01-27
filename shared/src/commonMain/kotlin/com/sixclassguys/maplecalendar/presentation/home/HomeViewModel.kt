@@ -5,10 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sixclassguys.maplecalendar.PermissionChecker
 import com.sixclassguys.maplecalendar.domain.model.ApiState
+import com.sixclassguys.maplecalendar.domain.model.Member
 import com.sixclassguys.maplecalendar.domain.usecase.AutoLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetFcmTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetTodayEventsUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.ReissueJwtTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleGlobalAlarmStatusUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +21,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.json.Json
 
 class HomeViewModel(
     val savedStateHandle: SavedStateHandle,
@@ -27,6 +30,7 @@ class HomeViewModel(
     private val getApiKeyUseCase: GetApiKeyUseCase,
     private val getFcmTokenUseCase: GetFcmTokenUseCase,
     private val autoLoginUseCase: AutoLoginUseCase,
+    private val reissueJwtTokenUseCase: ReissueJwtTokenUseCase,
     private val toggleGlobalAlarmStatusUseCase: ToggleGlobalAlarmStatusUseCase,
     private val getTodayEventsUseCase: GetTodayEventsUseCase
 ) : ViewModel() {
@@ -35,51 +39,36 @@ class HomeViewModel(
     val uiState = _uiState.asStateFlow()
 
     init {
-        onIntent(HomeIntent.LoadApiKey)
-    }
+        onIntent(HomeIntent.AutoLogin)
 
-    private fun getNexonOpenApiKey() {
         viewModelScope.launch {
-            getApiKeyUseCase().collect { state ->
-                when (state) {
-                    is ApiState.Success -> {
-                        if (state.data == "") {
-                            onIntent(HomeIntent.LoadEmptyApiKey)
-                        } else {
-                            onIntent(HomeIntent.LoadCharacterBasic(state.data))
-                        }
+            savedStateHandle.getStateFlow<String?>("login_member", null)
+                .collect { json ->
+                    if (json != null) {
+                        val member = Json.decodeFromString<Member>(json)
+                        onIntent(HomeIntent.LoginSuccess(true, member))
+                        savedStateHandle["login_member"] = null
                     }
-
-                    is ApiState.Error -> {
-                        onIntent(HomeIntent.LoadApiKeyFailed(state.message))
-                    }
-
-                    else -> {}
                 }
-            }
         }
     }
 
-    private fun getCharacterBasic(apiKey: String) {
+    private fun autoLogin() {
         viewModelScope.launch {
             val fcmToken = getFcmTokenUseCase() ?: ""
-            autoLoginUseCase(apiKey, fcmToken).collect { state ->
+            autoLoginUseCase(fcmToken).collect { state ->
                 when (state) {
                     is ApiState.Success -> {
-                        onIntent(
-                            HomeIntent.LoadCharacterBasicSuccess(
-                                state.data.characterBasic,
-                                state.data.characterDojang,
-                                state.data.characterOverallRanking,
-                                state.data.characterServerRanking,
-                                state.data.characterUnionLevel,
-                                state.data.isGlobalAlarmEnabled
-                            )
-                        )
+                        val member = state.data.member
+                        onIntent(HomeIntent.AutoLoginSuccess(member))
+                    }
+
+                    is ApiState.Empty -> {
+                        onIntent(HomeIntent.EmptyAccessToken)
                     }
 
                     is ApiState.Error -> {
-                        onIntent(HomeIntent.LoadCharacterBasicFailed(state.message))
+                        onIntent(HomeIntent.ReissueJwtToken)
                     }
 
                     else -> {}
@@ -87,6 +76,74 @@ class HomeViewModel(
             }
         }
     }
+
+    private fun reissueJwtToken() {
+        viewModelScope.launch {
+            reissueJwtTokenUseCase().collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(HomeIntent.AutoLogin)
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(HomeIntent.AutoLoginFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+//    private fun getNexonOpenApiKey() {
+//        viewModelScope.launch {
+//            getApiKeyUseCase().collect { state ->
+//                when (state) {
+//                    is ApiState.Success -> {
+//                        if (state.data == "") {
+//                            onIntent(HomeIntent.LoadEmptyApiKey)
+//                        } else {
+//                            onIntent(HomeIntent.LoadCharacterBasic(state.data))
+//                        }
+//                    }
+//
+//                    is ApiState.Error -> {
+//                        onIntent(HomeIntent.LoadApiKeyFailed(state.message))
+//                    }
+//
+//                    else -> {}
+//                }
+//            }
+//        }
+//    }
+//
+//    private fun getCharacterBasic(apiKey: String) {
+//        viewModelScope.launch {
+//            val fcmToken = getFcmTokenUseCase() ?: ""
+//            autoLoginUseCase(apiKey, fcmToken).collect { state ->
+//                when (state) {
+//                    is ApiState.Success -> {
+//                        onIntent(
+//                            HomeIntent.LoadCharacterBasicSuccess(
+//                                state.data.characterBasic,
+//                                state.data.characterDojang,
+//                                state.data.characterOverallRanking,
+//                                state.data.characterServerRanking,
+//                                state.data.characterUnionLevel,
+//                                state.data.isGlobalAlarmEnabled
+//                            )
+//                        )
+//                    }
+//
+//                    is ApiState.Error -> {
+//                        onIntent(HomeIntent.LoadCharacterBasicFailed(state.message))
+//                    }
+//
+//                    else -> {}
+//                }
+//            }
+//        }
+//    }
 
     private fun handleSyncNotification() {
         viewModelScope.launch {
@@ -145,10 +202,12 @@ class HomeViewModel(
             ).collect { state ->
                 when (state) {
                     is ApiState.Success -> {
+                        Napier.d("이벤트 조회 성공")
                         onIntent(HomeIntent.LoadEventsSuccess(state.data))
                     }
 
                     is ApiState.Error -> {
+                        Napier.e("이벤트 조회 실패")
                         onIntent(HomeIntent.LoadEventsFailed(state.message))
                     }
 
@@ -164,12 +223,33 @@ class HomeViewModel(
         }
 
         when (intent) {
+            is HomeIntent.AutoLogin -> {
+                autoLogin()
+            }
+
+            is HomeIntent.ReissueJwtToken -> {
+                reissueJwtToken()
+            }
+
+            is HomeIntent.AutoLoginSuccess -> {
+                getTodayEvents()
+            }
+
+            is HomeIntent.AutoLoginFailed -> {
+                getTodayEvents()
+            }
+
+            is HomeIntent.EmptyAccessToken -> {
+                Napier.d("Access Token이 비었습니다잉.")
+                getTodayEvents()
+            }
+
             is HomeIntent.LoadApiKey -> {
-                getNexonOpenApiKey()
+                // getNexonOpenApiKey()
             }
 
             is HomeIntent.LoadCharacterBasic -> {
-                getCharacterBasic(intent.apiKey)
+                // getCharacterBasic(intent.apiKey)
             }
 
             is HomeIntent.LoadEmptyApiKey -> {

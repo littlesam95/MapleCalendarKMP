@@ -2,14 +2,29 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NexonApiKey</key>
-	<string>$(NEXON_API_KEY)</string>
+	<key>GIDClientID</key>
+	<string>292941521076-1kfl5q15lc8e50vp1a6vbiu5ojhg728g.apps.googleusercontent.com</string>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.sixclassguys.maplecalendar</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.292941521076-1kfl5q15lc8e50vp1a6vbiu5ojhg728g</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
+	<key>NexonApiKey</key>
+	<string>$(NEXON_API_KEY)</string>
 </dict>
 </plist>

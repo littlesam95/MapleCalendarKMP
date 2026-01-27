@@ -6,6 +6,8 @@ import com.sixclassguys.maplecalendar.data.remote.datasource.AuthDataSource
 import com.sixclassguys.maplecalendar.data.remote.datasource.AuthDataSourceImpl
 import com.sixclassguys.maplecalendar.data.remote.datasource.EventDataSource
 import com.sixclassguys.maplecalendar.data.remote.datasource.EventDataSourceImpl
+import com.sixclassguys.maplecalendar.data.remote.datasource.MapleCharacterDataSource
+import com.sixclassguys.maplecalendar.data.remote.datasource.MapleCharacterDataSourceImpl
 import com.sixclassguys.maplecalendar.data.remote.datasource.MemberDataSource
 import com.sixclassguys.maplecalendar.data.remote.datasource.MemberDataSourceImpl
 import com.sixclassguys.maplecalendar.data.remote.datasource.NexonOpenApiDataSource
@@ -56,7 +58,6 @@ val networkModule = module {
 
             defaultRequest {
                 url("http://52.78.54.150:8080/api/")
-                contentType(ContentType.Application.Json)
             }
         }
     }
@@ -116,6 +117,9 @@ val networkModule = module {
 
     // Event DataSource 객체 주입
     single<EventDataSource> { EventDataSourceImpl(get(named("BackendClient"))) }
+
+    // MapleCharacter DataSource 객체 주입
+    single<MapleCharacterDataSource> { MapleCharacterDataSourceImpl(get(named("BackendClient"))) }
 
     // 넥슨 Open API와 통신하는 DataSource 객체 주입
     single<NexonOpenApiDataSource> { NexonOpenApiDataSourceImpl(get(named("NexonClient"))) }

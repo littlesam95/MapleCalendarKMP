@@ -29,9 +29,8 @@ import com.sixclassguys.maplecalendar.presentation.login.LoginIntent
 import com.sixclassguys.maplecalendar.presentation.login.LoginViewModel
 import com.sixclassguys.maplecalendar.theme.MapleWhite
 import com.sixclassguys.maplecalendar.theme.Typography
-import com.sixclassguys.maplecalendar.ui.component.CharacterItemCard
 import com.sixclassguys.maplecalendar.ui.component.CharacterStepIndicator
-import com.sixclassguys.maplecalendar.ui.component.RepresentativeConfirmButton
+import com.sixclassguys.maplecalendar.ui.component.SubmitConfirmButton
 import com.sixclassguys.maplecalendar.ui.component.WorldSelectBottomSheet
 import com.sixclassguys.maplecalendar.ui.component.WorldSelector
 import com.sixclassguys.maplecalendar.utils.MapleWorld
@@ -79,7 +78,7 @@ fun SelectRepresentativeCharacterScreen(
             // 하단 캐릭터 선택 버튼
             val isSelected = uiState.selectedCharacter != null
 
-            RepresentativeConfirmButton(
+            SubmitConfirmButton(
                 isSelected = isSelected,
                 onClick = { viewModel.onIntent(LoginIntent.SubmitRepresentativeCharacter) }
             )
@@ -107,7 +106,10 @@ fun SelectRepresentativeCharacterScreen(
             // 2. 단계 인디케이터 (3열 점유)
             item(span = { GridItemSpan(columns) }) {
                 Spacer(modifier = Modifier.height(48.dp))
-                CharacterStepIndicator() // 아까 키운 버전 적용
+                CharacterStepIndicator(
+                    currentStep = 2,
+                    modifier = Modifier
+                ) // 아까 키운 버전 적용
             }
 
             // 3. 안내 문구 (3열 점유)
@@ -130,12 +132,12 @@ fun SelectRepresentativeCharacterScreen(
             // 5. 캐릭터 리스트 (각 1열 점유)
             val currentWorldCharacters = uiState.characters[uiState.selectedWorld] ?: emptyList()
             items(currentWorldCharacters) { character ->
-                CharacterItemCard(
-                    character = character,
-                    characterImage = uiState.characterImages[character.ocid] ?: "",
-                    isSelected = uiState.selectedCharacter?.ocid == character.ocid,
-                    onClick = { viewModel.onIntent(LoginIntent.SelectCharacter(character)) }
-                )
+//                CharacterItemCard(
+//                    character = character,
+//                    characterImage = uiState.characterImages[character.ocid] ?: "",
+//                    isSelected = uiState.selectedCharacter?.ocid == character.ocid,
+//                    onClick = { viewModel.onIntent(LoginIntent.SelectCharacter(character)) }
+//                )
             }
 
             // 하단 여유 공간 추가

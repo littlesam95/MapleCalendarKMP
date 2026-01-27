@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.sixclassguys.maplecalendar.MainActivity
+import com.sixclassguys.maplecalendar.R
 import com.sixclassguys.maplecalendar.data.local.AppPreferences
 import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
 import com.sixclassguys.maplecalendar.domain.repository.NotificationRepository
@@ -90,7 +91,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
         )
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.bottomnav_calendar)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)

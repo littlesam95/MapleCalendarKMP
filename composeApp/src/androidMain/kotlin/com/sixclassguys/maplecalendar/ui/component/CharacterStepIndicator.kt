@@ -27,7 +27,10 @@ import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.Typography
 
 @Composable
-fun CharacterStepIndicator() {
+fun CharacterStepIndicator(
+    currentStep: Int,
+    modifier: Modifier
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
@@ -40,7 +43,7 @@ fun CharacterStepIndicator() {
             Icon(
                 painter = painterResource(R.drawable.ic_nexon_authentication),
                 contentDescription = null,
-                tint = MapleGray,
+                tint = if (currentStep == 1) MapleOrange else MapleGray,
                 modifier = Modifier.padding(horizontal = 24.dp) // 화살표 양옆 간격을 더 넓게 (기존 8dp -> 24dp)
                     .size(28.dp)
             )
@@ -50,7 +53,7 @@ fun CharacterStepIndicator() {
                 style = Typography.bodyLarge,
                 fontStyle = FontStyle.Normal,
                 textAlign = TextAlign.Center,
-                color = MapleGray
+                color = if (currentStep == 1) MapleOrange else MapleGray
             )
         }
 
@@ -68,16 +71,16 @@ fun CharacterStepIndicator() {
             Icon(
                 Icons.Default.PersonAdd,
                 contentDescription = null,
-                tint = MapleOrange,
+                tint = if (currentStep == 2) MapleOrange else MapleGray,
                 modifier = Modifier.padding(horizontal = 24.dp) // 화살표 양옆 간격을 더 넓게 (기존 8dp -> 24dp)
                     .size(28.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "대표 캐릭터\n선택",
+                text = "캐릭터\n등록하기",
                 style = Typography.bodyLarge,
                 textAlign = TextAlign.Center,
-                color = MapleOrange
+                color = if (currentStep == 2) MapleOrange else MapleGray
             )
         }
     }
