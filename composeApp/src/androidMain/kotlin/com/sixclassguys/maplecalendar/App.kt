@@ -34,6 +34,7 @@ import com.sixclassguys.maplecalendar.navigation.Navigation
 import com.sixclassguys.maplecalendar.navigation.navhost.NavHost
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
+import com.sixclassguys.maplecalendar.presentation.character.MapleCharacterViewModel
 import com.sixclassguys.maplecalendar.presentation.home.HomeViewModel
 import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleWhite
@@ -51,6 +52,7 @@ fun App() {
     val activity = LocalContext.current as ComponentActivity
     val homeViewModel: HomeViewModel = koinViewModel(viewModelStoreOwner = activity)
     val calendarViewModel: CalendarViewModel = koinViewModel(viewModelStoreOwner = activity)
+    val mapleCharacterViewModel: MapleCharacterViewModel = koinViewModel(viewModelStoreOwner = activity)
     val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -118,7 +120,8 @@ fun App() {
                 startDestination = "main_flow",
                 snackbarHostState = snackbarHostState,
                 homeViewModel = homeViewModel,
-                calendarViewModel = calendarViewModel
+                calendarViewModel = calendarViewModel,
+                mapleCharacterViewModel = mapleCharacterViewModel
             )
         }
     }
