@@ -109,7 +109,7 @@ val Boss.backgroundRes: Int
         Boss.BLACKMAGE -> R.drawable.bg_boss_black_mage
         Boss.ZAKUM -> R.drawable.bg_boss_zakum
         Boss.MAGNUS -> R.drawable.bg_boss_magnus
-        Boss.HILLA -> R.drawable.ic_boss_hilla
+        Boss.HILLA -> R.drawable.bg_boss_hilla
         Boss.LOADBALROG -> R.drawable.bg_boss_papulatus
         Boss.VONBON -> R.drawable.bg_boss_von_bon
         Boss.PIERRE -> R.drawable.bg_boss_pierre
