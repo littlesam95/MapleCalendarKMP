@@ -119,7 +119,7 @@ val viewModelModule = module {
     viewModel { NotificationViewModel(get(), get(), get(), get()) }
     viewModel { CalendarViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { MapleCharacterViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { BossViewModel(get()) }
+    viewModel { BossViewModel(get(), get()) }
 
     // Reducer
     single { HomeReducer() }

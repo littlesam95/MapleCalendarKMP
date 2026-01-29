@@ -2,14 +2,12 @@ package com.sixclassguys.maplecalendar.utils
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import kotlinx.datetime.Clock
+import coil3.Bitmap
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.todayIn
 import java.text.DecimalFormat
 import java.time.format.DateTimeFormatter
 
@@ -93,4 +91,16 @@ fun generateDaysForMonth(year: Int, month: Month): List<LocalDate?> {
     }
 
     return days
+}
+
+// 정수리 위치만 빠르게 찾는 최적화 함수
+fun getTopVisiblePixel(bitmap: Bitmap): Float {
+    for (y in 0 until bitmap.height) {
+        for (x in 0 until bitmap.width) {
+            if (android.graphics.Color.alpha(bitmap.getPixel(x, y)) > 0) {
+                return y.toFloat() // 첫 번째 유효 픽셀 발견 시 즉시 반환
+            }
+        }
+    }
+    return 0f
 }
