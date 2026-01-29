@@ -37,4 +37,8 @@ sealed class Navigation(
     data object MapleCharacterFetch : Navigation("mapleCharacterFetch")
 
     data object MapleCharacterSubmit : Navigation("mapleCharacterSubmit")
+
+    data object BossPartyList : Navigation("bossPartyList")
+
+    data object BossPartyCreate : Navigation("bossPartyCreate")
 }

@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.sixclassguys.maplecalendar.navigation.Navigation
+import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
 import com.sixclassguys.maplecalendar.presentation.character.MapleCharacterViewModel
@@ -19,6 +20,7 @@ import com.sixclassguys.maplecalendar.presentation.home.HomeViewModel
 import com.sixclassguys.maplecalendar.presentation.login.LoginIntent
 import com.sixclassguys.maplecalendar.presentation.login.LoginViewModel
 import com.sixclassguys.maplecalendar.ui.board.BoardScreen
+import com.sixclassguys.maplecalendar.ui.boss.BossPartyCreateScreen
 import com.sixclassguys.maplecalendar.ui.calendar.MapleCalendarScreen
 import com.sixclassguys.maplecalendar.ui.calendar.MapleEventDetailScreen
 import com.sixclassguys.maplecalendar.ui.character.MapleCharacterFetchScreen
@@ -44,7 +46,8 @@ fun NavHost(
     snackbarHostState: SnackbarHostState,
     homeViewModel: HomeViewModel,
     calendarViewModel: CalendarViewModel,
-    mapleCharacterViewModel: MapleCharacterViewModel
+    mapleCharacterViewModel: MapleCharacterViewModel,
+    bossViewModel: BossViewModel
 ) {
     NavHost(
         modifier = modifier,
@@ -141,6 +144,18 @@ fun NavHost(
                             }
                         }
                     }
+                )
+            }
+        }
+
+        navigation(
+            startDestination = Navigation.BossPartyCreate.destination,
+            route = "boss_flow"
+        ) {
+            composable(Navigation.BossPartyCreate.destination) {
+                BossPartyCreateScreen(
+                    viewModel = bossViewModel,
+                    onBack = { navController.popBackStack() }
                 )
             }
         }

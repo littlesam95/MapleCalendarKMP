@@ -32,6 +32,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sixclassguys.maplecalendar.navigation.Navigation
 import com.sixclassguys.maplecalendar.navigation.navhost.NavHost
+import com.sixclassguys.maplecalendar.presentation.boss.BossIntent
+import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
 import com.sixclassguys.maplecalendar.presentation.character.MapleCharacterViewModel
@@ -39,6 +41,7 @@ import com.sixclassguys.maplecalendar.presentation.home.HomeViewModel
 import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleWhite
 import com.sixclassguys.maplecalendar.ui.component.BottomNavigationBar
+import com.sixclassguys.maplecalendar.utils.MapleWorld
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -53,6 +56,7 @@ fun App() {
     val homeViewModel: HomeViewModel = koinViewModel(viewModelStoreOwner = activity)
     val calendarViewModel: CalendarViewModel = koinViewModel(viewModelStoreOwner = activity)
     val mapleCharacterViewModel: MapleCharacterViewModel = koinViewModel(viewModelStoreOwner = activity)
+    val bossViewModel: BossViewModel = koinViewModel(viewModelStoreOwner = activity)
     val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -94,13 +98,18 @@ fun App() {
                     BottomNavigationBar(
                         navController = navController,
                         onCalendarClicked = {
-                            if (homeUiState.characterBasic == null) {
-                                navController.navigate("login_flow")
-                            } else {
+                            val allWorlds = MapleWorld.entries.map { it.worldName }
+                            bossViewModel.onIntent(BossIntent.FetchCharacters(allWorlds))
+                            navController.navigate("boss_flow")
+                            /*
+                            if (homeUiState.isLoginSuccess) {
                                 calendarViewModel.onIntent(CalendarIntent.FetchNexonOpenApiKey)
                                 calendarViewModel.onIntent(CalendarIntent.FetchGlobalAlarmStatus)
                                 navController.navigate("calendar_flow")
+                            } else {
+                                navController.navigate("login_flow")
                             }
+                            */
                         }
                     )
                 }
@@ -121,7 +130,8 @@ fun App() {
                 snackbarHostState = snackbarHostState,
                 homeViewModel = homeViewModel,
                 calendarViewModel = calendarViewModel,
-                mapleCharacterViewModel = mapleCharacterViewModel
+                mapleCharacterViewModel = mapleCharacterViewModel,
+                bossViewModel = bossViewModel
             )
         }
     }
