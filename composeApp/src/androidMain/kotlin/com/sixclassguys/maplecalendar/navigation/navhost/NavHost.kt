@@ -21,6 +21,8 @@ import com.sixclassguys.maplecalendar.presentation.login.LoginIntent
 import com.sixclassguys.maplecalendar.presentation.login.LoginViewModel
 import com.sixclassguys.maplecalendar.ui.board.BoardScreen
 import com.sixclassguys.maplecalendar.ui.boss.BossPartyCreateScreen
+import com.sixclassguys.maplecalendar.ui.boss.BossPartyDetailScreen
+import com.sixclassguys.maplecalendar.ui.boss.BossPartyListScreen
 import com.sixclassguys.maplecalendar.ui.calendar.MapleCalendarScreen
 import com.sixclassguys.maplecalendar.ui.calendar.MapleEventDetailScreen
 import com.sixclassguys.maplecalendar.ui.character.MapleCharacterFetchScreen
@@ -149,13 +151,34 @@ fun NavHost(
         }
 
         navigation(
-            startDestination = Navigation.BossPartyCreate.destination,
+            startDestination = Navigation.BossPartyList.destination,
             route = "boss_flow"
         ) {
+            composable(Navigation.BossPartyList.destination) {
+                BossPartyListScreen(
+                    viewModel = bossViewModel,
+                    onBack = { navController.popBackStack() },
+                    onPartyClick = { bossPartyId ->
+
+                    },
+                    onAddParty = {
+
+                    }
+                )
+            }
             composable(Navigation.BossPartyCreate.destination) {
                 BossPartyCreateScreen(
                     viewModel = bossViewModel,
                     onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Navigation.BossPartyDetail.destination) {
+                BossPartyDetailScreen(
+                    viewModel = bossViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    }
                 )
             }
         }

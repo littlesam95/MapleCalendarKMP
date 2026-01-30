@@ -41,4 +41,6 @@ sealed class Navigation(
     data object BossPartyList : Navigation("bossPartyList")
 
     data object BossPartyCreate : Navigation("bossPartyCreate")
+
+    data object BossPartyDetail : Navigation("bossPartyDetail")
 }
