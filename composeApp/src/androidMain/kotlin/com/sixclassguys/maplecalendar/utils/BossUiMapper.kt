@@ -121,3 +121,33 @@ val Boss.backgroundRes: Int
         Boss.DAMIEN -> R.drawable.bg_boss_damien
         Boss.GUARDIANANGELSLIME -> R.drawable.bg_boss_guardian_angel_slime
     }
+
+val Boss.entryBackgroundRes: Int
+    get() = when (this) {
+        Boss.SEREN -> R.drawable.boss_entry_seren
+        Boss.KALOS -> R.drawable.boss_entry_kalos
+        Boss.THEFIRSTADVERSARY -> R.drawable.boss_entry_the_first_adversary
+        Boss.KALING -> R.drawable.boss_entry_kaling
+        Boss.RADIANTMALEFIC -> R.drawable.boss_entry_radiant_malefic
+        Boss.LIMBO -> R.drawable.boss_entry_limbo
+        Boss.BALDRIX -> R.drawable.boss_entry_baldrix
+        Boss.LUCID -> R.drawable.boss_entry_lucid
+        Boss.WILL -> R.drawable.boss_entry_will
+        Boss.DUSK -> R.drawable.boss_entry_dusk
+        Boss.VERUSHILLA -> R.drawable.boss_entry_verus_hilla
+        Boss.DUNKEL -> R.drawable.boss_entry_dunkel
+        Boss.BLACKMAGE -> R.drawable.boss_entry_black_mage
+        Boss.ZAKUM -> R.drawable.boss_entry_zakum
+        Boss.MAGNUS -> R.drawable.boss_entry_magnus
+        Boss.HILLA -> R.drawable.boss_entry_hilla
+        Boss.LOADBALROG -> R.drawable.boss_entry_papulatus
+        Boss.VONBON -> R.drawable.boss_entry_von_bon
+        Boss.PIERRE -> R.drawable.boss_entry_pierre
+        Boss.BLOODYQUEEN -> R.drawable.boss_entry_bloody_queen
+        Boss.VELLUM -> R.drawable.boss_entry_vellum
+        Boss.PINKBEAN -> R.drawable.boss_entry_pink_bean
+        Boss.CYGNUS -> R.drawable.boss_entry_cygnus
+        Boss.LOTUS -> R.drawable.boss_entry_lotus
+        Boss.DAMIEN -> R.drawable.boss_entry_damien
+        Boss.GUARDIANANGELSLIME -> R.drawable.boss_entry_guardian_angel_slime
+    }

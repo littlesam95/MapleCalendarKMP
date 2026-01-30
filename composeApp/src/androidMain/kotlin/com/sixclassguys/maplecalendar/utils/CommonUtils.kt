@@ -1,8 +1,8 @@
 package com.sixclassguys.maplecalendar.utils
 
+import android.graphics.Bitmap
 import android.os.Build
 import androidx.annotation.RequiresApi
-import coil3.Bitmap
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
@@ -95,10 +95,20 @@ fun generateDaysForMonth(year: Int, month: Month): List<LocalDate?> {
 
 // 정수리 위치만 빠르게 찾는 최적화 함수
 fun getTopVisiblePixel(bitmap: Bitmap): Float {
-    for (y in 0 until bitmap.height) {
-        for (x in 0 until bitmap.width) {
-            if (android.graphics.Color.alpha(bitmap.getPixel(x, y)) > 0) {
-                return y.toFloat() // 첫 번째 유효 픽셀 발견 시 즉시 반환
+    val width = bitmap.width
+    val height = bitmap.height
+    val pixels = IntArray(width * height)
+
+    // 1. 모든 픽셀을 한 번에 배열로 가져옵니다 (getPixel보다 수십 배 빠름)
+    bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+
+    // 2. 루프를 돌며 알파 값(투명도) 확인
+    for (y in 0 until height) {
+        for (x in 0 until width) {
+            val pixel = pixels[y * width + x]
+            // 알파 값이 0보다 크면 (투명하지 않으면) 해당 행(y) 반환
+            if ((pixel shr 24) and 0xFF > 0) {
+                return y.toFloat()
             }
         }
     }

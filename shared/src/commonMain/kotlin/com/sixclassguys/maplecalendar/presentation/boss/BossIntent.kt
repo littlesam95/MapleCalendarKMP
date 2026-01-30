@@ -3,6 +3,7 @@ package com.sixclassguys.maplecalendar.presentation.boss
 import com.sixclassguys.maplecalendar.domain.model.CharacterSummary
 import com.sixclassguys.maplecalendar.util.Boss
 import com.sixclassguys.maplecalendar.util.BossDifficulty
+import com.sixclassguys.maplecalendar.util.BossPartyTab
 
 sealed class BossIntent {
 
@@ -28,4 +29,6 @@ sealed class BossIntent {
     data class UpdateBossPartyDescription(val description: String) : BossIntent()
 
     data object CreateBossParty : BossIntent()
+
+    data class SelectBossPartyDetailMenu(val selectedBossPartyDetailMenu: BossPartyTab) : BossIntent()
 }

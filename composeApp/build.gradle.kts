@@ -27,6 +27,9 @@ kotlin {
             // Android 전용 Firebase BOM
             implementation(project.dependencies.platform("com.google.firebase:firebase-bom:32.7.0"))
             implementation("com.google.firebase:firebase-messaging-ktx")
+
+            // Coil & GIF
+            implementation(libs.coil.gif)
         }
         commonMain.dependencies {
             // Shared Component
@@ -49,8 +52,8 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
             // Coil core 및 Compose 지원
-            implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc01")
-            implementation("io.coil-kt.coil3:coil-network-ktor3:3.0.0-rc01")
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.okhttp)
 
             // Jetpack Compose Navigation
             implementation(libs.androidx.navigation.compose)

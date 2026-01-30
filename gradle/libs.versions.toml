@@ -21,6 +21,7 @@ kotlinx-coroutines = "1.8.1"
 skie = "0.10.1"
 navigationRuntimeKtx = "2.9.6"
 googleid = "1.2.0"
+coil = "3.0.0-alpha06"
 
 [libraries]
 # Lifecycle (ViewModel)
@@ -48,6 +49,11 @@ kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 
 # Jetpack Compose Navigation
 androidx-navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+
+# Coil
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+coil-gif = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coil" }
 
 # Etc
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
