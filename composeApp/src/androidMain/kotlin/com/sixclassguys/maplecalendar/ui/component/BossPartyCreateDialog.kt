@@ -63,11 +63,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.BitmapImage
+import coil3.annotation.ExperimentalCoilApi
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
-import coil3.toBitmap
 import com.sixclassguys.maplecalendar.R
 import com.sixclassguys.maplecalendar.domain.model.CharacterSummary
 import com.sixclassguys.maplecalendar.presentation.boss.BossIntent
@@ -347,6 +348,7 @@ fun BossPartyCreateDialog(
     }
 }
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun CharacterProfileImage(
     imageUrl: String?,
@@ -372,12 +374,23 @@ fun CharacterProfileImage(
                 .build(),
             contentDescription = null,
             onSuccess = { state ->
-                // 이미 yOffset이 계산되어 있다면 (0이 아니라면) 건너뜀
                 if (yOffset == 0f) {
-                    val bitmap = state.result.image.toBitmap()
-                    // 픽셀 분석을 백그라운드 스레드에서 수행하거나 최소화
-                    val topPixel = getTopVisiblePixel(bitmap)
-                    yOffset = -topPixel + (bitmap.height * 0.12f)
+                    // 1. Coil 3의 Image 객체를 가져옴
+                    val coilImage = state.result.image
+
+                    // 2. Android 플랫폼의 BitmapImage로 캐스팅하여 비트맵 추출
+                    val bitmap = if (coilImage is BitmapImage) {
+                        coilImage.bitmap
+                    } else {
+                        // 만약 BitmapImage가 아니라면 Drawable을 통해 변환 (최후의 수단)
+                        null
+                    }
+
+                    bitmap?.let {
+                        // 기존 픽셀 분석 로직 실행
+                        val topPixel = getTopVisiblePixel(it)
+                        yOffset = -topPixel + (it.height * 0.12f)
+                    }
                 }
             },
             modifier = Modifier.size(160.dp)
