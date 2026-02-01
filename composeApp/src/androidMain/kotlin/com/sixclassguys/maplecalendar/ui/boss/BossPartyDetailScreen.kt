@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sixclassguys.maplecalendar.presentation.boss.BossIntent
 import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
+import com.sixclassguys.maplecalendar.theme.MapleBlack
+import com.sixclassguys.maplecalendar.theme.MapleGray
 import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleStatBackground
 import com.sixclassguys.maplecalendar.theme.MapleWhite
@@ -74,7 +76,8 @@ fun BossPartyDetailScreen(
 
     // 1. 시스템 바 높이 추출 (상단 상태바 + 하단 네비게이션 바)
     val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
-    val systemBarsHeight = systemBarsPadding.calculateTopPadding() + systemBarsPadding.calculateBottomPadding()
+    val systemBarsHeight =
+        systemBarsPadding.calculateTopPadding() + systemBarsPadding.calculateBottomPadding()
 
     // 2. 전체 화면 높이 (Dp)
     val screenHeightDp = configuration.screenHeightDp.dp
@@ -131,7 +134,8 @@ fun BossPartyDetailScreen(
         containerColor = MapleWhite
     ) { padding ->
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .nestedScroll(nestedScrollConnection)
         ) {
             // 메인 컨텐츠 (알림, 파티원, 채팅, 게시판)
@@ -159,7 +163,8 @@ fun BossPartyDetailScreen(
                 when (uiState.selectedBossPartyDetailMenu) {
                     BossPartyTab.ALARM -> {
                         item {
-                            val availableHeight = screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp
+                            val availableHeight =
+                                screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp
                             BossPartyAlarmContent(
                                 alarms = uiState.bossPartyAlarmTimes,
                                 isAlarmOn = uiState.isBossPartyDetailAlarmOn,
@@ -167,7 +172,8 @@ fun BossPartyDetailScreen(
 
                                 },
                                 onAddAlarm = { },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
                                     .height(availableHeight)
                             )
                         }
@@ -175,16 +181,19 @@ fun BossPartyDetailScreen(
 
                     BossPartyTab.MEMBER -> {
                         item {
-                            val availableHeight = screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp
+                            val availableHeight =
+                                screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp
                             BossPartyMemberContent(
-                                members = uiState.bossPartyMembers,
+                                isLeader = uiState.selectedBossParty?.isLeader ?: false,
+                                members = uiState.selectedBossParty?.members ?: emptyList(),
                                 onAddMember = {
 
                                 },
                                 onRemoveMember = { character ->
 
                                 },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
                                     .height(availableHeight)
                             )
                         }
@@ -192,10 +201,15 @@ fun BossPartyDetailScreen(
 
                     BossPartyTab.CHAT -> {
                         item {
-                            val availableHeight = screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp - INPUT_BAR_HEIGHT
+                            val availableHeight =
+                                screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp - INPUT_BAR_HEIGHT
                             BossPartyChatContent(
                                 chats = uiState.bossPartyChats,
-                                modifier = Modifier.fillMaxWidth()
+                                isLastPage = uiState.isBossPartyChatLastPage,
+                                isLoading = uiState.isLoading,
+                                onLoadMore = { viewModel.onIntent(BossIntent.FetchBossPartyChatHistory) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
                                     .height(availableHeight)
                             )
                         }
@@ -203,10 +217,12 @@ fun BossPartyDetailScreen(
 
                     BossPartyTab.ALBUM -> {
                         item {
-                            val availableHeight = screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp
+                            val availableHeight =
+                                screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp
                             BossPartyAlbumContent(
                                 posts = uiState.bossPartyAlbums,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
                                     .height(availableHeight)
                             )
                         }
@@ -231,26 +247,40 @@ fun BossPartyDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         TextField(
-                            value = "",
-                            onValueChange = {},
+                            value = uiState.bossPartyChatMessage,
+                            onValueChange = {
+                                viewModel.onIntent(
+                                    BossIntent.UpdateBossPartyChatMessage(
+                                        it
+                                    )
+                                )
+                            },
                             modifier = Modifier.weight(1f),
-                            placeholder = { Text("메시지를 입력하세요", color = Color.Gray) },
+                            placeholder = { Text("메시지를 입력하세요", color = MapleGray) },
                             shape = RoundedCornerShape(12.dp),
                             colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White,
+                                focusedContainerColor = MapleWhite,
+                                unfocusedContainerColor = MapleWhite,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent
                             )
                         )
+                        val isSendEnabled = uiState.bossPartyChatMessage.isNotBlank()
                         Button(
-                            onClick = { /* 전송 */ },
+                            enabled = isSendEnabled,
+                            onClick = {
+                                if (isSendEnabled) viewModel.onIntent(BossIntent.SendBossPartyChatMessage)
+                            },
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MapleOrange),
+                            colors = ButtonDefaults.buttonColors(containerColor = if (isSendEnabled) MapleOrange else MapleGray),
                             modifier = Modifier.size(50.dp),
                             contentPadding = PaddingValues(0.dp)
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, tint = MapleWhite)
+                            Icon(
+                                Icons.AutoMirrored.Filled.Send,
+                                contentDescription = null,
+                                tint = if (isSendEnabled) MapleWhite else MapleBlack
+                            )
                         }
                     }
                 }

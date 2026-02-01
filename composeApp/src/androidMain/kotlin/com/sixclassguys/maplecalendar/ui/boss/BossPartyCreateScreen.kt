@@ -211,7 +211,7 @@ fun BossPartyCreateScreen(
     if (uiState.showCreateDialog) {
         BossPartyCreateDialog(
             viewModel = viewModel,
-            onDismiss = { viewModel.onIntent(BossIntent.DismissDialog) }
+            onDismiss = { viewModel.onIntent(BossIntent.DismissBossPartyCreateDialog) }
         )
     }
 }

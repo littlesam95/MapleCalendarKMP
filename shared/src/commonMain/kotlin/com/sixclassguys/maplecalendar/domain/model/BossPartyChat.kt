@@ -1,7 +1,16 @@
 package com.sixclassguys.maplecalendar.domain.model
 
+import com.sixclassguys.maplecalendar.util.BossPartyChatMessageType
+
 data class BossPartyChat(
-    val characterSummary: CharacterSummary,
+    val id: Long,
+    val senderId: Long,
+    val senderName: String,
+    val senderWorld: String,
+    val senderImage: String,
     val content: String,
-    val isMine: Boolean
+    val messageType: BossPartyChatMessageType,
+    val isMine: Boolean,
+    val isDeleted: Boolean,
+    val createdAt: String
 )

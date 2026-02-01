@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,12 +28,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sixclassguys.maplecalendar.presentation.boss.BossIntent
 import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
 import com.sixclassguys.maplecalendar.theme.MapleStatBackground
 import com.sixclassguys.maplecalendar.theme.MapleStatTitle
 import com.sixclassguys.maplecalendar.theme.MapleWhite
 import com.sixclassguys.maplecalendar.theme.Typography
 import com.sixclassguys.maplecalendar.ui.component.BossPartyCard
+import com.sixclassguys.maplecalendar.utils.MapleWorld
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +46,10 @@ fun BossPartyListScreen(
     onAddParty: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.onIntent(BossIntent.FetchBossParties)
+    }
 
     Scaffold(
         topBar = {
@@ -90,7 +97,13 @@ fun BossPartyListScreen(
                         color = MapleStatTitle,
                         style = Typography.titleMedium
                     )
-                    IconButton(onClick = onAddParty) {
+                    IconButton(
+                        onClick = {
+                            val allWorlds = MapleWorld.entries.map { it.worldName }
+                            viewModel.onIntent(BossIntent.FetchCharacters(allWorlds))
+                            onAddParty()
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = null,
@@ -111,7 +124,7 @@ fun BossPartyListScreen(
                             .padding(horizontal = 16.dp)
                     ) {
                         items(uiState.bossParties) { party ->
-                            BossPartyCard(party = party, onClick = { onPartyClick(party.id) })
+                            BossPartyCard(bossParty = party, onPartyClick = { onPartyClick(party.id) })
                         }
                     }
                 }
