@@ -43,6 +43,9 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
 
+            // WebSocket
+            implementation(libs.ktor.client.websockets)
+
             // Koin
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
