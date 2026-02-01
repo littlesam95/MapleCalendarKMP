@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.sixclassguys.maplecalendar.navigation.Navigation
+import com.sixclassguys.maplecalendar.presentation.boss.BossIntent
 import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
@@ -155,14 +156,16 @@ fun NavHost(
             route = "boss_flow"
         ) {
             composable(Navigation.BossPartyList.destination) {
+                bossViewModel.onIntent(BossIntent.FetchBossParties)
                 BossPartyListScreen(
                     viewModel = bossViewModel,
                     onBack = { navController.popBackStack() },
                     onPartyClick = { bossPartyId ->
-
+                        bossViewModel.onIntent(BossIntent.FetchBossPartyDetail(bossPartyId))
+                        navController.navigate(Navigation.BossPartyDetail.destination)
                     },
                     onAddParty = {
-
+                        navController.navigate(Navigation.BossPartyCreate.destination)
                     }
                 )
             }
