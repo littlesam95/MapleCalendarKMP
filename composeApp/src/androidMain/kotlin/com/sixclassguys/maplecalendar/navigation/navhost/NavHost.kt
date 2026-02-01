@@ -156,7 +156,6 @@ fun NavHost(
             route = "boss_flow"
         ) {
             composable(Navigation.BossPartyList.destination) {
-                bossViewModel.onIntent(BossIntent.FetchBossParties)
                 BossPartyListScreen(
                     viewModel = bossViewModel,
                     onBack = { navController.popBackStack() },
@@ -180,6 +179,7 @@ fun NavHost(
                 BossPartyDetailScreen(
                     viewModel = bossViewModel,
                     onBack = {
+                        bossViewModel.onIntent(BossIntent.DisconnectBossPartyChat)
                         navController.popBackStack()
                     }
                 )
