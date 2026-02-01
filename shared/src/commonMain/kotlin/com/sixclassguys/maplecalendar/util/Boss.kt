@@ -170,7 +170,7 @@ enum class Boss(
         memberCounts = listOf(6),
         rewards = listOf()
     ),
-    LOADBALROG(
+    PAPULATUS(
         bossName = "파풀라투스",
         region = "메이플 월드",
         difficulties = listOf(BossDifficulty.CHAOS),
@@ -271,4 +271,10 @@ enum class BossDifficulty(
     CHAOS(displayName = "CHAOS",),
     HARD(displayName = "HARD",),
     EXTREME(displayName = "EXTREME")
+}
+
+enum class BossPartyRole{
+
+    MEMBER,
+    LEADER
 }

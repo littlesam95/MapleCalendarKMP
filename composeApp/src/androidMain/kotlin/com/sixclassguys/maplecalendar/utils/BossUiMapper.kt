@@ -80,7 +80,7 @@ val Boss.iconRes: Int
         Boss.ZAKUM -> R.drawable.ic_boss_zakum
         Boss.MAGNUS -> R.drawable.ic_boss_magnus
         Boss.HILLA -> R.drawable.ic_boss_hilla
-        Boss.LOADBALROG -> R.drawable.ic_boss_papulatus
+        Boss.PAPULATUS -> R.drawable.ic_boss_papulatus
         Boss.VONBON -> R.drawable.ic_boss_von_bon
         Boss.PIERRE -> R.drawable.ic_boss_pierre
         Boss.BLOODYQUEEN -> R.drawable.ic_boss_bloody_queen
@@ -110,7 +110,7 @@ val Boss.backgroundRes: Int
         Boss.ZAKUM -> R.drawable.bg_boss_zakum
         Boss.MAGNUS -> R.drawable.bg_boss_magnus
         Boss.HILLA -> R.drawable.bg_boss_hilla
-        Boss.LOADBALROG -> R.drawable.bg_boss_papulatus
+        Boss.PAPULATUS -> R.drawable.bg_boss_papulatus
         Boss.VONBON -> R.drawable.bg_boss_von_bon
         Boss.PIERRE -> R.drawable.bg_boss_pierre
         Boss.BLOODYQUEEN -> R.drawable.bg_boss_bloody_queen
@@ -140,7 +140,7 @@ val Boss.entryBackgroundRes: Int
         Boss.ZAKUM -> R.drawable.boss_entry_zakum
         Boss.MAGNUS -> R.drawable.boss_entry_magnus
         Boss.HILLA -> R.drawable.boss_entry_hilla
-        Boss.LOADBALROG -> R.drawable.boss_entry_papulatus
+        Boss.PAPULATUS -> R.drawable.boss_entry_papulatus
         Boss.VONBON -> R.drawable.boss_entry_von_bon
         Boss.PIERRE -> R.drawable.boss_entry_pierre
         Boss.BLOODYQUEEN -> R.drawable.boss_entry_bloody_queen
