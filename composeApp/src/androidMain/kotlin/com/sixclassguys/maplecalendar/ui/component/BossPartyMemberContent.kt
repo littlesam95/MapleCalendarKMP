@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -41,21 +42,25 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.sixclassguys.maplecalendar.R
-import com.sixclassguys.maplecalendar.domain.model.CharacterSummary
+import com.sixclassguys.maplecalendar.domain.model.BossPartyMember
+import com.sixclassguys.maplecalendar.theme.MapleBlack
 import com.sixclassguys.maplecalendar.theme.MapleGray
+import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleStatBackground
 import com.sixclassguys.maplecalendar.theme.MapleStatTitle
 import com.sixclassguys.maplecalendar.theme.MapleWhite
 import com.sixclassguys.maplecalendar.theme.PretendardFamily
 import com.sixclassguys.maplecalendar.theme.Typography
+import com.sixclassguys.maplecalendar.util.BossPartyRole
 import com.sixclassguys.maplecalendar.utils.MapleClass
 import com.sixclassguys.maplecalendar.utils.MapleWorld
 
 @Composable
 fun BossPartyMemberContent(
-    members: List<Pair<String, CharacterSummary>>,
+    isLeader: Boolean,
+    members: List<BossPartyMember>,
     onAddMember: () -> Unit,
-    onRemoveMember: (CharacterSummary) -> Unit,
+    onRemoveMember: (BossPartyMember) -> Unit,
     modifier: Modifier
 ) {
     val context = LocalContext.current
@@ -98,17 +103,17 @@ fun BossPartyMemberContent(
                     }
                 }
             } else {
-                items(chunkedMembers) { pair ->
+                items(chunkedMembers) { members ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        pair.forEach { (world, member) ->
+                        members.forEach { member ->
                             Box(modifier = Modifier.weight(1f)) {
-                                PartyMemberItem(world, member, context, onRemoveMember)
+                                PartyMemberItem(isLeader, member, context, onRemoveMember)
                             }
                         }
-                        if (pair.size == 1) Spacer(modifier = Modifier.weight(1f))
+                        if (members.size == 1) Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
@@ -118,12 +123,12 @@ fun BossPartyMemberContent(
 
 @Composable
 fun PartyMemberItem(
-    world: String,
-    member: CharacterSummary,
+    isLeader: Boolean,
+    member: BossPartyMember,
     context: Context,
-    onRemoveMember: (CharacterSummary) -> Unit
+    onRemoveMember: (BossPartyMember) -> Unit
 ) {
-    val worldMark = MapleWorld.getWorld(world)?.iconRes ?: R.drawable.ic_world_scania
+    val worldMark = MapleWorld.getWorld(member.worldName)?.iconRes ?: R.drawable.ic_world_scania
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -216,16 +221,35 @@ fun PartyMemberItem(
 
         // 🚀 와이어프레임의 우측 상단 X 버튼 (삭제 기능) 추가
         // 방장(별표)이 아닐 때만 노출하거나, 권한에 따라 노출
-        IconButton(
-            onClick = { onRemoveMember(member) },
-            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(24.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "삭제",
-                tint = Color.Black.copy(alpha = 0.6f),
-                modifier = Modifier.size(16.dp)
-            )
+        if (member.role == BossPartyRole.LEADER) {
+            IconButton(
+                enabled = false,
+                onClick = { },
+                modifier = Modifier.align(Alignment.TopEnd)
+                    .padding(4.dp)
+                    .size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = "파티장",
+                    tint = MapleOrange,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        } else if (isLeader) {
+            IconButton(
+                onClick = { onRemoveMember(member) },
+                modifier = Modifier.align(Alignment.TopEnd)
+                    .padding(4.dp)
+                    .size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "파티원 추방",
+                    tint = MapleBlack.copy(alpha = 0.6f),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }

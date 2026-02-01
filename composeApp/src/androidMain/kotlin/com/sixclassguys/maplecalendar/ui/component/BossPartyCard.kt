@@ -42,13 +42,13 @@ import com.sixclassguys.maplecalendar.utils.entryBackgroundRes
 
 @Composable
 fun BossPartyCard(
-    party: BossParty,
-    onClick: () -> Unit
+    bossParty: BossParty,
+    onPartyClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onPartyClick),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MapleWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -56,7 +56,7 @@ fun BossPartyCard(
         Column {
             // 🚀 1. 보스 대표 이미지
             AsyncImage(
-                model = party.boss.entryBackgroundRes,
+                model = bossParty.boss.entryBackgroundRes,
                 contentDescription = null,
                 modifier = Modifier.fillMaxWidth()
                     .height(180.dp)
@@ -69,7 +69,7 @@ fun BossPartyCard(
             ) {
                 // 🚀 2. 제목 및 난이도 태그
                 Text(
-                    text = party.title,
+                    text = bossParty.title,
                     fontFamily = PretendardFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
@@ -81,13 +81,13 @@ fun BossPartyCard(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Surface(
-                        color = party.difficulty.badgeBackground,
+                        color = bossParty.difficulty.badgeBackground,
                         shape = RoundedCornerShape(50),
-                        border = BorderStroke(2.dp, party.difficulty.badgeOutline)
+                        border = BorderStroke(2.dp, bossParty.difficulty.badgeOutline)
                     ) {
                         Text(
-                            text = party.difficulty.displayName,
-                            color = party.difficulty.badgeText,
+                            text = bossParty.difficulty.displayName,
+                            color = bossParty.difficulty.badgeText,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                             fontSize = 14.sp,
                             fontFamily = PretendardFamily,
@@ -96,7 +96,7 @@ fun BossPartyCard(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = party.boss.bossName,
+                        text = bossParty.boss.bossName,
                         fontFamily = PretendardFamily,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -117,7 +117,7 @@ fun BossPartyCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "강원기 외 2인",
+                        text = if (bossParty.memberCount == 1) bossParty.leaderNickname else "${bossParty.leaderNickname} 외 ${bossParty.memberCount - 1}인",
                         fontFamily = PretendardFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 13.sp,

@@ -177,7 +177,8 @@ fun BossPartyDetailScreen(
                         item {
                             val availableHeight = screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp
                             BossPartyMemberContent(
-                                members = uiState.bossPartyMembers,
+                                isLeader = uiState.selectedBossParty?.isLeader ?: false,
+                                members = uiState.selectedBossParty?.members ?: emptyList(),
                                 onAddMember = {
 
                                 },
