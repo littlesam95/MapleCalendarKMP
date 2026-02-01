@@ -2,6 +2,7 @@ package com.sixclassguys.maplecalendar.di
 
 import com.sixclassguys.maplecalendar.data.repository.AlarmRepositoryImpl
 import com.sixclassguys.maplecalendar.data.repository.AuthRepositoryImpl
+import com.sixclassguys.maplecalendar.data.repository.BossRepositoryImpl
 import com.sixclassguys.maplecalendar.data.repository.CharacterRepositoryImpl
 import com.sixclassguys.maplecalendar.data.repository.EventRepositoryImpl
 import com.sixclassguys.maplecalendar.data.repository.FirebaseNotificationRepository
@@ -10,6 +11,7 @@ import com.sixclassguys.maplecalendar.data.repository.MemberRepositoryImpl
 import com.sixclassguys.maplecalendar.data.repository.NotificationEventBusImpl
 import com.sixclassguys.maplecalendar.domain.repository.AlarmRepository
 import com.sixclassguys.maplecalendar.domain.repository.AuthRepository
+import com.sixclassguys.maplecalendar.domain.repository.BossRepository
 import com.sixclassguys.maplecalendar.domain.repository.CharacterRepository
 import com.sixclassguys.maplecalendar.domain.repository.EventRepository
 import com.sixclassguys.maplecalendar.domain.repository.MapleCharacterRepository
@@ -18,10 +20,16 @@ import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
 import com.sixclassguys.maplecalendar.domain.repository.NotificationRepository
 import com.sixclassguys.maplecalendar.domain.usecase.AutoLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.CheckCharacterAuthorityUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.ConnectBossChatUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.CreateBossPartyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DeleteCharacterUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.DisconnectBossPartyChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DoLoginWithApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.FetchCharactersWithApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetApiKeyUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartiesUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyChatHistoryUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyDetailUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetCharacterBasicUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetCharactersUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetEventDetailUseCase
@@ -32,9 +40,11 @@ import com.sixclassguys.maplecalendar.domain.usecase.GetSavedFcmTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetTodayEventsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GoogleLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.LogoutUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.ObserveBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.RegisterCharactersUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.RegisterTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ReissueJwtTokenUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.SendBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SetCharacterOcidUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SetOpenApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SubmitEventAlarmUseCase
@@ -78,6 +88,7 @@ val repositoryModule = module {
     single<NotificationRepository> { FirebaseNotificationRepository(get(), get()) }
     single<EventRepository> { EventRepositoryImpl(get()) }
     single<AlarmRepository> { AlarmRepositoryImpl(get()) }
+    single<BossRepository> { BossRepositoryImpl(get(), get()) }
 }
 
 val useCaseModule = module {
@@ -109,6 +120,14 @@ val useCaseModule = module {
     single<GetCharactersUseCase> { GetCharactersUseCase(get()) }
     single<RegisterCharactersUseCase> { RegisterCharactersUseCase(get()) }
     single<UpdateRepresentativeCharacterUseCase> { UpdateRepresentativeCharacterUseCase(get()) }
+    single<GetBossPartiesUseCase> { GetBossPartiesUseCase(get()) }
+    single<CreateBossPartyUseCase> { CreateBossPartyUseCase(get()) }
+    single<GetBossPartyDetailUseCase> { GetBossPartyDetailUseCase(get()) }
+    single<GetBossPartyChatHistoryUseCase>  { GetBossPartyChatHistoryUseCase(get()) }
+    single<ConnectBossChatUseCase> { ConnectBossChatUseCase(get()) }
+    single<ObserveBossChatUseCase> { ObserveBossChatUseCase(get()) }
+    single<SendBossChatUseCase> { SendBossChatUseCase(get()) }
+    single<DisconnectBossPartyChatUseCase> { DisconnectBossPartyChatUseCase(get()) }
 }
 
 val viewModelModule = module {
@@ -119,7 +138,7 @@ val viewModelModule = module {
     viewModel { NotificationViewModel(get(), get(), get(), get()) }
     viewModel { CalendarViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { MapleCharacterViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { BossViewModel(get(), get()) }
+    viewModel { BossViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 
     // Reducer
     single { HomeReducer() }

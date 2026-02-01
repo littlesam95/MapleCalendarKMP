@@ -4,6 +4,8 @@ import com.sixclassguys.maplecalendar.data.remote.datasource.AlarmDataSource
 import com.sixclassguys.maplecalendar.data.remote.datasource.AlarmDataSourceImpl
 import com.sixclassguys.maplecalendar.data.remote.datasource.AuthDataSource
 import com.sixclassguys.maplecalendar.data.remote.datasource.AuthDataSourceImpl
+import com.sixclassguys.maplecalendar.data.remote.datasource.BossDataSource
+import com.sixclassguys.maplecalendar.data.remote.datasource.BossDataSourceImpl
 import com.sixclassguys.maplecalendar.data.remote.datasource.EventDataSource
 import com.sixclassguys.maplecalendar.data.remote.datasource.EventDataSourceImpl
 import com.sixclassguys.maplecalendar.data.remote.datasource.MapleCharacterDataSource
@@ -19,17 +21,30 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.*
+import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.plugins.websocket.pingInterval
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import kotlin.time.Duration.Companion.seconds
 
 val networkModule = module {
     single(named("BackendClient")) {
         HttpClient { // 실제 엔진(OkHttp, Darwin 등)은 Ktor가 선택
+            // WebSocket 설정
+            install(WebSockets) {
+                pingInterval = 20.seconds // 20초마다 핑을 날려 연결 유지
+                contentConverter = KotlinxWebsocketSerializationConverter(Json {
+                    ignoreUnknownKeys = true
+                    prettyPrint = true
+                })
+            }
+
             // JSON 직렬화 설정
             install(ContentNegotiation) {
                 json(Json {
@@ -57,7 +72,7 @@ val networkModule = module {
             }
 
             defaultRequest {
-                url("http://52.78.54.150:8080/api/")
+                url("http://192.168.0.14:8080/api/")
             }
         }
     }
@@ -120,6 +135,9 @@ val networkModule = module {
 
     // MapleCharacter DataSource 객체 주입
     single<MapleCharacterDataSource> { MapleCharacterDataSourceImpl(get(named("BackendClient"))) }
+
+    // Boss DataSource 객체 주입
+    single<BossDataSource> { BossDataSourceImpl(get(named("BackendClient"))) }
 
     // 넥슨 Open API와 통신하는 DataSource 객체 주입
     single<NexonOpenApiDataSource> { NexonOpenApiDataSourceImpl(get(named("NexonClient"))) }
