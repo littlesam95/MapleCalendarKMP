@@ -1,6 +1,8 @@
 package com.sixclassguys.maplecalendar.ui.boss
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -42,6 +45,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sixclassguys.maplecalendar.presentation.boss.BossIntent
 import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
@@ -58,6 +64,7 @@ import com.sixclassguys.maplecalendar.ui.component.BossPartyDetailTabRow
 import com.sixclassguys.maplecalendar.ui.component.BossPartyMemberContent
 import com.sixclassguys.maplecalendar.util.BossPartyTab
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun BossPartyDetailScreen(
@@ -66,11 +73,12 @@ fun BossPartyDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberLazyListState() // 리스트형 컨텐츠를 위해 LazyListState 사용
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     // 높이 설정 (제공해주신 상수 기준 적용)
-    val COLLAPSED_TOP_BAR_HEIGHT = 48.dp
-    val EXPANDED_TOP_BAR_HEIGHT = 420.dp
-    val INPUT_BAR_HEIGHT = 80.dp // 🚀 하단 입력바 예상 높이
+    val collapsedTopBarHeight = 48.dp
+    val expandedTopBarHeight = 420.dp
+    val inputBarHeight = 80.dp // 하단 입력바 예상 높이
 
     val configuration = LocalConfiguration.current
 
@@ -83,8 +91,8 @@ fun BossPartyDetailScreen(
     val screenHeightDp = configuration.screenHeightDp.dp
 
     val density = LocalDensity.current
-    val collapsedHeightPx = with(density) { COLLAPSED_TOP_BAR_HEIGHT.toPx() }
-    val expandedHeightPx = with(density) { EXPANDED_TOP_BAR_HEIGHT.toPx() }
+    val collapsedHeightPx = with(density) { collapsedTopBarHeight.toPx() }
+    val expandedHeightPx = with(density) { expandedTopBarHeight.toPx() }
     val maxScrollOffsetPx = expandedHeightPx - collapsedHeightPx
 
     var toolbarOffsetHeightPx by remember { mutableFloatStateOf(0f) }
@@ -130,6 +138,29 @@ fun BossPartyDetailScreen(
         scrollState.scrollToItem(0)
     }
 
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    // 앱이 포그라운드로 돌아왔을 때 실행
+                    // 현재 연결 상태를 체크한 뒤 연결이 끊겨있다면 다시 연결 시도
+                    viewModel.onIntent(BossIntent.ConnectBossPartyChat)
+                }
+
+                Lifecycle.Event.ON_PAUSE -> {
+                    // 필요 시 백그라운드 진입 시 로직 (보통은 그대로 둠)
+                }
+
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     Scaffold(
         containerColor = MapleWhite
     ) { padding ->
@@ -146,7 +177,7 @@ fun BossPartyDetailScreen(
                     // 🚀 헤더가 확장된 높이만큼 상단 패딩을 주어 시작 지점을 맞춥니다.
                     top = with(density) { (expandedHeightPx + toolbarOffsetHeightPx).toDp() },
                     // 🚀 채팅 탭일 때만 입력바 높이만큼 하단 패딩 부여
-                    bottom = if (uiState.selectedBossPartyDetailMenu == BossPartyTab.CHAT) INPUT_BAR_HEIGHT else 16.dp
+                    bottom = if (uiState.selectedBossPartyDetailMenu == BossPartyTab.CHAT) inputBarHeight else 16.dp
                 )
             ) {
                 // 탭 메뉴 (Sticky Header)
@@ -164,7 +195,7 @@ fun BossPartyDetailScreen(
                     BossPartyTab.ALARM -> {
                         item {
                             val availableHeight =
-                                screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp
+                                screenHeightDp - systemBarsHeight - collapsedTopBarHeight - 48.dp
                             BossPartyAlarmContent(
                                 alarms = uiState.bossPartyAlarmTimes,
                                 isAlarmOn = uiState.isBossPartyDetailAlarmOn,
@@ -182,7 +213,7 @@ fun BossPartyDetailScreen(
                     BossPartyTab.MEMBER -> {
                         item {
                             val availableHeight =
-                                screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp
+                                screenHeightDp - systemBarsHeight - collapsedTopBarHeight - 48.dp
                             BossPartyMemberContent(
                                 isLeader = uiState.selectedBossParty?.isLeader ?: false,
                                 members = uiState.selectedBossParty?.members ?: emptyList(),
@@ -202,14 +233,17 @@ fun BossPartyDetailScreen(
                     BossPartyTab.CHAT -> {
                         item {
                             val availableHeight =
-                                screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp - INPUT_BAR_HEIGHT
+                                screenHeightDp - systemBarsHeight - collapsedTopBarHeight - 48.dp - inputBarHeight
                             BossPartyChatContent(
                                 chats = uiState.bossPartyChats,
+                                chatUiItems = uiState.bossPartyChatUiItems,
                                 isLastPage = uiState.isBossPartyChatLastPage,
                                 isLoading = uiState.isLoading,
                                 onLoadMore = { viewModel.onIntent(BossIntent.FetchBossPartyChatHistory) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
+                                onDelete = { bossPartyChatId ->
+                                    viewModel.onIntent(BossIntent.DeleteBossPartyChatMessage(bossPartyChatId))
+                                },
+                                modifier = Modifier.fillMaxWidth()
                                     .height(availableHeight)
                             )
                         }
@@ -218,7 +252,7 @@ fun BossPartyDetailScreen(
                     BossPartyTab.ALBUM -> {
                         item {
                             val availableHeight =
-                                screenHeightDp - systemBarsHeight - COLLAPSED_TOP_BAR_HEIGHT - 48.dp
+                                screenHeightDp - systemBarsHeight - collapsedTopBarHeight - 48.dp
                             BossPartyAlbumContent(
                                 posts = uiState.bossPartyAlbums,
                                 modifier = Modifier
@@ -232,12 +266,12 @@ fun BossPartyDetailScreen(
 
             // 2. 하단 고정 입력창 (CHAT 탭일 때만 노출)
             if (uiState.selectedBossPartyDetailMenu == BossPartyTab.CHAT) {
-                // 🚀 핵심: Surface나 Box로 감싸고 align(Alignment.BottomCenter) 부여
+                // Surface나 Box로 감싸고 align(Alignment.BottomCenter) 부여
                 Surface(
                     modifier = Modifier.padding(bottom = padding.calculateBottomPadding())
                         .align(Alignment.BottomCenter) // 하단 고정
                         .fillMaxWidth()
-                        .height(INPUT_BAR_HEIGHT),
+                        .height(inputBarHeight),
                     color = MapleStatBackground // 와이어프레임의 어두운 배경색 유지
                 ) {
                     Row(

@@ -9,6 +9,7 @@ import kotlinx.datetime.Month
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.toJavaLocalDateTime
 import java.text.DecimalFormat
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 object MapleDateFormatters {
@@ -17,6 +18,18 @@ object MapleDateFormatters {
     @RequiresApi(Build.VERSION_CODES.O)
     val notificationFormatter: DateTimeFormatter =
         DateTimeFormatter.ofPattern("yyyy년 M월 d일 HH시 mm분")
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun formatToYmd(dateStr: String): String {
+    return try {
+        // 서버 시간이 "2024-05-20T15:30:00Z" 형태라면 ZonedDateTime으로 파싱
+        val parsedDate = ZonedDateTime.parse(dateStr)
+        parsedDate.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
+    } catch (e: Exception) {
+        // 파싱 실패 시 원본 문자열의 앞부분 10자리라도 반환 ("2024-05-20")
+        dateStr.take(10)
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

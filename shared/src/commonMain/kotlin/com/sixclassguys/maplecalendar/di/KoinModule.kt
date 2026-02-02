@@ -22,6 +22,7 @@ import com.sixclassguys.maplecalendar.domain.usecase.AutoLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.CheckCharacterAuthorityUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ConnectBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.CreateBossPartyUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.DeleteBossPartyChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DeleteCharacterUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DisconnectBossPartyChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DoLoginWithApiKeyUseCase
@@ -127,6 +128,7 @@ val useCaseModule = module {
     single<ConnectBossChatUseCase> { ConnectBossChatUseCase(get()) }
     single<ObserveBossChatUseCase> { ObserveBossChatUseCase(get()) }
     single<SendBossChatUseCase> { SendBossChatUseCase(get()) }
+    single<DeleteBossPartyChatUseCase> { DeleteBossPartyChatUseCase(get()) }
     single<DisconnectBossPartyChatUseCase> { DisconnectBossPartyChatUseCase(get()) }
 }
 
@@ -138,7 +140,7 @@ val viewModelModule = module {
     viewModel { NotificationViewModel(get(), get(), get(), get()) }
     viewModel { CalendarViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { MapleCharacterViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { BossViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { BossViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 
     // Reducer
     single { HomeReducer() }

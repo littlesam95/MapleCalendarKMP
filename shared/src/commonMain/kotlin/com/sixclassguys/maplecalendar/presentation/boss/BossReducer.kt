@@ -1,9 +1,52 @@
 package com.sixclassguys.maplecalendar.presentation.boss
 
+import com.sixclassguys.maplecalendar.domain.model.BossPartyChat
 import com.sixclassguys.maplecalendar.domain.model.CharacterSummary
+import com.sixclassguys.maplecalendar.util.BossPartyChatMessageType
+import com.sixclassguys.maplecalendar.util.BossPartyChatUiItem
 import io.github.aakira.napier.Napier
 
 class BossReducer {
+
+    private fun transformToUiItems(chats: List<BossPartyChat>): List<BossPartyChatUiItem> {
+        if (chats.isEmpty()) return emptyList()
+
+        val uiItems = mutableListOf<BossPartyChatUiItem>()
+
+        chats.forEachIndexed { index, currentChat ->
+            // 1. 이전 메시지(시간상 더 미래)와 비교하여 프로필 노출 결정
+            // reverseLayout이므로 index - 1 이 시간상 바로 다음 메시지입니다.
+            val nextMessageInTime = chats.getOrNull(index - 1)
+
+            val isSameUserAsNext = nextMessageInTime != null &&
+                    nextMessageInTime.senderId == currentChat.senderId &&
+                    nextMessageInTime.messageType == currentChat.messageType &&
+                    isSameDay(nextMessageInTime.createdAt, currentChat.createdAt)
+
+            // 2. 현재 메시지 추가 (미래 메시지가 나랑 같은 사람이면 내 프로필은 숨김)
+            uiItems.add(
+                BossPartyChatUiItem.Message(
+                    chat = currentChat,
+                    showProfile = !isSameUserAsNext && !currentChat.isMine &&
+                            currentChat.messageType !in listOf(BossPartyChatMessageType.ENTER, BossPartyChatMessageType.LEAVE),
+                    showTime = true
+                )
+            )
+
+            // 3. 날짜 구분선 (과거 메시지와 날짜가 다르면 추가)
+            val previousMessageInTime = chats.getOrNull(index + 1)
+            if (previousMessageInTime == null || !isSameDay(currentChat.createdAt, previousMessageInTime.createdAt)) {
+                uiItems.add(BossPartyChatUiItem.DateDivider(currentChat.createdAt))
+            }
+        }
+        return uiItems
+    }
+
+    // 헬퍼 함수 예시 (기존 프로젝트의 날짜 라이브러리에 맞춰 구현)
+    private fun isSameDay(date1: String, date2: String): Boolean {
+        // String 형태의 createdAt을 비교 (예: "2024-05-20" 부분만 잘라서 비교)
+        return date1.take(10) == date2.take(10)
+    }
 
     fun reduce(currentState: BossUiState, intent: BossIntent): BossUiState = when (intent) {
         is BossIntent.FetchBossParties -> {
@@ -160,7 +203,8 @@ class BossReducer {
 
             currentState.copy(
                 isLoading = false,
-                bossPartyChats = updatedList
+                bossPartyChats = updatedList,
+                bossPartyChatUiItems = transformToUiItems(updatedList),
             )
         }
 
@@ -216,12 +260,44 @@ class BossReducer {
             currentState.copy(
                 isLoading = false,
                 bossPartyChats = combinedChats,
+                bossPartyChatUiItems = transformToUiItems(combinedChats),
                 isBossPartyChatLastPage = history.isLastPage,
                 bossPartyChatPage = currentState.bossPartyChatPage + 1
             )
         }
 
         is BossIntent.FetchBossPartyChatHistoryFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
+        is BossIntent.DeleteBossPartyChatMessage -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is BossIntent.DeleteBossPartyChatMessageSuccess -> {
+            val newBossChats = currentState.bossPartyChats.map { chat ->
+                if (chat.id == intent.bossPartyChatId) {
+                    chat.copy(
+                        content = "이 메시지는 삭제되었어요.",
+                        isDeleted = true
+                    )
+                } else {
+                    chat
+                }
+            }
+            currentState.copy(
+                isLoading = false,
+                bossPartyChats = newBossChats,
+                bossPartyChatUiItems = transformToUiItems(newBossChats)
+            )
+        }
+
+        is BossIntent.DeleteBossPartyChatMessageFailed -> {
             currentState.copy(
                 isLoading = false,
                 errorMessage = intent.message
