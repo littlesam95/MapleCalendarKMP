@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.usecase.ConnectBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.CreateBossPartyUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.DeleteBossPartyChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DisconnectBossPartyChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartiesUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyChatHistoryUseCase
@@ -30,6 +31,7 @@ class BossViewModel(
     private val connectBossChatUseCase: ConnectBossChatUseCase,
     private val observeBossChatUseCase: ObserveBossChatUseCase,
     private val sendBossChatUseCase: SendBossChatUseCase,
+    private val deleteBossPartyChatUseCase: DeleteBossPartyChatUseCase,
     private val disconnectBossPartyChatUseCase: DisconnectBossPartyChatUseCase
 ) : ViewModel() {
 
@@ -150,7 +152,7 @@ class BossViewModel(
         }
     }
 
-    fun sendMessage(content: String) {
+    private fun sendMessage(content: String) {
         val bossPartyId = _uiState.value.selectedBossParty?.id ?: return
         Napier.d("메시지 내용: $content")
         viewModelScope.launch {
@@ -164,6 +166,25 @@ class BossViewModel(
                 }
 
                 else -> {}
+            }
+        }
+    }
+
+    private fun deleteMessage(chatId: Long) {
+        val bossPartyId = _uiState.value.selectedBossParty?.id ?: return
+        viewModelScope.launch {
+            deleteBossPartyChatUseCase(bossPartyId, chatId).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.DeleteBossPartyChatMessageSuccess(chatId))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.DeleteBossPartyChatMessageFailed(state.message))
+                    }
+
+                    else -> {}
+                }
             }
         }
     }
@@ -201,6 +222,10 @@ class BossViewModel(
             is BossIntent.FetchBossParties -> {
                 getBossParties()
             }
+
+            is BossIntent.FetchCharacters -> {
+                getSavedCharacters(intent.allWorldNames)
+            }
             
             is BossIntent.CreateBossParty -> {
                 createBossParty(
@@ -224,6 +249,10 @@ class BossViewModel(
                 connectToChat()
             }
 
+            is BossIntent.ConnectBossPartyChat -> {
+                connectToChat()
+            }
+
             is BossIntent.FetchBossPartyChatHistory -> {
                 getBossPartyChatHistory()
             }
@@ -232,8 +261,8 @@ class BossViewModel(
                 sendMessage(_uiState.value.bossPartyChatMessage)
             }
 
-            is BossIntent.FetchCharacters -> {
-                getSavedCharacters(intent.allWorldNames)
+            is BossIntent.DeleteBossPartyChatMessage -> {
+                deleteMessage(intent.bossPartyChatId)
             }
 
             is BossIntent.DisconnectBossPartyChat -> {

@@ -8,6 +8,7 @@ import com.sixclassguys.maplecalendar.domain.model.BossPartyDetail
 import com.sixclassguys.maplecalendar.domain.model.CharacterSummary
 import com.sixclassguys.maplecalendar.util.Boss
 import com.sixclassguys.maplecalendar.util.BossDifficulty
+import com.sixclassguys.maplecalendar.util.BossPartyChatUiItem
 import com.sixclassguys.maplecalendar.util.BossPartyTab
 
 data class BossUiState(
@@ -26,6 +27,7 @@ data class BossUiState(
     val isBossPartyDetailAlarmOn: Boolean = true,
     val bossPartyAlarmTimes: List<BossPartyAlarmTime> = emptyList(),
     val bossPartyChats: List<BossPartyChat> = emptyList(),
+    val bossPartyChatUiItems: List<BossPartyChatUiItem> = emptyList(),
     val bossPartyChatPage: Int = 0,
     val isBossPartyChatLastPage: Boolean = false,
     val bossPartyChatMessage: String = "",

@@ -164,7 +164,7 @@ class BossRepositoryImpl(
             }
     }
 
-    override suspend fun sendMessage(partyId: Long, message: BossPartyChat): ApiState<Unit>{
+    override suspend fun sendMessage(partyId: Long, message: BossPartyChat): ApiState<Unit> {
         return try {
             Napier.d("Sending message: ${message.content}")
             dataSource.sendMessage(BossPartyChatMessageRequest(
@@ -178,6 +178,25 @@ class BossRepositoryImpl(
             Napier.d(e.message ?: "전송 실패")
             ApiState.Error(e.message ?: "전송 실패")
         }
+    }
+
+    override suspend fun deleteMessage(bossPartyId: Long, chatId: Long): Flow<ApiState<Unit>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.deleteMessage(accessToken, bossPartyId, chatId)
+
+            emit(ApiState.Success(Unit))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
     }
 
     override suspend fun disconnect() = dataSource.disconnect()
