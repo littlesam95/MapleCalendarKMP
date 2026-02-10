@@ -59,6 +59,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
                     eventBus.emitBossPartyId(bossPartyId)
                     showBossNotification(title, body, bossPartyId)
                 }
+
+                "REFRESH_BOSS_ALARM" -> {
+                    eventBus.emitBossPartyId(bossPartyId)
+                }
+
                 else -> {
                     // 기존 이벤트 알림 로직 (eventId 기반)
                     eventBus.emitEvent(targetId)
