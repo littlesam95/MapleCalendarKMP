@@ -1,5 +1,8 @@
 package com.sixclassguys.maplecalendar.data.remote.datasource
 
+import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyAlarmPeriodRequest
+import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyAlarmTimeRequest
+import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyAlarmTimeResponse
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyChatMessageRequest
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyChatMessageResponse
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyCreateRequest
@@ -14,9 +17,37 @@ interface BossDataSource {
 
     suspend fun getBossParties(accessToken: String): List<BossPartyResponse>
 
-    suspend fun createBossParty(accessToken: String, request: BossPartyCreateRequest): BossPartyCreateResponse
+    suspend fun createBossParty(
+        accessToken: String,
+        request: BossPartyCreateRequest
+    ): BossPartyCreateResponse
 
     suspend fun getBossPartyDetail(accessToken: String, bossPartyId: Long): BossPartyDetailResponse
+
+    suspend fun getBossPartyAlarmTimes(
+        accessToken: String,
+        bossPartyId: Long
+    ): List<BossPartyAlarmTimeResponse>
+
+    suspend fun updateAlarmSetting(accessToken: String, bossPartyId: Long, enabled: Boolean)
+
+    suspend fun createBossAlarm(
+        accessToken: String,
+        bossPartyId: Long,
+        request: BossPartyAlarmTimeRequest
+    ): List<BossPartyAlarmTimeResponse>
+
+    suspend fun updateBossAlarmPeriod(
+        accessToken: String,
+        bossPartyId: Long,
+        request: BossPartyAlarmPeriodRequest
+    ): List<BossPartyAlarmTimeResponse>
+
+    suspend fun deleteBossAlarm(
+        accessToken: String,
+        bossPartyId: Long,
+        alarmId: Long
+    ): List<BossPartyAlarmTimeResponse>
 
     suspend fun getChatMessages(
         accessToken: String,
