@@ -27,7 +27,8 @@ class SendBossChatUseCase(
             messageType = BossPartyChatMessageType.TEXT,
             senderWorld = "",
             isHidden = false,
-            isDeleted = false
+            isDeleted = false,
+            unreadCount = 0
         )
 
         return repository.sendMessage(partyId, chatModel)

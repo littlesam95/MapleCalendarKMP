@@ -9,6 +9,7 @@ data class BossPartyChat(
     val senderWorld: String,
     val senderImage: String,
     val content: String,
+    val unreadCount: Int,
     val messageType: BossPartyChatMessageType,
     val isMine: Boolean,
     val isDeleted: Boolean,

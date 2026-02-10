@@ -12,6 +12,7 @@ data class BossPartyChatMessageResponse(
     val senderWorld: String? = null,
     val senderImage: String? = null,
     val content: String? = null,
+    val unreadCount: Int = 0,
     val messageType: BossPartyChatMessageType? = null,
     val isMine: Boolean = false, // 조회하는 사람의 ID와 비교하여 서버에서 계산해서 전달
     val isDeleted: Boolean = false,
@@ -27,6 +28,7 @@ data class BossPartyChatMessageResponse(
             senderWorld = this.senderWorld ?: "",
             senderImage = this.senderImage ?: "",
             content = this.content ?: "",
+            unreadCount = this.unreadCount,
             messageType = this.messageType ?: BossPartyChatMessageType.TEXT,
             isMine = this.isMine,
             isDeleted = this.isDeleted,
