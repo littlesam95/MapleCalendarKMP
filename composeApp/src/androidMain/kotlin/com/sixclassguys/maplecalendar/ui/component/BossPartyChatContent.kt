@@ -63,6 +63,7 @@ fun BossPartyChatContent(
     isLoading: Boolean,             // 추가: 로딩 상태 (상단 인디케이터용)
     onLoadMore: () -> Unit,         // 추가: 페이지 로드 콜백
     onHide: (Long) -> Unit,
+    onReport: (BossPartyChat) -> Unit,
     onDelete: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -174,6 +175,7 @@ fun BossPartyChatContent(
                                 isLeader = isLeader,
                                 showProfile = item.showProfile,
                                 onHide = onHide,
+                                onReport = onReport,
                                 onDelete = onDelete
                             )
 
@@ -193,6 +195,7 @@ fun ChatBubble(
     isLeader: Boolean,
     showProfile: Boolean,
     onHide: (Long) -> Unit,
+    onReport: (BossPartyChat) -> Unit,
     onDelete: (Long) -> Unit
 ) {
     when (chat.messageType) {
@@ -210,6 +213,7 @@ fun ChatBubble(
                     isLeader = isLeader,
                     showProfile = showProfile,
                     onHide = onHide,
+                    onReport = onReport,
                     onDelete = onDelete
                 )
             }
@@ -246,6 +250,7 @@ fun UserChatBubble(
     isLeader: Boolean,
     showProfile: Boolean,
     onHide: (Long) -> Unit,
+    onReport: (BossPartyChat) -> Unit,
     onDelete: (Long) -> Unit
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
@@ -335,9 +340,7 @@ fun UserChatBubble(
                             text = {
                                 Text(
                                     text = "삭제하기",
-                                    style = Typography.bodySmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.Red
+                                    style = Typography.bodySmall
                                 )
                             },
                             onClick = {
@@ -347,8 +350,18 @@ fun UserChatBubble(
                         )
                     } else {
                         DropdownMenuItem(
-                            text = { Text("신고하기") },
-                            onClick = { /* 추후 구현 */ isMenuExpanded = false }
+                            text = {
+                                Text(
+                                    text = "신고하기",
+                                    style = Typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Red
+                                )
+                            },
+                            onClick = {
+                                onReport(chat)
+                                isMenuExpanded = false
+                            }
                         )
                     }
                 }

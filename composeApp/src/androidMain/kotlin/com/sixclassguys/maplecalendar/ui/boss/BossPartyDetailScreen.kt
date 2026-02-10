@@ -60,6 +60,7 @@ import com.sixclassguys.maplecalendar.ui.component.BossPartyAlarmContent
 import com.sixclassguys.maplecalendar.ui.component.BossPartyAlarmSettingDialog
 import com.sixclassguys.maplecalendar.ui.component.BossPartyAlbumContent
 import com.sixclassguys.maplecalendar.ui.component.BossPartyChatContent
+import com.sixclassguys.maplecalendar.ui.component.BossPartyChatReportDialog
 import com.sixclassguys.maplecalendar.ui.component.BossPartyCollapsingHeader
 import com.sixclassguys.maplecalendar.ui.component.BossPartyDetailTabRow
 import com.sixclassguys.maplecalendar.ui.component.BossPartyMemberContent
@@ -244,6 +245,9 @@ fun BossPartyDetailScreen(
                                 onHide = { bossPartyChatId ->
                                     viewModel.onIntent(BossIntent.HideBossPartyChatMessage(bossPartyChatId))
                                 },
+                                onReport = { chat ->
+                                    viewModel.onIntent(BossIntent.ShowBossPartyChatReportDialog(chat))
+                                },
                                 onDelete = { bossPartyChatId ->
                                     viewModel.onIntent(BossIntent.DeleteBossPartyChatMessage(bossPartyChatId))
                                 },
@@ -340,6 +344,16 @@ fun BossPartyDetailScreen(
         BossPartyAlarmSettingDialog(
             viewModel = viewModel,
             onDismiss = { viewModel.onIntent(BossIntent.DismissBossPartyCreateDialog) }
+        )
+    }
+
+    if (uiState.showBossPartyChatReport && uiState.selectBossPartyChatToReport != null) {
+        BossPartyChatReportDialog(
+            chat = uiState.selectBossPartyChatToReport,
+            onDismiss = { viewModel.onIntent(BossIntent.DismissBossPartyChatReportDialog) },
+            onReportSubmit = { chatId, reason, reasonDetail ->
+                viewModel.onIntent(BossIntent.ReportBossPartyChatMessage(chatId, reason, reasonDetail))
+            }
         )
     }
 }
