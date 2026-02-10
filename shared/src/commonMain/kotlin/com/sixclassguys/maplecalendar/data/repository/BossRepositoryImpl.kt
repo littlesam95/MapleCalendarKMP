@@ -2,11 +2,14 @@ package com.sixclassguys.maplecalendar.data.repository
 
 import com.sixclassguys.maplecalendar.data.local.AppPreferences
 import com.sixclassguys.maplecalendar.data.remote.datasource.BossDataSource
+import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyAlarmPeriodRequest
+import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyAlarmTimeRequest
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyChatMessageRequest
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyChatMessageResponse
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyCreateRequest
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.model.BossParty
+import com.sixclassguys.maplecalendar.domain.model.BossPartyAlarmTime
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChat
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChatHistory
 import com.sixclassguys.maplecalendar.domain.model.BossPartyDetail
@@ -25,6 +28,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retryWhen
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.Json
 
 class BossRepositoryImpl(
@@ -96,6 +101,154 @@ class BossRepositoryImpl(
             val bossPartyDetail = response.toDomain()
 
             emit(ApiState.Success(bossPartyDetail))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun getBossPartyAlarmTimes(bossPartyId: Long): Flow<ApiState<List<BossPartyAlarmTime>>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.getBossPartyAlarmTimes(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId
+            )
+            val alarmTimes = response.map { it.toDomain() }
+
+            emit(ApiState.Success(alarmTimes))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun updateAlarmSetting(
+        bossPartyId: Long,
+        enabled: Boolean
+    ): Flow<ApiState<Unit>>  = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.updateAlarmSetting(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId,
+                enabled = enabled
+            )
+
+            emit(ApiState.Success(Unit))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun createBossAlarm(
+        bossPartyId: Long,
+        hour: Int,
+        minute: Int,
+        date: LocalDate,
+        message: String
+    ): Flow<ApiState<List<BossPartyAlarmTime>>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.createBossAlarm(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId,
+                request = BossPartyAlarmTimeRequest(
+                    hour = hour,
+                    minute = minute,
+                    date = date,
+                    message = message
+                )
+            )
+            val alarmTimes = response.map { it.toDomain() }
+
+            emit(ApiState.Success(alarmTimes))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun updateBossAlarmPeriod(
+        bossPartyId: Long,
+        dayOfWeek: DayOfWeek?,
+        hour: Int,
+        minute: Int,
+        message: String,
+        isImmediateApply: Boolean
+    ): Flow<ApiState<List<BossPartyAlarmTime>>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.updateBossAlarmPeriod(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId,
+                request = BossPartyAlarmPeriodRequest(
+                    dayOfWeek = dayOfWeek,
+                    hour = hour,
+                    minute = minute,
+                    message = message,
+                    isImmediateApply = isImmediateApply
+                )
+            )
+            val alarmTimes = response.map { it.toDomain() }
+
+            emit(ApiState.Success(alarmTimes))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun deleteBossAlarm(
+        bossPartyId: Long,
+        alarmId: Long
+    ): Flow<ApiState<List<BossPartyAlarmTime>>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.deleteBossAlarm(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId,
+                alarmId = alarmId
+            )
+            val alarmTimes = response.map { it.toDomain() }
+
+            emit(ApiState.Success(alarmTimes))
         } catch (e: Exception) {
             emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
         }

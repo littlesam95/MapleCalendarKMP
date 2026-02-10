@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
@@ -40,6 +41,7 @@ import com.sixclassguys.maplecalendar.theme.MapleStatTitle
 import com.sixclassguys.maplecalendar.theme.MapleWhite
 import com.sixclassguys.maplecalendar.theme.PretendardFamily
 import com.sixclassguys.maplecalendar.theme.Typography
+import com.sixclassguys.maplecalendar.util.RegistrationMode
 
 @Composable
 fun BossPartyAlarmContent(
@@ -47,6 +49,7 @@ fun BossPartyAlarmContent(
     isAlarmOn: Boolean,
     onToggleAlarm: (Boolean) -> Unit,
     onAddAlarm: () -> Unit,
+    onDeleteAlarm: (Long) -> Unit,
     modifier: Modifier
 ) {
     // 배경 컨테이너 (어두운 회색)
@@ -106,12 +109,13 @@ fun BossPartyAlarmContent(
                     }
                 }
             } else {
-                items(alarms){ alarm ->
+                items(alarms) { alarm ->
                     BossPartyDetailAlarmItem(
                         date = alarm.date,
                         time = alarm.time,
                         description = alarm.message,
-                        onDelete = { /* 삭제 로직 */ }
+                        registrationMode = alarm.registrationMode,
+                        onDelete = { onDeleteAlarm(alarm.id) }
                     )
                 }
             }
@@ -125,6 +129,7 @@ fun BossPartyDetailAlarmItem(
     date: String,          // "2026년 1월 31일 토요일"
     time: String,          // "19:00"
     description: String,   // "5분 내로 안 오면 추방함"
+    registrationMode: RegistrationMode,
     onDelete: () -> Unit
 ) {
     Card(
@@ -170,12 +175,25 @@ fun BossPartyDetailAlarmItem(
             }
 
             // 닫기 버튼
-            IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
+            if (registrationMode == RegistrationMode.PERIODIC) {
+                // 주기 알람 아이콘 (삭제 불가)
                 Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "삭제",
-                    tint = Color.Black
+                    imageVector = Icons.Default.Autorenew, // 회전 아이콘으로 '반복' 의미 전달
+                    contentDescription = "주기 알람",
+                    tint = Color.Gray,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(end = 4.dp)
                 )
+            } else {
+                // 일반 예약 알람은 삭제 가능
+                IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "삭제",
+                        tint = Color.Black
+                    )
+                }
             }
         }
     }

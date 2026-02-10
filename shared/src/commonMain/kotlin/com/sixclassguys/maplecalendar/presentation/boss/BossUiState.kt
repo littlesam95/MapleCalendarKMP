@@ -10,6 +10,8 @@ import com.sixclassguys.maplecalendar.util.Boss
 import com.sixclassguys.maplecalendar.util.BossDifficulty
 import com.sixclassguys.maplecalendar.util.BossPartyChatUiItem
 import com.sixclassguys.maplecalendar.util.BossPartyTab
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
 
 data class BossUiState(
     val isLoading: Boolean = false,
@@ -26,6 +28,13 @@ data class BossUiState(
     val selectedBossPartyDetailMenu: BossPartyTab = BossPartyTab.ALARM,
     val isBossPartyDetailAlarmOn: Boolean = true,
     val bossPartyAlarmTimes: List<BossPartyAlarmTime> = emptyList(),
+    val showBossAlarmDialog: Boolean = false,
+    val selectedAlarmDate: LocalDate? = null,
+    val selectedDayOfWeek: DayOfWeek? = null,
+    val isImmediatelyAlarm: Boolean = false,
+    val selectedHour: String = "",
+    val selectedMinute: String = "",
+    val alarmMessage: String = "",
     val bossPartyChats: List<BossPartyChat> = emptyList(),
     val bossPartyChatUiItems: List<BossPartyChatUiItem> = emptyList(),
     val bossPartyChatPage: Int = 0,
