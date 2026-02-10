@@ -174,7 +174,9 @@ class BossReducer {
         is BossIntent.FetchBossPartyDetailSuccess -> {
             currentState.copy(
                 isLoading = false,
-                selectedBossParty = intent.bossPartyDetail
+                selectedBossParty = intent.bossPartyDetail,
+                bossPartyAlarmTimes = intent.bossPartyDetail.alarms,
+                selectedDayOfWeek = intent.bossPartyDetail.alarmDayOfWeek
             )
         }
 
@@ -183,6 +185,132 @@ class BossReducer {
                 isLoading = false,
                 errorMessage = intent.message
             )
+        }
+
+        is BossIntent.ShowAlarmCreateDialog -> {
+            currentState.copy(
+                showBossAlarmDialog = true
+            )
+        }
+
+        is BossIntent.DismissAlarmCreateDialog -> {
+            currentState.copy(
+                showBossAlarmDialog = false
+            )
+        }
+
+        is BossIntent.UpdateAlarmTimeHour -> {
+            currentState.copy(
+                selectedHour = intent.hour
+            )
+        }
+
+        is BossIntent.UpdateAlarmTimeMinute -> {
+            currentState.copy(
+                selectedMinute = intent.minute
+            )
+        }
+
+        is BossIntent.UpdateAlarmMessage -> {
+            currentState.copy(
+                alarmMessage = intent.message
+            )
+        }
+
+        is BossIntent.UpdateAlarmTimeSelectMode -> {
+            currentState.copy(
+                selectedAlarmDate = intent.date
+            )
+        }
+
+        is BossIntent.CreateBossPartyAlarm -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is BossIntent.CreateBossPartyAlarmSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                bossPartyAlarmTimes = intent.bossPartyAlarmTimes,
+                showBossAlarmDialog = false,
+                selectedAlarmDate = null,
+                selectedDayOfWeek = null,
+                isImmediatelyAlarm = false,
+                selectedHour = "",
+                selectedMinute = "",
+                alarmMessage = "",
+            )
+        }
+
+        is BossIntent.CreateBossPartyAlarmFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
+        is BossIntent.UpdateAlarmTimePeriodMode -> {
+            currentState.copy(
+                selectedDayOfWeek = intent.dayOfWeek
+            )
+        }
+
+        is BossIntent.UpdateThisWeekPeriodMode -> {
+            currentState.copy(
+                isImmediatelyAlarm = intent.isImmediatelyAlarm
+            )
+        }
+
+        is BossIntent.UpdateBossPartyAlarmPeriod -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is BossIntent.UpdateBossPartyAlarmPeriodSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                bossPartyAlarmTimes = intent.bossPartyAlarmTimes,
+                showBossAlarmDialog = false,
+                selectedAlarmDate = null,
+                selectedDayOfWeek = null,
+                isImmediatelyAlarm = false,
+                selectedHour = "",
+                selectedMinute = "",
+                alarmMessage = "",
+            )
+        }
+
+        is BossIntent.UpdateBossPartyAlarmPeriodFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
+        is BossIntent.DeleteBossPartyAlarm -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is BossIntent.DeleteBossPartyAlarmSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                bossPartyAlarmTimes = intent.bossPartyAlarmTimes
+            )
+        }
+
+        is BossIntent.DeleteBossPartyAlarmFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
+        is BossIntent.ToggleBossPartyAlarm -> {
+            currentState
         }
 
         is BossIntent.ConnectBossPartyChat -> {

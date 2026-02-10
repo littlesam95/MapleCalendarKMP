@@ -1,6 +1,7 @@
 package com.sixclassguys.maplecalendar.presentation.boss
 
 import com.sixclassguys.maplecalendar.domain.model.BossParty
+import com.sixclassguys.maplecalendar.domain.model.BossPartyAlarmTime
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChat
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChatHistory
 import com.sixclassguys.maplecalendar.domain.model.BossPartyDetail
@@ -8,6 +9,9 @@ import com.sixclassguys.maplecalendar.domain.model.CharacterSummary
 import com.sixclassguys.maplecalendar.util.Boss
 import com.sixclassguys.maplecalendar.util.BossDifficulty
 import com.sixclassguys.maplecalendar.util.BossPartyTab
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 
 sealed class BossIntent {
 
@@ -49,6 +53,42 @@ sealed class BossIntent {
     data class FetchBossPartyDetailSuccess(val bossPartyDetail: BossPartyDetail) : BossIntent()
 
     data class FetchBossPartyDetailFailed(val message: String) : BossIntent()
+
+    data object ShowAlarmCreateDialog : BossIntent()
+
+    data object DismissAlarmCreateDialog : BossIntent()
+
+    data class UpdateAlarmTimeHour(val hour: String) : BossIntent()
+
+    data class UpdateAlarmTimeMinute(val minute: String) : BossIntent()
+
+    data class UpdateAlarmMessage(val message: String) : BossIntent()
+
+    data class UpdateAlarmTimeSelectMode(val date: LocalDate) : BossIntent()
+
+    data object CreateBossPartyAlarm : BossIntent()
+
+    data class CreateBossPartyAlarmSuccess(val bossPartyAlarmTimes: List<BossPartyAlarmTime>) : BossIntent()
+
+    data class CreateBossPartyAlarmFailed(val message: String) : BossIntent()
+
+    data class UpdateAlarmTimePeriodMode(val dayOfWeek: DayOfWeek?) : BossIntent()
+
+    data class UpdateThisWeekPeriodMode(val isImmediatelyAlarm: Boolean) : BossIntent()
+
+    data object UpdateBossPartyAlarmPeriod : BossIntent()
+
+    data class UpdateBossPartyAlarmPeriodSuccess(val bossPartyAlarmTimes: List<BossPartyAlarmTime>) : BossIntent()
+
+    data class UpdateBossPartyAlarmPeriodFailed(val message: String) : BossIntent()
+
+    data class DeleteBossPartyAlarm(val alarmId: Long) : BossIntent()
+
+    data class DeleteBossPartyAlarmSuccess(val bossPartyAlarmTimes: List<BossPartyAlarmTime>) : BossIntent()
+
+    data class DeleteBossPartyAlarmFailed(val message: String) : BossIntent()
+
+    data class ToggleBossPartyAlarm(val enabled: Boolean) : BossIntent()
 
     data object ConnectBossPartyChat : BossIntent()
 
