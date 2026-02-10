@@ -57,6 +57,7 @@ import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleStatBackground
 import com.sixclassguys.maplecalendar.theme.MapleWhite
 import com.sixclassguys.maplecalendar.ui.component.BossPartyAlarmContent
+import com.sixclassguys.maplecalendar.ui.component.BossPartyAlarmSettingDialog
 import com.sixclassguys.maplecalendar.ui.component.BossPartyAlbumContent
 import com.sixclassguys.maplecalendar.ui.component.BossPartyChatContent
 import com.sixclassguys.maplecalendar.ui.component.BossPartyCollapsingHeader
@@ -202,9 +203,9 @@ fun BossPartyDetailScreen(
                                 onToggleAlarm = { isEnabled ->
 
                                 },
-                                onAddAlarm = { },
-                                modifier = Modifier
-                                    .fillMaxWidth()
+                                onAddAlarm = { viewModel.onIntent(BossIntent.ShowAlarmCreateDialog) },
+                                onDeleteAlarm = { viewModel.onIntent(BossIntent.DeleteBossPartyAlarm(it)) },
+                                modifier = Modifier.fillMaxWidth()
                                     .height(availableHeight)
                             )
                         }
@@ -330,5 +331,12 @@ fun BossPartyDetailScreen(
                 onDelete = { /* 삭제/탈퇴 로직 */ }
             )
         }
+    }
+
+    if (uiState.showBossAlarmDialog) {
+        BossPartyAlarmSettingDialog(
+            viewModel = viewModel,
+            onDismiss = { viewModel.onIntent(BossIntent.DismissBossPartyCreateDialog) }
+        )
     }
 }
