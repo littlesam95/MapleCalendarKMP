@@ -171,7 +171,13 @@ fun NavHost(
             composable(Navigation.BossPartyCreate.destination) {
                 BossPartyCreateScreen(
                     viewModel = bossViewModel,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onNavigateToDetail = { bossPartyId ->
+                        bossViewModel.onIntent(BossIntent.FetchBossPartyDetail(bossPartyId))
+                        navController.navigate(Navigation.BossPartyDetail.destination) {
+                            popUpTo(Navigation.BossPartyCreate.destination) { inclusive = true }
+                        }
+                    }
                 )
             }
 

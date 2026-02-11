@@ -2,9 +2,12 @@ package com.sixclassguys.maplecalendar.presentation.boss
 
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChat
 import com.sixclassguys.maplecalendar.domain.model.CharacterSummary
+import com.sixclassguys.maplecalendar.util.Boss
 import com.sixclassguys.maplecalendar.util.BossPartyChatMessageType
 import com.sixclassguys.maplecalendar.util.BossPartyChatUiItem
+import com.sixclassguys.maplecalendar.util.BossPartyTab
 import io.github.aakira.napier.Napier
+import kotlin.String
 
 class BossReducer {
 
@@ -51,27 +54,31 @@ class BossReducer {
     fun reduce(currentState: BossUiState, intent: BossIntent): BossUiState = when (intent) {
         is BossIntent.FetchBossParties -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
         is BossIntent.FetchBossPartiesSuccess -> {
             currentState.copy(
                 isLoading = false,
-                bossParties = intent.bossParties
+                bossParties = intent.bossParties,
+                createdPartyId = null
             )
         }
 
         is BossIntent.FetchBossPartiesFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.FetchCharacters -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
@@ -88,14 +95,30 @@ class BossReducer {
 
             currentState.copy(
                 isLoading = false,
-                characters = characters
+                characters = characters,
+                createdPartyId = null
             )
         }
 
         is BossIntent.FetchCharactersFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.InitBossPartyCreate -> {
+            currentState.copy(
+                isLoading = false,
+                selectedRegion = "그란디스",
+                selectedBoss = Boss.SEREN,
+                selectedBossDifficulty = null,
+                showCreateDialog = false,
+                bossPartyCreateCharacter = currentState.characters.firstOrNull()?.second,
+                bossPartyCreateTitle = "",
+                bossPartyCreateDescription = "",
+                createdPartyId = null,
             )
         }
 
@@ -103,6 +126,7 @@ class BossReducer {
             currentState.copy(
                 isLoading = false,
                 selectedRegion = intent.selectedRegion,
+                createdPartyId = null
             )
         }
 
@@ -110,7 +134,8 @@ class BossReducer {
             currentState.copy(
                 isLoading = false,
                 selectedBoss = intent.selectedBoss,
-                selectedBossDifficulty = null
+                selectedBossDifficulty = null,
+                createdPartyId = null
             )
         }
 
@@ -119,7 +144,10 @@ class BossReducer {
                 isLoading = false,
                 selectedBossDifficulty = intent.selectedBossDifficulty,
                 showCreateDialog = true,
-                bossPartyCreateCharacter = currentState.characters.firstOrNull()?.second
+                bossPartyCreateCharacter = currentState.characters.firstOrNull()?.second,
+                bossPartyCreateTitle = "",
+                bossPartyCreateDescription = "",
+                createdPartyId = null
             )
         }
 
@@ -127,54 +155,62 @@ class BossReducer {
             currentState.copy(
                 isLoading = false,
                 selectedBossDifficulty = null,
-                showCreateDialog = false
+                showCreateDialog = false,
+                createdPartyId = null
             )
         }
 
         is BossIntent.SelectBossPartyCharacter -> {
             currentState.copy(
                 isLoading = false,
-                bossPartyCreateCharacter = intent.character
+                bossPartyCreateCharacter = intent.character,
+                createdPartyId = null
             )
         }
 
         is BossIntent.UpdateBossPartyTitle -> {
             currentState.copy(
                 isLoading = false,
-                bossPartyCreateTitle = intent.title
+                bossPartyCreateTitle = intent.title,
+                createdPartyId = null
             )
         }
 
         is BossIntent.UpdateBossPartyDescription -> {
             currentState.copy(
                 isLoading = false,
-                bossPartyCreateDescription = intent.description
+                bossPartyCreateDescription = intent.description,
+                createdPartyId = null
             )
         }
 
         is BossIntent.CreateBossParty -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
         is BossIntent.CreateBossPartySuccess -> {
             currentState.copy(
                 isLoading = true,
-                showCreateDialog = false
+                showCreateDialog = false,
+                createdPartyId = intent.bossPartyId
             )
         }
 
         is BossIntent.CreateBossPartyFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.FetchBossPartyDetail -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
@@ -182,65 +218,75 @@ class BossReducer {
             currentState.copy(
                 isLoading = false,
                 selectedBossParty = intent.bossPartyDetail,
-                bossPartyAlarmTimes = intent.bossPartyDetail.alarms,
+                selectedBossPartyDetailMenu = BossPartyTab.ALARM,
                 isBossPartyDetailAlarmOn = intent.bossPartyDetail.isPartyAlarmEnabled,
+                bossPartyAlarmTimes = intent.bossPartyDetail.alarms,
                 selectedDayOfWeek = intent.bossPartyDetail.alarmDayOfWeek,
-                isBossPartyChatAlarmOn = intent.bossPartyDetail.isChatAlarmEnabled
+                isBossPartyChatAlarmOn = intent.bossPartyDetail.isChatAlarmEnabled,
+                createdPartyId = null
             )
         }
 
         is BossIntent.FetchBossPartyDetailFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ShowAlarmCreateDialog -> {
             currentState.copy(
                 isLoading = false,
-                showBossAlarmDialog = true
+                showBossAlarmDialog = true,
+                createdPartyId = null
             )
         }
 
         is BossIntent.DismissAlarmCreateDialog -> {
             currentState.copy(
                 isLoading = false,
-                showBossAlarmDialog = false
+                showBossAlarmDialog = false,
+                createdPartyId = null
             )
         }
 
         is BossIntent.UpdateAlarmTimeHour -> {
             currentState.copy(
                 isLoading = false,
-                selectedHour = intent.hour
+                selectedHour = intent.hour,
+                createdPartyId = null
             )
         }
 
         is BossIntent.UpdateAlarmTimeMinute -> {
             currentState.copy(
                 isLoading = false,
-                selectedMinute = intent.minute
+                selectedMinute = intent.minute,
+                createdPartyId = null
             )
         }
 
         is BossIntent.UpdateAlarmMessage -> {
             currentState.copy(
                 isLoading = false,
-                alarmMessage = intent.message
+                alarmMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.UpdateAlarmTimeSelectMode -> {
             currentState.copy(
                 isLoading = false,
-                selectedAlarmDate = intent.date
+                selectedAlarmDate = intent.date,
+                createdPartyId = null
             )
         }
 
         is BossIntent.CreateBossPartyAlarm -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
@@ -255,33 +301,38 @@ class BossReducer {
                 selectedHour = "",
                 selectedMinute = "",
                 alarmMessage = "",
+                createdPartyId = null
             )
         }
 
         is BossIntent.CreateBossPartyAlarmFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.UpdateAlarmTimePeriodMode -> {
             currentState.copy(
                 isLoading = false,
-                selectedDayOfWeek = intent.dayOfWeek
+                selectedDayOfWeek = intent.dayOfWeek,
+                createdPartyId = null
             )
         }
 
         is BossIntent.UpdateThisWeekPeriodMode -> {
             currentState.copy(
                 isLoading = false,
-                isImmediatelyAlarm = intent.isImmediatelyAlarm
+                isImmediatelyAlarm = intent.isImmediatelyAlarm,
+                createdPartyId = null
             )
         }
 
         is BossIntent.UpdateBossPartyAlarmPeriod -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
@@ -296,79 +347,91 @@ class BossReducer {
                 selectedHour = "",
                 selectedMinute = "",
                 alarmMessage = "",
+                createdPartyId = null
             )
         }
 
         is BossIntent.UpdateBossPartyAlarmPeriodFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.DeleteBossPartyAlarm -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
         is BossIntent.DeleteBossPartyAlarmSuccess -> {
             currentState.copy(
                 isLoading = false,
-                bossPartyAlarmTimes = intent.bossPartyAlarmTimes
+                bossPartyAlarmTimes = intent.bossPartyAlarmTimes,
+                createdPartyId = null
             )
         }
 
         is BossIntent.DeleteBossPartyAlarmFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ToggleBossPartyAlarm -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ToggleBossPartyAlarmSuccess -> {
             currentState.copy(
                 isLoading = false,
-                isBossPartyDetailAlarmOn = intent.enabled
+                isBossPartyDetailAlarmOn = intent.enabled,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ToggleBossPartyAlarmFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ConnectBossPartyChat -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ToggleBossPartyChatAlarm -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ToggleBossPartyChatAlarmSuccess -> {
             currentState.copy(
                 isLoading = false,
-                isBossPartyChatAlarmOn = intent.enabled
+                isBossPartyChatAlarmOn = intent.enabled,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ToggleBossPartyChatAlarmFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
@@ -388,80 +451,92 @@ class BossReducer {
                 isLoading = false,
                 bossPartyChats = updatedList,
                 bossPartyChatUiItems = transformToUiItems(updatedList),
+                createdPartyId = null
             )
         }
 
         is BossIntent.ConnectBossPartyChatFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
        }
 
         is BossIntent.UpdateBossPartyChatMessage -> {
             currentState.copy(
                 isLoading = false,
-                bossPartyChatMessage = intent.bossPartyChatMessage
+                bossPartyChatMessage = intent.bossPartyChatMessage,
+                createdPartyId = null
             )
         }
 
         is BossIntent.SendBossPartyChatMessage -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
         is BossIntent.SendBossPartyChatMessageSuccess -> {
             currentState.copy(
                 isLoading = false,
-                bossPartyChatMessage = ""
+                bossPartyChatMessage = "",
+                createdPartyId = null
             )
         }
 
         is BossIntent.SendBossPartyChatMessageFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ShowBossPartyChatReportDialog -> {
             currentState.copy(
                 showBossPartyChatReport = true,
-                selectBossPartyChatToReport = intent.chat
+                selectBossPartyChatToReport = intent.chat,
+                createdPartyId = null
             )
         }
 
         is BossIntent.DismissBossPartyChatReportDialog -> {
             currentState.copy(
                 showBossPartyChatReport = false,
-                selectBossPartyChatToReport = null
+                selectBossPartyChatToReport = null,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ReportBossPartyChatMessage -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ReportBossPartyChatMessageSuccess -> {
             currentState.copy(
                 isLoading = false,
-                showBossPartyChatReport = false
+                showBossPartyChatReport = false,
+                createdPartyId = null
             )
         }
 
         is BossIntent.ReportBossPartyChatMessageFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.FetchBossPartyChatHistory -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
@@ -482,20 +557,23 @@ class BossReducer {
                 bossPartyChats = combinedChats,
                 bossPartyChatUiItems = transformToUiItems(combinedChats),
                 isBossPartyChatLastPage = history.isLastPage,
-                bossPartyChatPage = currentState.bossPartyChatPage + 1
+                bossPartyChatPage = currentState.bossPartyChatPage + 1,
+                createdPartyId = null
             )
         }
 
         is BossIntent.FetchBossPartyChatHistoryFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.HideBossPartyChatMessage -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
@@ -504,20 +582,23 @@ class BossReducer {
             currentState.copy(
                 isLoading = false,
                 bossPartyChats = newBossChats,
-                bossPartyChatUiItems = transformToUiItems(newBossChats)
+                bossPartyChatUiItems = transformToUiItems(newBossChats),
+                createdPartyId = null
             )
         }
 
         is BossIntent.HideBossPartyChatMessageFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.DeleteBossPartyChatMessage -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                createdPartyId = null
             )
         }
 
@@ -535,27 +616,31 @@ class BossReducer {
             currentState.copy(
                 isLoading = false,
                 bossPartyChats = newBossChats,
-                bossPartyChatUiItems = transformToUiItems(newBossChats)
+                bossPartyChatUiItems = transformToUiItems(newBossChats),
+                createdPartyId = null
             )
         }
 
         is BossIntent.DeleteBossPartyChatMessageFailed -> {
             currentState.copy(
                 isLoading = false,
-                errorMessage = intent.message
+                errorMessage = intent.message,
+                createdPartyId = null
             )
         }
 
         is BossIntent.DisconnectBossPartyChat -> {
             currentState.copy(
-                isLoading = false
+                isLoading = false,
+                createdPartyId = null
             )
         }
 
         is BossIntent.SelectBossPartyDetailMenu -> {
             currentState.copy(
                 isLoading = false,
-                selectedBossPartyDetailMenu = intent.selectedBossPartyDetailMenu
+                selectedBossPartyDetailMenu = intent.selectedBossPartyDetailMenu,
+                createdPartyId = null
             )
         }
     }

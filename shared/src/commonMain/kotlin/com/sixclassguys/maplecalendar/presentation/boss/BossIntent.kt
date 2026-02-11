@@ -28,6 +28,8 @@ sealed class BossIntent {
 
     data class FetchCharactersFailed(val message: String) : BossIntent()
 
+    data object InitBossPartyCreate : BossIntent()
+
     data class SelectRegion(val selectedRegion: String) : BossIntent()
 
     data class SelectBoss(val selectedBoss: Boss) : BossIntent()

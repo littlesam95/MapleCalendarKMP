@@ -24,6 +24,7 @@ data class BossUiState(
     val bossPartyCreateCharacter: CharacterSummary? = characters.firstOrNull()?.second,
     val bossPartyCreateTitle: String = "",
     val bossPartyCreateDescription: String = "",
+    val createdPartyId: Long? = null,
     val selectedBossParty: BossPartyDetail? = null,
     val selectedBossPartyDetailMenu: BossPartyTab = BossPartyTab.ALARM,
     val isBossPartyDetailAlarmOn: Boolean = false,
