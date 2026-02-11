@@ -1,5 +1,6 @@
 package com.sixclassguys.maplecalendar.ui.splash
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,11 +31,13 @@ fun SplashScreen(
     snackbarHostState: SnackbarHostState,
     onNavigateToHome: () -> Unit
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState.isAutoLoginFinished) {
         if (uiState.isAutoLoginFinished) {
             onNavigateToHome()
+            Toast.makeText(context, "로그인에 성공했습니다!", Toast.LENGTH_SHORT).show()
         }
     }
 

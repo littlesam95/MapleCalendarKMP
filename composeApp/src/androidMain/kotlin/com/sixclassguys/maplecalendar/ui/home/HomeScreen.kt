@@ -20,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,15 +46,6 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val uriHandler = LocalUriHandler.current
-
-    LaunchedEffect(uiState.member) {
-        val member = uiState.member
-        if (member != null) {
-            Toast.makeText(context, "로그인에 성공했습니다!", Toast.LENGTH_SHORT).show()
-            // viewModel.onIntent(HomeIntent.LoadApiKey)
-        }
-    }
 
     LaunchedEffect(uiState.isNavigateToLogin) {
         if (uiState.isNavigateToLogin) {
