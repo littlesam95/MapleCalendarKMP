@@ -40,38 +40,38 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
     override fun onMessageReceived(message: RemoteMessage) {
         CoroutineScope(Dispatchers.IO).launch {
             val isEnabled = dataStore.isNotificationMode.first()
-//            if (!isEnabled) {
-//                Napier.d("알림이 꺼져 있습니다.")
-//                return@launch
-//            }
+            if (!isEnabled) {
+                Napier.d("알림이 꺼져 있습니다.")
+                return@launch
+            }
 
             // 1. 공통 데이터 추출
             val title = message.notification?.title ?: message.data["title"] ?: "Maplendar"
             val body = message.notification?.body ?: message.data["body"] ?: "내용이 없습니다."
             val type = message.data["type"] // BOSS, EVENT 등
             val targetId = message.data["targetId"]?.toLongOrNull() ?: 0L
-            val bossPartyId = message.data["partyId"]?.toLongOrNull() ?: 0L
+            val contentId = message.data["contentId"]?.toLongOrNull() ?: 0L
 
             // 2. 타입별 처리
             when (type) {
                 "BOSS" -> {
                     // 보스 파티 전용 알림 표시
-                    eventBus.emitBossPartyId(bossPartyId)
-                    showBossNotification(title, body, bossPartyId)
+                    eventBus.emitBossPartyId(contentId)
+                    showBossNotification(title, body, contentId)
                 }
 
                 "BOSSCHAT" -> {
-                    showBossChatNotification(title, body, bossPartyId)
+                    showBossChatNotification(title, body, contentId)
                 }
 
                 "REFRESH_BOSS_ALARM" -> {
-                    eventBus.emitBossPartyId(bossPartyId)
+                    eventBus.emitBossPartyId(contentId)
                 }
 
                 else -> {
                     // 기존 이벤트 알림 로직 (eventId 기반)
-                    eventBus.emitEvent(targetId)
-                    showNotification(title, body, targetId)
+                    eventBus.emitEvent(contentId)
+                    showEventNotification(title, body, contentId)
                 }
             }
         }
@@ -163,7 +163,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
         notificationManager.notify(partyId.toInt(), builder.build())
     }
 
-    private fun showNotification(title: String?, body: String?, eventId: Long) {
+    private fun showEventNotification(title: String?, body: String?, eventId: Long) {
         val channelId = "MAPLE_CALENDAR_HIGH_V3" // 채널명
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 

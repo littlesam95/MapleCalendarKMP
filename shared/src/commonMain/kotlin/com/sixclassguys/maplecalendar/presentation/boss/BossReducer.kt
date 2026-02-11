@@ -183,7 +183,9 @@ class BossReducer {
                 isLoading = false,
                 selectedBossParty = intent.bossPartyDetail,
                 bossPartyAlarmTimes = intent.bossPartyDetail.alarms,
-                selectedDayOfWeek = intent.bossPartyDetail.alarmDayOfWeek
+                isBossPartyDetailAlarmOn = intent.bossPartyDetail.isPartyAlarmEnabled,
+                selectedDayOfWeek = intent.bossPartyDetail.alarmDayOfWeek,
+                isBossPartyChatAlarmOn = intent.bossPartyDetail.isChatAlarmEnabled
             )
         }
 
@@ -325,12 +327,48 @@ class BossReducer {
         }
 
         is BossIntent.ToggleBossPartyAlarm -> {
-            currentState
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is BossIntent.ToggleBossPartyAlarmSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                isBossPartyDetailAlarmOn = intent.enabled
+            )
+        }
+
+        is BossIntent.ToggleBossPartyAlarmFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
         }
 
         is BossIntent.ConnectBossPartyChat -> {
             currentState.copy(
                 isLoading = true
+            )
+        }
+
+        is BossIntent.ToggleBossPartyChatAlarm -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is BossIntent.ToggleBossPartyChatAlarmSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                isBossPartyChatAlarmOn = intent.enabled
+            )
+        }
+
+        is BossIntent.ToggleBossPartyChatAlarmFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
             )
         }
 

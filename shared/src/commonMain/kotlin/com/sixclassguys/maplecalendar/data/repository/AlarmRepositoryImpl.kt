@@ -54,7 +54,7 @@ class AlarmRepositoryImpl(
 
         try {
             val accessToken = dataStore.accessToken.first()
-            val response = dataSource.toggleEventAlarm(accessToken = accessToken, eventId = eventId)
+            val response = dataSource.toggleEventAlarm(accessToken, eventId)
             val event = response.toDomain()
 
             emit(ApiState.Success(event))

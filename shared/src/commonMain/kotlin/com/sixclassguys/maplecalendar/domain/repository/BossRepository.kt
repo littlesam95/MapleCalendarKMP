@@ -28,7 +28,7 @@ interface BossRepository {
 
     suspend fun getBossPartyAlarmTimes(bossPartyId: Long): Flow<ApiState<List<BossPartyAlarmTime>>>
 
-    suspend fun updateAlarmSetting(bossPartyId: Long, enabled: Boolean): Flow<ApiState<Unit>>
+    suspend fun updateAlarmSetting(bossPartyId: Long): Flow<ApiState<Boolean>>
 
     suspend fun createBossAlarm(
         bossPartyId: Long,
@@ -55,6 +55,8 @@ interface BossRepository {
     suspend fun getChatMessage(bossPartyId: Long, page: Int): Flow<ApiState<BossPartyChatHistory>>
 
     suspend fun connect(partyId: String): Flow<ApiState<Unit>>
+
+    suspend fun updateChatAlarmSetting(bossPartyId: Long): Flow<ApiState<Boolean>>
 
     fun observeMessages(): Flow<ApiState<BossPartyChat>>
 

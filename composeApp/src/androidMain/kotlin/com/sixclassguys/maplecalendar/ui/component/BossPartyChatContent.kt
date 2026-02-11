@@ -1,6 +1,12 @@
 package com.sixclassguys.maplecalendar.ui.component
 
+import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -22,7 +28,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,12 +41,14 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -52,21 +65,52 @@ import com.sixclassguys.maplecalendar.util.BossPartyChatMessageType
 import com.sixclassguys.maplecalendar.util.BossPartyChatUiItem
 import com.sixclassguys.maplecalendar.utils.formatToYmd
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BossPartyChatContent(
+    isAlarmOn: Boolean,
     chats: List<BossPartyChat>,
     chatUiItems: List<BossPartyChatUiItem>,
+    snackbarHostState: SnackbarHostState,
     isLastPage: Boolean,            // 추가: 마지막 페이지 여부
     isLeader: Boolean,
     isLoading: Boolean,             // 추가: 로딩 상태 (상단 인디케이터용)
     onLoadMore: () -> Unit,         // 추가: 페이지 로드 콜백
+    onToggleAlarm: () -> Unit,
     onHide: (Long) -> Unit,
     onReport: (BossPartyChat) -> Unit,
     onDelete: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            onToggleAlarm()
+        } else {
+            // 권한이 거부되었을 때
+            scope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = "알림 권한을 허용하셔야 알림을 받을 수 있어요.",
+                    actionLabel = "설정",
+                    duration = SnackbarDuration.Long
+                )
+
+                // 사용자가 '설정' 버튼을 눌렀을 때 앱 정보 화면으로 이동
+                if (result == SnackbarResult.ActionPerformed) {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
+                }
+            }
+        }
+    }
     val internalScrollState = rememberLazyListState()
 
     // 1. 최상단 스크롤 감지 (페이징 호출)
@@ -102,13 +146,37 @@ fun BossPartyChatContent(
             .background(MapleStatBackground, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
             .padding(16.dp)
     ) {
-        Text(
-            text = "CHAT",
-            color = MapleStatTitle,
-            style = Typography.titleMedium,
-            modifier = Modifier.fillMaxWidth()
-                .padding(bottom = 16.dp),
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "CHAT",
+                color = MapleStatTitle,
+                style = Typography.titleMedium
+            )
+
+            Switch(
+                checked = isAlarmOn,
+                onCheckedChange = { isChecking ->
+                    if (isChecking) {
+                        // Android 13 이상 대응 (Tiramisu = 33)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            onToggleAlarm()
+                        }
+                    } else {
+                        onToggleAlarm()
+                    }
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = MapleOrange
+                )
+            )
+        }
 
         // 흰색 채팅 영역
         LazyColumn(

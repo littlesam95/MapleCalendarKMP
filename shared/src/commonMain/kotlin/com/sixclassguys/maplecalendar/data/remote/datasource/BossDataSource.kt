@@ -29,7 +29,7 @@ interface BossDataSource {
         bossPartyId: Long
     ): List<BossPartyAlarmTimeResponse>
 
-    suspend fun updateAlarmSetting(accessToken: String, bossPartyId: Long, enabled: Boolean)
+    suspend fun updateAlarmSetting(accessToken: String, bossPartyId: Long): Boolean
 
     suspend fun createBossAlarm(
         accessToken: String,
@@ -57,6 +57,8 @@ interface BossDataSource {
     ): SliceResponse<BossPartyChatMessageResponse>
 
     suspend fun connect(bossPartyId: String, token: String)
+
+    suspend fun updateChatAlarmSetting(accessToken: String, bossPartyId: Long): Boolean
 
     suspend fun sendMessage(request: BossPartyChatMessageRequest)
 

@@ -19,7 +19,7 @@ class MemberDataSourceImpl(
         request: RepresentativeOcidRequest
     ) {
         val response = try {
-            httpClient.patch("v1/member/representative") {
+            httpClient.patch("member/representative") {
                 header("x-nxopen-api-key", apiKey)
                 setBody(request)
 
@@ -46,13 +46,10 @@ class MemberDataSourceImpl(
         }
     }
 
-    override suspend fun toggleGlobalAlarmStatus(apiKey: String): Boolean {
+    override suspend fun toggleGlobalAlarmStatus(accessToken: String): Boolean {
         val response = try {
-            httpClient.patch("v1/member/alarm-status") {
-                header("x-nxopen-api-key", apiKey)
-
-                // Content-Type 설정 (필요 시)
-                contentType(ContentType.Application.Json)
+            httpClient.patch("member/alarm-status") {
+                header("Authorization", "Bearer $accessToken")
             }
         } catch (e: Exception) {
             throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")

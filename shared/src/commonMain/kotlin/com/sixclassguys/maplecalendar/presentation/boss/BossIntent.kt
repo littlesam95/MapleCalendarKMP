@@ -12,7 +12,6 @@ import com.sixclassguys.maplecalendar.util.BossPartyTab
 import com.sixclassguys.maplecalendar.util.ReportReason
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 
 sealed class BossIntent {
 
@@ -92,9 +91,19 @@ sealed class BossIntent {
 
     data class DeleteBossPartyAlarmFailed(val message: String) : BossIntent()
 
-    data class ToggleBossPartyAlarm(val enabled: Boolean) : BossIntent()
+    data object ToggleBossPartyAlarm : BossIntent()
+
+    data class ToggleBossPartyAlarmSuccess(val enabled: Boolean) : BossIntent()
+
+    data class ToggleBossPartyAlarmFailed(val message: String) : BossIntent()
 
     data object ConnectBossPartyChat : BossIntent()
+
+    data object ToggleBossPartyChatAlarm : BossIntent()
+
+    data class ToggleBossPartyChatAlarmSuccess(val enabled: Boolean) : BossIntent()
+
+    data class ToggleBossPartyChatAlarmFailed(val message: String) : BossIntent()
 
     data class ReceiveRealTimeChat(val bossPartyChat: BossPartyChat) : BossIntent()
 

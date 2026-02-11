@@ -8,7 +8,7 @@ class ToggleGlobalAlarmStatusUseCase(
     private val repository: MemberRepository
 ) {
 
-    suspend operator fun invoke(apiKey: String): Flow<ApiState<Boolean>> {
-        return repository.toggleGlobalAlarmStatus(apiKey)
+    suspend operator fun invoke(): Flow<ApiState<Boolean>> {
+        return repository.toggleGlobalAlarmStatus()
     }
 }

@@ -20,6 +20,7 @@ import com.sixclassguys.maplecalendar.domain.usecase.ObserveBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ReportBossPartyChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SendBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleBossPartyAlarmUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.ToggleBossPartyChatAlarmUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.UpdateBossPartyPeriodUseCase
 import com.sixclassguys.maplecalendar.util.Boss
 import com.sixclassguys.maplecalendar.util.BossDifficulty
@@ -49,6 +50,7 @@ class BossViewModel(
     private val deleteBossPartyAlarmUseCase: DeleteBossPartyAlarmUseCase,
     private val getBossPartyChatHistoryUseCase: GetBossPartyChatHistoryUseCase,
     private val connectBossChatUseCase: ConnectBossChatUseCase,
+    private val toggleBossPartyChatAlarmUseCase: ToggleBossPartyChatAlarmUseCase,
     private val observeBossChatUseCase: ObserveBossChatUseCase,
     private val sendBossChatUseCase: SendBossChatUseCase,
     private val hideBossPartyChatUseCase: HideBossPartyChatUseCase,
@@ -163,6 +165,25 @@ class BossViewModel(
             }
         }
     }
+
+    private fun toggleBossPartyAlarm() {
+        val bossPartyId = _uiState.value.selectedBossParty?.id ?: 0L
+        viewModelScope.launch {
+            toggleBossPartyAlarmUseCase(bossPartyId).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.ToggleBossPartyAlarmSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.ToggleBossPartyAlarmFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
     
     private fun updateBossPartyPeriod() {
         val bossPartyId = _uiState.value.selectedBossParty?.id ?: 0L
@@ -250,6 +271,25 @@ class BossViewModel(
                     is ApiState.Error -> {
                         Napier.d("연결 실패: ${state.message}")
                         onIntent(BossIntent.ConnectBossPartyChatFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun toggleBossPartyChatAlarm() {
+        val bossPartyId = _uiState.value.selectedBossParty?.id ?: 0L
+        viewModelScope.launch {
+            toggleBossPartyChatAlarmUseCase(bossPartyId).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.ToggleBossPartyChatAlarmSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.ToggleBossPartyChatAlarmFailed(state.message))
                     }
 
                     else -> {}
@@ -405,6 +445,10 @@ class BossViewModel(
             is BossIntent.CreateBossPartyAlarm -> {
                 createBossPartyAlarm()
             }
+
+            is BossIntent.ToggleBossPartyAlarm -> {
+                toggleBossPartyAlarm()
+            }
             
             is BossIntent.UpdateBossPartyAlarmPeriod -> {
                 updateBossPartyPeriod()
@@ -416,6 +460,10 @@ class BossViewModel(
 
             is BossIntent.ConnectBossPartyChat -> {
                 connectToChat()
+            }
+
+            is BossIntent.ToggleBossPartyChatAlarm -> {
+                toggleBossPartyChatAlarm()
             }
 
             is BossIntent.FetchBossPartyChatHistory -> {

@@ -24,6 +24,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -76,6 +77,7 @@ fun BossPartyDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberLazyListState() // 리스트형 컨텐츠를 위해 LazyListState 사용
     val lifecycleOwner = LocalLifecycleOwner.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // 높이 설정 (제공해주신 상수 기준 적용)
     val collapsedTopBarHeight = 48.dp
@@ -200,8 +202,9 @@ fun BossPartyDetailScreen(
                             BossPartyAlarmContent(
                                 alarms = uiState.bossPartyAlarmTimes,
                                 isAlarmOn = uiState.isBossPartyDetailAlarmOn,
-                                onToggleAlarm = { isEnabled ->
-
+                                snackbarHostState = snackbarHostState,
+                                onToggleAlarm = {
+                                    viewModel.onIntent(BossIntent.ToggleBossPartyAlarm)
                                 },
                                 onAddAlarm = { viewModel.onIntent(BossIntent.ShowAlarmCreateDialog) },
                                 onDeleteAlarm = { viewModel.onIntent(BossIntent.DeleteBossPartyAlarm(it)) },
@@ -236,20 +239,31 @@ fun BossPartyDetailScreen(
                             val availableHeight =
                                 screenHeightDp - systemBarsHeight - collapsedTopBarHeight - 48.dp - inputBarHeight
                             BossPartyChatContent(
+                                isAlarmOn = uiState.isBossPartyChatAlarmOn,
                                 chats = uiState.bossPartyChats,
                                 chatUiItems = uiState.bossPartyChatUiItems,
+                                snackbarHostState = snackbarHostState,
                                 isLastPage = uiState.isBossPartyChatLastPage,
                                 isLeader = uiState.selectedBossParty?.isLeader ?: false,
                                 isLoading = uiState.isLoading,
                                 onLoadMore = { viewModel.onIntent(BossIntent.FetchBossPartyChatHistory) },
+                                onToggleAlarm = { viewModel.onIntent(BossIntent.ToggleBossPartyChatAlarm) },
                                 onHide = { bossPartyChatId ->
-                                    viewModel.onIntent(BossIntent.HideBossPartyChatMessage(bossPartyChatId))
+                                    viewModel.onIntent(
+                                        BossIntent.HideBossPartyChatMessage(
+                                            bossPartyChatId
+                                        )
+                                    )
                                 },
                                 onReport = { chat ->
                                     viewModel.onIntent(BossIntent.ShowBossPartyChatReportDialog(chat))
                                 },
                                 onDelete = { bossPartyChatId ->
-                                    viewModel.onIntent(BossIntent.DeleteBossPartyChatMessage(bossPartyChatId))
+                                    viewModel.onIntent(
+                                        BossIntent.DeleteBossPartyChatMessage(
+                                            bossPartyChatId
+                                        )
+                                    )
                                 },
                                 modifier = Modifier.fillMaxWidth()
                                     .height(availableHeight)

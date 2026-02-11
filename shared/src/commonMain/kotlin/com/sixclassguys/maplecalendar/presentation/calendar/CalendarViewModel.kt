@@ -227,7 +227,7 @@ class CalendarViewModel(
                 submitEventAlarm(intent.dates)
             }
 
-            else -> {} // 다른 인텐트들은 상태 업데이트만으로 충분함
+            else -> {}
         }
     }
 }

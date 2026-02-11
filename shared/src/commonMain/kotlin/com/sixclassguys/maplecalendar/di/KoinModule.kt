@@ -58,6 +58,7 @@ import com.sixclassguys.maplecalendar.domain.usecase.SetOpenApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SubmitEventAlarmUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SubmitRepresentativeCharacterUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleBossPartyAlarmUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.ToggleBossPartyChatAlarmUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleEventAlarmUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleGlobalAlarmStatusUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.UnregisterTokenUseCase
@@ -141,6 +142,7 @@ val useCaseModule = module {
     single<DeleteBossPartyAlarmUseCase> { DeleteBossPartyAlarmUseCase(get()) }
     single<GetBossPartyChatHistoryUseCase>  { GetBossPartyChatHistoryUseCase(get()) }
     single<ConnectBossChatUseCase> { ConnectBossChatUseCase(get()) }
+    single<ToggleBossPartyChatAlarmUseCase> { ToggleBossPartyChatAlarmUseCase(get()) }
     single<ObserveBossChatUseCase> { ObserveBossChatUseCase(get()) }
     single<SendBossChatUseCase> { SendBossChatUseCase(get()) }
     single<HideBossPartyChatUseCase> { HideBossPartyChatUseCase(get()) }
@@ -157,7 +159,7 @@ val viewModelModule = module {
     viewModel { NotificationViewModel(get(), get(), get(), get()) }
     viewModel { CalendarViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { MapleCharacterViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { BossViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { BossViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 
     // Reducer
     single { HomeReducer() }

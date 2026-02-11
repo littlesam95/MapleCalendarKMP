@@ -8,6 +8,7 @@ import com.sixclassguys.maplecalendar.domain.repository.MemberRepository
 import com.sixclassguys.maplecalendar.util.ApiException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 
 class MemberRepositoryImpl(
@@ -39,11 +40,12 @@ class MemberRepositoryImpl(
         emit(errorState)
     }
 
-    override suspend fun toggleGlobalAlarmStatus(apiKey: String): Flow<ApiState<Boolean>> = flow {
+    override suspend fun toggleGlobalAlarmStatus(): Flow<ApiState<Boolean>> = flow {
         emit(ApiState.Loading)
 
         try {
-            val response = dataSource.toggleGlobalAlarmStatus(apiKey)
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.toggleGlobalAlarmStatus(accessToken)
 
             dataStore.setNotificationMode(response)
             emit(ApiState.Success(response))

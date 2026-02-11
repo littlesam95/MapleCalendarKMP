@@ -160,16 +160,9 @@ class HomeViewModel(
         }
     }
 
-    private fun toggleGlobalAlarmStatus(apiKey: String) {
-        Napier.d("toggleGlobalAlarmStatus 호출됨! apiKey 존재여부: ${apiKey.isNotEmpty()}")
-
-        if (apiKey.isEmpty()) {
-            Napier.e("에러: API Key가 없어서 서버 통신을 시작할 수 없습니다.")
-            return
-        }
-
+    private fun toggleGlobalAlarmStatus() {
         viewModelScope.launch {
-            toggleGlobalAlarmStatusUseCase(apiKey).collect { state ->
+            toggleGlobalAlarmStatusUseCase().collect { state ->
                 Napier.d("통신 상태 변경 감지: $state") // 💡 2. 상태 변화 관찰
                 when (state) {
                     is ApiState.Success -> {
@@ -273,7 +266,7 @@ class HomeViewModel(
             }
 
             is HomeIntent.ToggleGlobalAlarmStatus -> {
-                toggleGlobalAlarmStatus(_uiState.value.nexonApiKey ?: "")
+                toggleGlobalAlarmStatus()
             }
 
             else -> {}

@@ -9,5 +9,5 @@ interface MemberDataSource {
         request: RepresentativeOcidRequest
     )
 
-    suspend fun toggleGlobalAlarmStatus(apiKey: String): Boolean
+    suspend fun toggleGlobalAlarmStatus(accessToken: String): Boolean
 }

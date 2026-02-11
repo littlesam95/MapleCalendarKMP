@@ -136,20 +136,18 @@ class BossRepositoryImpl(
     }
 
     override suspend fun updateAlarmSetting(
-        bossPartyId: Long,
-        enabled: Boolean
-    ): Flow<ApiState<Unit>>  = flow {
+        bossPartyId: Long
+    ): Flow<ApiState<Boolean>> = flow {
         emit(ApiState.Loading)
 
         try {
             val accessToken = dataStore.accessToken.first()
             val response = dataSource.updateAlarmSetting(
                 accessToken = accessToken,
-                bossPartyId = bossPartyId,
-                enabled = enabled
+                bossPartyId = bossPartyId
             )
 
-            emit(ApiState.Success(Unit))
+            emit(ApiState.Success(response))
         } catch (e: Exception) {
             emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
         }
@@ -295,6 +293,28 @@ class BossRepositoryImpl(
         emit(ApiState.Success(Unit))
     }.catch { e ->
         emit(ApiState.Error(e.message ?: "연결 중 오류 발생"))
+    }
+
+    override suspend fun updateChatAlarmSetting(bossPartyId: Long): Flow<ApiState<Boolean>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.updateChatAlarmSetting(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId
+            )
+
+            emit(ApiState.Success(response))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
     }
 
     override fun observeMessages(): Flow<ApiState<BossPartyChat>> {

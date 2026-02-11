@@ -7,7 +7,7 @@ interface MemberRepository {
 
     suspend fun submitRepresentativeCharacter(apiKey: String, ocid: String): Flow<ApiState<Unit>>
 
-    suspend fun toggleGlobalAlarmStatus(apiKey: String): Flow<ApiState<Boolean>>
+    suspend fun toggleGlobalAlarmStatus(): Flow<ApiState<Boolean>>
 
     suspend fun logout(): Flow<ApiState<Unit>>
 }
