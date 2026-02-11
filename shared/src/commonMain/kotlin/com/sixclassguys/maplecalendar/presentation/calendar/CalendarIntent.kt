@@ -1,6 +1,7 @@
 package com.sixclassguys.maplecalendar.presentation.calendar
 
 import com.sixclassguys.maplecalendar.domain.model.ApiState
+import com.sixclassguys.maplecalendar.domain.model.BossPartySchedule
 import com.sixclassguys.maplecalendar.domain.model.MapleEvent
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -57,6 +58,13 @@ sealed class CalendarIntent {
         val key: String,
         val apiState: ApiState<List<MapleEvent>>
     ) : CalendarIntent()
+
+    data class FetchBossPartySchedulesSuccess(
+        val key: String,
+        val schedules: List<BossPartySchedule>
+    ) : CalendarIntent()
+
+    data class FetchBossPartySchedulesFailed(val message: String) : CalendarIntent()
 
     data class SaveEventsByMonth(
         val key: String,

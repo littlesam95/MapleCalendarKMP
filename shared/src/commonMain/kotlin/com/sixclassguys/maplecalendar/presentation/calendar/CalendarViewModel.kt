@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
 import com.sixclassguys.maplecalendar.domain.usecase.GetApiKeyUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetDailyBossPartySchedulesUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetEventDetailUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetGlobalAlarmStatusUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetMonthlyEventsUseCase
@@ -25,6 +26,7 @@ class CalendarViewModel(
     private val getApiKeyUseCase: GetApiKeyUseCase,
     private val getGlobalAlarmStatusUseCase: GetGlobalAlarmStatusUseCase,
     private val getTodayEventsUseCase: GetTodayEventsUseCase,
+    private val getDailyBossPartySchedulesUseCase: GetDailyBossPartySchedulesUseCase,
     private val getMonthlyEventsUseCase: GetMonthlyEventsUseCase,
     private val getEventDetailUseCase: GetEventDetailUseCase,
     private val submitEventAlarmUseCase: SubmitEventAlarmUseCase,
@@ -85,6 +87,24 @@ class CalendarViewModel(
         viewModelScope.launch {
             getTodayEventsUseCase(year, month, day).collect { apiState ->
                 onIntent(CalendarIntent.SaveEventsByDay(key, apiState))
+            }
+        }
+    }
+
+    private fun getTodayBossSchedules(year: Int, month: Int, day: Int, key: String) {
+        viewModelScope.launch {
+            getDailyBossPartySchedulesUseCase(year, month, day).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(CalendarIntent.FetchBossPartySchedulesSuccess(key, state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(CalendarIntent.FetchBossPartySchedulesFailed(state.message))
+                    }
+
+                    else -> {}
+                }
             }
         }
     }
@@ -197,6 +217,10 @@ class CalendarViewModel(
                     fetchEventsByDay(year, month, day, dayKey)
                 }
 
+                if (!_uiState.value.bossSchedulesMapByDay.containsKey(dayKey)) {
+                    getTodayBossSchedules(year, month, day, dayKey)
+                }
+
                 // 해당 월 데이터가 없을 때만 서버에서 가져옴
 //                if (!_uiState.value.eventsMapByMonth.containsKey(monthKey)) {
 //                    fetchEventsByMonth(targetDate.year, targetDate.monthNumber, monthKey)
@@ -212,6 +236,10 @@ class CalendarViewModel(
 
                 if (!_uiState.value.eventsMapByDay.containsKey(key)) {
                     fetchEventsByDay(year, month, day, key)
+                }
+
+                if (!_uiState.value.bossSchedulesMapByDay.containsKey(key)) {
+                    getTodayBossSchedules(year, month, day, key)
                 }
             }
 

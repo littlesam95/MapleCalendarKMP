@@ -38,6 +38,7 @@ import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyChatHistoryUseC
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyDetailUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetCharacterBasicUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetCharactersUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetDailyBossPartySchedulesUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetEventDetailUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetFcmTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetGlobalAlarmStatusUseCase
@@ -119,6 +120,7 @@ val useCaseModule = module {
     single<RegisterTokenUseCase> { RegisterTokenUseCase(get()) }
     single<GetEventDetailUseCase> { GetEventDetailUseCase(get()) }
     single<GetTodayEventsUseCase> { GetTodayEventsUseCase(get()) }
+    single<GetDailyBossPartySchedulesUseCase> { GetDailyBossPartySchedulesUseCase(get()) }
     single<GetMonthlyEventsUseCase> { GetMonthlyEventsUseCase(get()) }
     single<GetCharacterBasicUseCase> { GetCharacterBasicUseCase(get()) }
     single<SubmitEventAlarmUseCase> { SubmitEventAlarmUseCase(get()) }
@@ -153,11 +155,11 @@ val useCaseModule = module {
 
 val viewModelModule = module {
     // ViewModel (화면마다 생명주기를 관리하기 위해 factory 사용)
-    viewModel { HomeViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { LoginViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SettingViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { NotificationViewModel(get(), get(), get(), get()) }
-    viewModel { CalendarViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { CalendarViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { MapleCharacterViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { BossViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 

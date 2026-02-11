@@ -125,6 +125,26 @@ class HomeReducer {
             )
         }
 
+        is HomeIntent.FetchBossPartySchedules -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is HomeIntent.FetchBossPartySchedulesSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                bossSchedules = intent.schedules
+            )
+        }
+
+        is HomeIntent.FetchBossPartySchedulesFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
         is HomeIntent.SyncNotificationWithSystem -> {
             currentState.copy(
 

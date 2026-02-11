@@ -8,6 +8,7 @@ import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.model.Member
 import com.sixclassguys.maplecalendar.domain.usecase.AutoLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetApiKeyUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetDailyBossPartySchedulesUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetFcmTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetTodayEventsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ReissueJwtTokenUseCase
@@ -32,7 +33,8 @@ class HomeViewModel(
     private val autoLoginUseCase: AutoLoginUseCase,
     private val reissueJwtTokenUseCase: ReissueJwtTokenUseCase,
     private val toggleGlobalAlarmStatusUseCase: ToggleGlobalAlarmStatusUseCase,
-    private val getTodayEventsUseCase: GetTodayEventsUseCase
+    private val getTodayEventsUseCase: GetTodayEventsUseCase,
+    private val getDailyBossPartySchedulesUseCase: GetDailyBossPartySchedulesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState())
@@ -209,6 +211,32 @@ class HomeViewModel(
         }
     }
 
+    private fun getTodayBossSchedules() {
+        viewModelScope.launch {
+            val now = Clock.System.now()
+            val seoulZone = TimeZone.of("Asia/Seoul")
+            val currentLocalDateTime = now.toLocalDateTime(seoulZone)
+            val today: LocalDate = currentLocalDateTime.date
+            getDailyBossPartySchedulesUseCase(
+                today.year,
+                today.monthNumber,
+                today.dayOfMonth
+            ).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(HomeIntent.FetchBossPartySchedulesSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(HomeIntent.FetchBossPartySchedulesFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
     fun onIntent(intent: HomeIntent) {
         _uiState.update { currentState ->
             reducer.reduce(currentState, intent)
@@ -225,6 +253,7 @@ class HomeViewModel(
 
             is HomeIntent.AutoLoginSuccess -> {
                 getTodayEvents()
+                getTodayBossSchedules()
             }
 
             is HomeIntent.AutoLoginFailed -> {
@@ -232,7 +261,6 @@ class HomeViewModel(
             }
 
             is HomeIntent.EmptyAccessToken -> {
-                Napier.d("Access Token이 비었습니다잉.")
                 getTodayEvents()
             }
 
