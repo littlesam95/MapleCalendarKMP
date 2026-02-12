@@ -4,23 +4,33 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
+import com.sixclassguys.maplecalendar.domain.usecase.AcceptBossPartyInvitationUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ConnectBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.CreateBossPartyAlarmUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.CreateBossPartyBoardUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.CreateBossPartyUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.DeclineBossPartyInvitationUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DeleteBossPartyAlarmUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DeleteBossPartyChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DisconnectBossPartyChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartiesUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyAlarmTimesUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyBoardsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyChatHistoryUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyDetailUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetCharactersUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.HideBossPartyChatUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.InviteBossPartyMemberUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.KickBossPartyMemberUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.LeaveBossPartyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ObserveBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ReportBossPartyChatUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.SearchCharactersUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SendBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleBossPartyAlarmUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.ToggleBossPartyBoardLikeUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleBossPartyChatAlarmUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.TransferBossPartyLeaderUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.UpdateBossPartyPeriodUseCase
 import com.sixclassguys.maplecalendar.util.Boss
 import com.sixclassguys.maplecalendar.util.BossDifficulty
@@ -48,6 +58,13 @@ class BossViewModel(
     private val createBossPartyAlarmUseCase: CreateBossPartyAlarmUseCase,
     private val updateBossPartyPeriodUseCase: UpdateBossPartyPeriodUseCase,
     private val deleteBossPartyAlarmUseCase: DeleteBossPartyAlarmUseCase,
+    private val searchCharactersUseCase: SearchCharactersUseCase,
+    private val inviteBossPartyMemberUseCase: InviteBossPartyMemberUseCase,
+    private val acceptBossPartyInvitationUseCase: AcceptBossPartyInvitationUseCase,
+    private val declineBossPartyInvitationUseCase: DeclineBossPartyInvitationUseCase,
+    private val kickBossPartyMemberUseCase: KickBossPartyMemberUseCase,
+    private val leaveBossPartyUseCase: LeaveBossPartyUseCase,
+    private val transferBossPartyLeaderUseCase: TransferBossPartyLeaderUseCase,
     private val getBossPartyChatHistoryUseCase: GetBossPartyChatHistoryUseCase,
     private val connectBossChatUseCase: ConnectBossChatUseCase,
     private val toggleBossPartyChatAlarmUseCase: ToggleBossPartyChatAlarmUseCase,
@@ -57,6 +74,9 @@ class BossViewModel(
     private val deleteBossPartyChatUseCase: DeleteBossPartyChatUseCase,
     private val disconnectBossPartyChatUseCase: DisconnectBossPartyChatUseCase,
     private val reportBossPartyChatUseCase: ReportBossPartyChatUseCase,
+    private val getBossPartyBoardsUseCase: GetBossPartyBoardsUseCase,
+    private val createBossPartyBoardUseCase: CreateBossPartyBoardUseCase,
+    private val toggleBossPartyBoardLikeUseCase: ToggleBossPartyBoardLikeUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<BossUiState>(BossUiState())
@@ -67,6 +87,24 @@ class BossViewModel(
             eventBus.bossPartyId.collect { bossPartyId ->
                 // 💡 알림이 오면 즉시 데이터 갱신
                 onIntent(BossIntent.FetchBossPartyDetail(bossPartyId))
+            }
+        }
+    }
+
+    private fun getSavedCharacters(allWorldNames: List<String>) {
+        viewModelScope.launch {
+            getCharactersUseCase(allWorldNames).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.FetchCharactersSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.FetchCharactersFailed(state.message))
+                    }
+
+                    else -> {}
+                }
             }
         }
     }
@@ -105,6 +143,42 @@ class BossViewModel(
 
                     is ApiState.Error -> {
                         onIntent(BossIntent.CreateBossPartyFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun acceptBossPartyInvitation(bossPartyId: Long) {
+        viewModelScope.launch {
+            acceptBossPartyInvitationUseCase(bossPartyId).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.AcceptBossPartyInvitationSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.AcceptBossPartyInvitationFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun declineBossPartyInvitation(bossPartyId: Long) {
+        viewModelScope.launch {
+            declineBossPartyInvitationUseCase(bossPartyId).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.DeclineBossPartyInvitationSuccess)
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.DeclineBossPartyInvitationFailed(state.message))
                     }
 
                     else -> {}
@@ -235,6 +309,101 @@ class BossViewModel(
         }
     }
 
+    private fun searchCharacters(allWorldNames: List<String>) {
+        val name = _uiState.value.searchKeyword
+        viewModelScope.launch {
+            searchCharactersUseCase(name, allWorldNames).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.SearchCharactersSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.SearchCharactersFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun inviteBossPartyMember(characterId: Long) {
+        val bossPartyId = _uiState.value.selectedBossParty?.id ?: 0L
+        viewModelScope.launch {
+            inviteBossPartyMemberUseCase(bossPartyId, characterId).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.InviteBossPartyMemberSuccess)
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.InviteBossPartyMemberFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun kickBossPartyMember(characterId: Long) {
+        val bossPartyId = _uiState.value.selectedBossParty?.id ?: 0L
+        viewModelScope.launch {
+            kickBossPartyMemberUseCase(bossPartyId, characterId).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.KickBossPartyMemberSuccess)
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.KickBossPartyMemberFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun leaveBossParty() {
+        val bossPartyId = _uiState.value.selectedBossParty?.id ?: 0L
+        viewModelScope.launch {
+            leaveBossPartyUseCase(bossPartyId).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.KickBossPartyMemberSuccess)
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.KickBossPartyMemberFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun transferBossPartyLeader(characterId: Long) {
+        val bossPartyId = _uiState.value.selectedBossParty?.id ?: 0L
+        viewModelScope.launch {
+            transferBossPartyLeaderUseCase(bossPartyId, characterId).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.KickBossPartyMemberSuccess)
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.KickBossPartyMemberFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
     private fun getBossPartyChatHistory() {
         viewModelScope.launch {
             getBossPartyChatHistoryUseCase(
@@ -264,7 +433,7 @@ class BossViewModel(
                 when (state) {
                     is ApiState.Success -> {
                         // 2. 연결 성공 시, 메시지 관찰(구독) 시작
-                        Napier.d("연결 성공")
+                        Napier.d("연결 성공: ${bossPartyId}")
                         observeRealTimeMessages()
                     }
 
@@ -367,6 +536,7 @@ class BossViewModel(
     private fun disconnectToChat() {
         viewModelScope.launch {
             disconnectBossPartyChatUseCase()
+            Napier.d("연결 해제")
         }
     }
 
@@ -388,16 +558,81 @@ class BossViewModel(
         }
     }
 
-    private fun getSavedCharacters(allWorldNames: List<String>) {
+    private fun getBossPartyBoardHistory() {
         viewModelScope.launch {
-            getCharactersUseCase(allWorldNames).collect { state ->
+            getBossPartyBoardsUseCase(
+                bossPartyId = _uiState.value.selectedBossParty?.id ?: 0L,
+                page = _uiState.value.bossPartyBoardPage
+            ).collect { state ->
                 when (state) {
                     is ApiState.Success -> {
-                        onIntent(BossIntent.FetchCharactersSuccess(state.data))
+                        onIntent(BossIntent.FetchBossPartyBoardHistorySuccess(state.data))
                     }
 
                     is ApiState.Error -> {
-                        onIntent(BossIntent.FetchCharactersFailed(state.message))
+                        onIntent(BossIntent.FetchBossPartyBoardHistoryFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun createBossPartyBoard() {
+        val bossPartyId = _uiState.value.selectedBossParty?.id ?: return
+        val content = _uiState.value.uploadComment
+        val images = _uiState.value.uploadImage
+        viewModelScope.launch {
+            Napier.d("업로드 시작")
+            createBossPartyBoardUseCase(bossPartyId, content, images).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        Napier.d("업로드 성공")
+                        onIntent(BossIntent.SubmitBossPartyBoardSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        Napier.d("업로드 실패: ${state.message}")
+                        onIntent(BossIntent.SubmitBossPartyBoardFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun toggleBossPartyBoardLike(postId: Long, likeType: String) {
+        val bossPartyId = _uiState.value.selectedBossParty?.id ?: return
+        viewModelScope.launch {
+            toggleBossPartyBoardLikeUseCase(bossPartyId, postId, likeType).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.LikeBossPartyBoardPostSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.LikeBossPartyBoardPostFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun toggleBossPartyBoardDislike(postId: Long, likeType: String) {
+        val bossPartyId = _uiState.value.selectedBossParty?.id ?: return
+        viewModelScope.launch {
+            toggleBossPartyBoardLikeUseCase(bossPartyId, postId, likeType).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.DislikeBossPartyBoardPostSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.DislikeBossPartyBoardFailed(state.message))
                     }
 
                     else -> {}
@@ -434,12 +669,16 @@ class BossViewModel(
                 getBossPartyDetail(intent.bossPartyId)
             }
 
-            is BossIntent.FetchBossPartyDetail -> {
-                getBossPartyDetail(intent.bossPartyId)
+            is BossIntent.AcceptBossPartyInvitation -> {
+                acceptBossPartyInvitation(intent.bossPartyId)
             }
 
-            is BossIntent.FetchBossPartyDetailSuccess -> {
-                connectToChat()
+            is BossIntent.DeclineBossPartyInvitation -> {
+                declineBossPartyInvitation(intent.bossPartyId)
+            }
+
+            is BossIntent.FetchBossPartyDetail -> {
+                getBossPartyDetail(intent.bossPartyId)
             }
             
             is BossIntent.CreateBossPartyAlarm -> {
@@ -456,6 +695,26 @@ class BossViewModel(
 
             is BossIntent.DeleteBossPartyAlarm -> {
                 deleteBossPartyAlarm(intent.alarmId)
+            }
+
+            is BossIntent.SearchCharacters -> {
+                searchCharacters(intent.allWorldNames)
+            }
+
+            is BossIntent.InviteBossPartyMember -> {
+                inviteBossPartyMember(intent.characterId)
+            }
+
+            is BossIntent.KickBossPartyMember -> {
+                kickBossPartyMember(intent.characterId)
+            }
+
+            is BossIntent.LeaveBossParty -> {
+                leaveBossParty()
+            }
+
+            is BossIntent.TransferBossPartyLeader -> {
+                transferBossPartyLeader(intent.characterId)
             }
 
             is BossIntent.ConnectBossPartyChat -> {
@@ -488,6 +747,26 @@ class BossViewModel(
 
             is BossIntent.ReportBossPartyChatMessage -> {
                 reportChat(intent.chatId, intent.reason, intent.reasonDetail)
+            }
+
+            is BossIntent.FetchBossPartyBoardHistory -> {
+                getBossPartyBoardHistory()
+            }
+
+            is BossIntent.SubmitBossPartyBoard -> {
+                createBossPartyBoard()
+            }
+
+            is BossIntent.SubmitBossPartyBoardSuccess -> {
+                getBossPartyBoardHistory()
+            }
+
+            is BossIntent.LikeBossPartyBoardPost -> {
+                toggleBossPartyBoardLike(intent.postId, "LIKE")
+            }
+
+            is BossIntent.DislikeBossPartyBoardPost -> {
+                toggleBossPartyBoardDislike(intent.postId, "DISLIKE")
             }
 
             else -> {}

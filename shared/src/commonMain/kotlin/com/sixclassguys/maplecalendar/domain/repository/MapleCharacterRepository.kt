@@ -24,4 +24,9 @@ interface MapleCharacterRepository {
     suspend fun setRepresentative(ocid: String): Flow<ApiState<Unit>>
 
     suspend fun deleteCharacter(ocid: String): Flow<ApiState<Unit>>
+
+    suspend fun searchCharacters(
+        name: String,
+        allWorldNames: List<String>
+    ): Flow<ApiState<Map<String, Map<String, List<CharacterSummary>>>>>
 }

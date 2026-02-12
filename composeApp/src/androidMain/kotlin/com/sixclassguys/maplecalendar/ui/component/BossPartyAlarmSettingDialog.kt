@@ -73,6 +73,7 @@ import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
 import com.sixclassguys.maplecalendar.theme.MapleBlack
 import com.sixclassguys.maplecalendar.theme.MapleGray
 import com.sixclassguys.maplecalendar.theme.MapleOrange
+import com.sixclassguys.maplecalendar.theme.MapleStatBackground
 import com.sixclassguys.maplecalendar.theme.MapleStatTitle
 import com.sixclassguys.maplecalendar.theme.MapleWhite
 import com.sixclassguys.maplecalendar.theme.Typography
@@ -117,7 +118,7 @@ fun BossPartyAlarmSettingDialog(
             modifier = Modifier.fillMaxWidth(0.95f)
                 .wrapContentHeight(),
             shape = RoundedCornerShape(28.dp),
-            color = Color(0xFF373E44) // 이미지의 어두운 배경색
+            color = MapleStatBackground // 이미지의 어두운 배경색
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),

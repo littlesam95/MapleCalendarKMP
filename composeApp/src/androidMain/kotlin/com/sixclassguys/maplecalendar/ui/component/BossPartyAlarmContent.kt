@@ -155,11 +155,7 @@ fun BossPartyAlarmContent(
                         modifier = Modifier.fillParentMaxHeight(), // 부모 높이만큼 채움
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "예약된 알람이 없어요.",
-                            style = Typography.bodySmall,
-                            color = MapleGray
-                        )
+                        EmptyEventScreen("예약된 알람이 없어요.")
                     }
                 }
             } else {

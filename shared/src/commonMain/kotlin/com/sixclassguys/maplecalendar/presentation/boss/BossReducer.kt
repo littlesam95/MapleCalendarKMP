@@ -6,8 +6,11 @@ import com.sixclassguys.maplecalendar.util.Boss
 import com.sixclassguys.maplecalendar.util.BossPartyChatMessageType
 import com.sixclassguys.maplecalendar.util.BossPartyChatUiItem
 import com.sixclassguys.maplecalendar.util.BossPartyTab
+import com.sixclassguys.maplecalendar.util.JoinStatus
 import io.github.aakira.napier.Napier
+import kotlinx.datetime.Clock
 import kotlin.String
+import kotlin.collections.List
 
 class BossReducer {
 
@@ -15,29 +18,48 @@ class BossReducer {
         if (chats.isEmpty()) return emptyList()
 
         val uiItems = mutableListOf<BossPartyChatUiItem>()
+        // 비교해야 할 사용자 메시지 타입 정의
+        val userMessageTypes = listOf(
+            BossPartyChatMessageType.TEXT,
+            BossPartyChatMessageType.IMAGE,
+            BossPartyChatMessageType.BOTH
+        )
 
         chats.forEachIndexed { index, currentChat ->
-            // 1. 이전 메시지(시간상 더 미래)와 비교하여 프로필 노출 결정
-            // reverseLayout이므로 index - 1 이 시간상 바로 다음 메시지입니다.
-            val nextMessageInTime = chats.getOrNull(index - 1)
+            // 1. 나보다 먼저 보낸 메시지(index + 1)를 가져옴
+            val previousMessageInTime = chats.getOrNull(index + 1)
 
-            val isSameUserAsNext = nextMessageInTime != null &&
-                    nextMessageInTime.senderId == currentChat.senderId &&
-                    nextMessageInTime.messageType == currentChat.messageType &&
-                    isSameDay(nextMessageInTime.createdAt, currentChat.createdAt)
+            // 2. 연속성 체크 조건
+            // - 이전 메시지가 존재하고
+            // - 보낸 사람이 같으며
+            // - 둘 다 사용자 메시지 타입(TEXT, IMAGE, BOTH)이고
+            // - 날짜가 같을 때
+            val isSameUserAsPrevious = previousMessageInTime != null &&
+                    previousMessageInTime.senderId == currentChat.senderId &&
+                    currentChat.messageType in userMessageTypes &&
+                    previousMessageInTime.messageType in userMessageTypes &&
+                    isSameDay(previousMessageInTime.createdAt, currentChat.createdAt)
 
-            // 2. 현재 메시지 추가 (미래 메시지가 나랑 같은 사람이면 내 프로필은 숨김)
+            // 3. 프로필 노출 결정
+            // - 나보다 먼저 보낸 사람이 나랑 다른 사람이거나 다른 타입일 때
+            // - 그리고 내 메시지가 사용자 메시지 타입일 때 프사 노출
+            val shouldShowProfile = !isSameUserAsPrevious &&
+                    !currentChat.isMine &&
+                    currentChat.messageType in userMessageTypes
+
+            if (shouldShowProfile) {
+                Napier.d("첫 채팅: ${currentChat}")
+            }
+
             uiItems.add(
                 BossPartyChatUiItem.Message(
                     chat = currentChat,
-                    showProfile = !isSameUserAsNext && !currentChat.isMine &&
-                            currentChat.messageType !in listOf(BossPartyChatMessageType.ENTER, BossPartyChatMessageType.LEAVE),
+                    showProfile = shouldShowProfile,
                     showTime = true
                 )
             )
 
-            // 3. 날짜 구분선 (과거 메시지와 날짜가 다르면 추가)
-            val previousMessageInTime = chats.getOrNull(index + 1)
+            // 4. 날짜 구분선 (이전 메시지가 없거나 날짜가 바뀌었을 때)
             if (previousMessageInTime == null || !isSameDay(currentChat.createdAt, previousMessageInTime.createdAt)) {
                 uiItems.add(BossPartyChatUiItem.DateDivider(currentChat.createdAt))
             }
@@ -62,7 +84,8 @@ class BossReducer {
         is BossIntent.FetchBossPartiesSuccess -> {
             currentState.copy(
                 isLoading = false,
-                bossParties = intent.bossParties,
+                bossParties = intent.bossParties.filter { it.joinStatus == JoinStatus.ACCEPTED },
+                bossPartiesInvited = intent.bossParties.filter { it.joinStatus == JoinStatus.INVITED },
                 createdPartyId = null
             )
         }
@@ -72,6 +95,56 @@ class BossReducer {
                 isLoading = false,
                 errorMessage = intent.message,
                 createdPartyId = null
+            )
+        }
+
+        is BossIntent.ShowBossPartyInvitationDialog -> {
+            currentState.copy(
+                showBossInvitationDialog = true
+            )
+        }
+
+        is BossIntent.DismissBossPartyInvitationDialog -> {
+            currentState.copy(
+                showBossInvitationDialog = false
+            )
+        }
+
+        is BossIntent.AcceptBossPartyInvitation -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is BossIntent.AcceptBossPartyInvitationSuccess -> {
+            currentState.copy(
+                isLoading = false,
+            )
+        }
+
+        is BossIntent.AcceptBossPartyInvitationFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
+        is BossIntent.DeclineBossPartyInvitation -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is BossIntent.DeclineBossPartyInvitationSuccess -> {
+            currentState.copy(
+                isLoading = false,
+            )
+        }
+
+        is BossIntent.DeclineBossPartyInvitationFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
             )
         }
 
@@ -216,13 +289,21 @@ class BossReducer {
 
         is BossIntent.FetchBossPartyDetailSuccess -> {
             currentState.copy(
-                isLoading = false,
+                isLoading = true,
                 selectedBossParty = intent.bossPartyDetail,
                 selectedBossPartyDetailMenu = BossPartyTab.ALARM,
                 isBossPartyDetailAlarmOn = intent.bossPartyDetail.isPartyAlarmEnabled,
                 bossPartyAlarmTimes = intent.bossPartyDetail.alarms,
                 selectedDayOfWeek = intent.bossPartyDetail.alarmDayOfWeek,
                 isBossPartyChatAlarmOn = intent.bossPartyDetail.isChatAlarmEnabled,
+                bossPartyChats = emptyList(),
+                bossPartyChatUiItems = emptyList(),
+                bossPartyChatPage = 0,
+                isBossPartyChatLastPage = false,
+                bossPartyChatMessage = "",
+                bossPartyBoards = emptyList(),
+                bossPartyBoardPage = 0,
+                isBossPartyBoardLastPage = false,
                 createdPartyId = null
             )
         }
@@ -405,6 +486,142 @@ class BossReducer {
             )
         }
 
+        is BossIntent.ShowCharacterInviteDialog -> {
+            currentState.copy(
+                showCharacterInvitationDialog = true
+            )
+        }
+
+        is BossIntent.DismissCharacterInviteDialog -> {
+            currentState.copy(
+                showCharacterInvitationDialog = false,
+                searchKeyword = ""
+            )
+        }
+
+        is BossIntent.SearchCharacters -> {
+            currentState.copy(
+                isLoading = true,
+                searchKeyword = intent.name,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.SearchCharactersSuccess -> {
+            val characters: List<Pair<String, CharacterSummary>> = intent.characters.values // 1. 월드 그룹 Map들만 추출
+                .flatMap { worldMap ->
+                    // 2. 각 월드 그룹 내부의 worldName(Key)과 characters(Value) 순회
+                    worldMap.flatMap { (worldName, characters) ->
+                        // 3. 캐릭터 리스트를 Pair(월드 이름, 캐릭터)로 변환
+                        characters.map { character -> worldName to character }
+                    }
+                }
+                .sortedByDescending { it.second.characterLevel } // 4. 레벨(Pair의 second) 기준 역순 정렬
+
+            currentState.copy(
+                isLoading = false,
+                searchCharacters = characters,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.SearchCharactersFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.InviteBossPartyMember -> {
+            currentState.copy(
+                isLoading = true,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.InviteBossPartyMemberSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.InviteBossPartyMemberFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.KickBossPartyMember -> {
+            currentState.copy(
+                isLoading = true,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.KickBossPartyMemberSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.KickBossPartyMemberFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.LeaveBossParty -> {
+            currentState.copy(
+                isLoading = true,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.LeaveBossPartySuccess -> {
+            currentState.copy(
+                isLoading = false,
+                bossParties = intent.newBossParties,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.LeaveBossPartyFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.TransferBossPartyLeader -> {
+            currentState.copy(
+                isLoading = true,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.TransferBossPartyLeaderSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.TransferBossPartyLeaderFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message,
+                createdPartyId = null
+            )
+        }
+
         is BossIntent.ConnectBossPartyChat -> {
             currentState.copy(
                 isLoading = true,
@@ -550,7 +767,8 @@ class BossReducer {
                 .distinctBy { it.id } // ID가 중복되면 뒤에 오는 데이터는 무시함
                 .sortedByDescending { it.id } // ID 내림차순 정렬 (최신이 위로)
 
-            Napier.d("Chats: $combinedChats")
+            val ew = transformToUiItems(combinedChats)
+            Napier.d("Chats: $ew")
 
             currentState.copy(
                 isLoading = false,
@@ -630,8 +848,157 @@ class BossReducer {
         }
 
         is BossIntent.DisconnectBossPartyChat -> {
+            Napier.d("연결끊겼다")
             currentState.copy(
                 isLoading = false,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.ShowBossPartyBoardDialog -> {
+            currentState.copy(
+                showBossPartyBoardDialog = true
+            )
+        }
+
+        is BossIntent.DismissBossPartyBoardDialog -> {
+            currentState.copy(
+                showBossPartyBoardDialog = false,
+                uploadImage = emptyList(),
+                uploadComment = "",
+            )
+        }
+
+        is BossIntent.FetchBossPartyBoardHistory -> {
+            Napier.d("어")
+            currentState.copy(
+                isLoading = true,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.FetchBossPartyBoardHistorySuccess -> {
+            val history = intent.bossPartyBoardHistory
+            Napier.d("History: $history")
+            val combinedBoards = (currentState.bossPartyBoards + history.boards)
+                .distinctBy { it.id }
+                .sortedByDescending { it.id }
+
+            currentState.copy(
+                isLoading = false,
+                bossPartyBoards = combinedBoards,
+                isBossPartyBoardLastPage = history.isLastPage,
+                bossPartyBoardPage = currentState.bossPartyBoardPage + 1,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.FetchBossPartyBoardHistoryFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.UpdateBossPartyBoardImage -> {
+            val newImages = mutableListOf<ByteArray>()
+            if (intent.image != null) {
+                newImages.add(intent.image)
+            }
+
+            currentState.copy(
+                isLoading = false,
+                uploadImage = newImages
+            )
+        }
+
+        is BossIntent.UpdateBossPartyBoardComment -> {
+            currentState.copy(
+                isLoading = false,
+                uploadComment = intent.comment
+            )
+        }
+
+        is BossIntent.SubmitBossPartyBoard -> {
+            currentState.copy(
+                isLoading = true,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.SubmitBossPartyBoardSuccess -> {
+            currentState.copy(
+                isLoading = true,
+                showBossPartyBoardDialog = false,
+                bossPartyBoards = emptyList(),      // 🚀 리스트 비우기
+                bossPartyBoardPage = 0,             // 🚀 페이지 초기화
+                isBossPartyBoardLastPage = false,   // 마지막 페이지 여부 초기화
+                uploadImage = emptyList(),        // 입력 데이터 초기화
+                uploadComment = "",
+                createdPartyId = null,
+                uploadSuccessEvent = Clock.System.now().toEpochMilliseconds(),
+            )
+        }
+
+        is BossIntent.SubmitBossPartyBoardFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.LikeBossPartyBoardPost -> {
+            currentState.copy(
+                isLoading = true,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.LikeBossPartyBoardPostSuccess -> {
+            val newBoards = currentState.bossPartyBoards.map { board ->
+                if (board.id == intent.bossPartyBoard.id) intent.bossPartyBoard else board
+            }
+
+            currentState.copy(
+                isLoading = false,
+                bossPartyBoards = newBoards,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.LikeBossPartyBoardPostFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.DislikeBossPartyBoardPost -> {
+            currentState.copy(
+                isLoading = true,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.DislikeBossPartyBoardPostSuccess -> {
+            val newBoards = currentState.bossPartyBoards.map { board ->
+                if (board.id == intent.bossPartyBoard.id) intent.bossPartyBoard else board
+            }
+
+            currentState.copy(
+                isLoading = false,
+                bossPartyBoards = newBoards,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.DislikeBossPartyBoardFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message,
                 createdPartyId = null
             )
         }

@@ -74,7 +74,7 @@ val networkModule = module {
             }
 
             defaultRequest {
-                url("http://192.168.0.14:8080/api/")
+                url("http://52.78.54.150:8080/api/")
             }
         }
     }

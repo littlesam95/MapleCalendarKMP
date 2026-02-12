@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -21,9 +21,13 @@ import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,8 +37,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.sixclassguys.maplecalendar.domain.model.BossPartyAlbum
+import com.sixclassguys.maplecalendar.domain.model.BossPartyBoard
 import com.sixclassguys.maplecalendar.theme.MapleGray
+import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleStatBackground
 import com.sixclassguys.maplecalendar.theme.MapleStatTitle
 import com.sixclassguys.maplecalendar.theme.MapleWhite
@@ -43,21 +48,41 @@ import com.sixclassguys.maplecalendar.theme.Typography
 
 @Composable
 fun BossPartyAlbumContent(
-    posts: List<BossPartyAlbum>,
+    posts: List<BossPartyBoard>,
+    isLastPage: Boolean,         // 더 가져올 데이터가 있는지 여부
+    isLoading: Boolean,
+    onLoadMore: () -> Unit,      // 추가 데이터 요청 콜백
+    onSubmitBoard: () -> Unit,
+    onLike: (Long) -> Unit,
+    onDislike: (Long) -> Unit,
     modifier: Modifier
 ) {
+    LaunchedEffect(Unit) {
+        if (posts.isEmpty()) {
+            onLoadMore()
+        }
+    }
+
     Column(
         modifier = modifier.fillMaxWidth()
             .background(MapleStatBackground, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .padding(16.dp)
+            .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
         // 타이틀 영역은 고정
         Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth()
+                .padding(bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("MAPLESTAGRAM", color = MapleStatTitle, style = Typography.titleMedium)
-            Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
+            Text(
+                text = "MEMBER",
+                color = MapleStatTitle,
+                style = Typography.titleMedium
+            )
+            IconButton(onClick = onSubmitBoard) {
+                Icon(Icons.Default.Add, contentDescription = null, tint = MapleWhite)
+            }
         }
 
         // 🚀 3. 내부 영역을 LazyColumn으로 변경하여 자체 스크롤 가능하게 함
@@ -73,14 +98,35 @@ fun BossPartyAlbumContent(
                         modifier = Modifier.fillParentMaxHeight(), // 부모 높이만큼 채움
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("등록된 게시물이 없습니다.", color = MapleGray)
+                        EmptyEventScreen("등록된 게시글이 없어요.")
                     }
                 }
             } else {
                 // 🚀 이제 내부에서 items를 사용하여 개별 스크롤을 지원합니다.
-                items(posts) { post ->
-                    BossPartyAlbumItem(post = post)
+                itemsIndexed(posts, key = { _, post -> post.id }) { index, post ->
+                    BossPartyAlbumItem(post, onLike, onDislike)
+
+                    // 🚀 여기서 직접 체크!
+                    // 마지막에서 1~2번째 아이템이 "그려지는 순간" 다음 페이지를 부릅니다.
+                    if (index >= posts.size - 2 && !isLastPage && !isLoading) {
+                        // 컴포지션 중에 이벤트를 발생시키기 위해 SideEffect 사용
+                        SideEffect {
+                            onLoadMore()
+                        }
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // 🚀 데이터 로딩 중임을 보여주는 하단 인디케이터
+                if (!isLastPage) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = MapleOrange, strokeWidth = 2.dp)
+                        }
+                    }
                 }
             }
         }
@@ -89,7 +135,9 @@ fun BossPartyAlbumContent(
 
 @Composable
 fun BossPartyAlbumItem(
-    post: BossPartyAlbum
+    post: BossPartyBoard,
+    onLike: (Long) -> Unit,
+    onDislike: (Long) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -103,7 +151,7 @@ fun BossPartyAlbumItem(
         ) {
             // 🚀 1. 메인 스크린샷 이미지
             AsyncImage(
-                model = post.imageUrl,
+                model = post.imageUrls[0],
                 contentDescription = "Post Image",
                 modifier = Modifier.fillMaxWidth()
                     .aspectRatio(1.2f)
@@ -118,7 +166,7 @@ fun BossPartyAlbumItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CharacterProfileImage(
-                    imageUrl = post.author.characterImage,
+                    imageUrl = post.characterImage,
                     size = 40.dp
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -127,7 +175,7 @@ fun BossPartyAlbumItem(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = post.author.characterName,
+                            text = post.characterName,
                             fontFamily = PretendardFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
@@ -136,7 +184,7 @@ fun BossPartyAlbumItem(
                         // 월드 아이콘 등 추가 가능
                     }
                     Text(
-                        text = "Lv.${post.author.characterLevel} ${post.author.characterClass}",
+                        text = "Lv.${post.characterLevel} ${post.characterClass}",
                         fontFamily = PretendardFamily,
                         fontSize = 12.sp,
                         color = MapleGray
@@ -154,7 +202,7 @@ fun BossPartyAlbumItem(
                 modifier = Modifier.padding(vertical = 4.dp)
             )
             Text(
-                text = post.date,
+                text = post.createdAt,
                 fontSize = 11.sp,
                 color = MapleGray,
                 fontFamily = PretendardFamily,
@@ -167,22 +215,26 @@ fun BossPartyAlbumItem(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.ThumbUp,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
+                IconButton(onClick = { onLike(post.id) }) {
+                    Icon(
+                        imageVector = Icons.Default.ThumbUp,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
                 Text(
                     text = " ${post.likeCount}",
                     fontSize = 13.sp,
                     fontFamily = PretendardFamily
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                Icon(
-                    imageVector = Icons.Default.ThumbDown,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
+                IconButton(onClick = { onDislike(post.id) }) {
+                    Icon(
+                        imageVector = Icons.Default.ThumbDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
                 Text(
                     text = " ${post.dislikeCount}",
                     fontSize = 13.sp,

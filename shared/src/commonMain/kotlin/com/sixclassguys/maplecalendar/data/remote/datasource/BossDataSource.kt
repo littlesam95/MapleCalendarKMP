@@ -3,6 +3,7 @@ package com.sixclassguys.maplecalendar.data.remote.datasource
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyAlarmPeriodRequest
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyAlarmTimeRequest
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyAlarmTimeResponse
+import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyBoardResponse
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyChatMessageRequest
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyChatMessageResponse
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyCreateRequest
@@ -57,6 +58,33 @@ interface BossDataSource {
         alarmId: Long
     ): List<BossPartyAlarmTimeResponse>
 
+    suspend fun inviteMember(
+        accessToken: String,
+        bossPartyId: Long,
+        characterId: Long
+    )
+
+    suspend fun acceptInvitation(accessToken: String, bossPartyId: Long): Long
+
+    suspend fun declineInvitation(
+        accessToken: String,
+        bossPartyId: Long
+    ): List<BossPartyResponse>
+
+    suspend fun kickMember(
+        accessToken: String,
+        bossPartyId: Long,
+        characterId: Long
+    )
+
+    suspend fun leaveParty(accessToken: String, bossPartyId: Long): List<BossPartyResponse>
+
+    suspend fun transferLeader(
+        accessToken: String,
+        bossPartyId: Long,
+        targetCharacterId: Long
+    )
+
     suspend fun getChatMessages(
         accessToken: String,
         bossPartyId: Long,
@@ -77,4 +105,25 @@ interface BossDataSource {
     fun observeMessages(): Flow<Frame>
 
     suspend fun disconnect()
+
+    suspend fun getBoardPosts(
+        accessToken: String,
+        bossPartyId: Long,
+        page: Int,
+        size: Int = 5
+    ): SliceResponse<BossPartyBoardResponse>
+
+    suspend fun createBoardPost(
+        accessToken: String,
+        bossPartyId: Long,
+        contentJson: String,
+        imageFiles: List<ByteArray>
+    ): BossPartyBoardResponse
+
+    suspend fun toggleBoardLike(
+        accessToken: String,
+        bossPartyId: Long,
+        boardId: Long,
+        likeType: String
+    ): BossPartyBoardResponse
 }

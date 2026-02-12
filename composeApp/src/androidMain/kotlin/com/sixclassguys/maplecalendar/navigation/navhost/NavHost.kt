@@ -1,12 +1,16 @@
 package com.sixclassguys.maplecalendar.navigation.navhost
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -52,6 +56,8 @@ fun NavHost(
     mapleCharacterViewModel: MapleCharacterViewModel,
     bossViewModel: BossViewModel
 ) {
+    val context = LocalContext.current
+
     NavHost(
         modifier = modifier,
         navController = navController,
@@ -231,7 +237,13 @@ fun NavHost(
                     viewModel = loginViewModel,
                     onBackClick = { navController.popBackStack() },
                     onGoogleLoginClick = {
-                        loginViewModel.onIntent(LoginIntent.ClickGoogleLogin)
+                        val activity = context.findActivity()
+                        if (activity != null) {
+                            loginViewModel.onIntent(LoginIntent.ClickGoogleLogin(activity))
+                        } else {
+                            // Activity를 찾지 못했을 때의 예외 처리 (로그 확인용)
+                            println("Debug: Activity not found from context $context")
+                        }
                     },
                     onNavigateToRegistration = {
                         // navController.navigate(Navigation.CharacterRegistration.destination)
@@ -274,4 +286,13 @@ fun NavHost(
             }
         }
     }
+}
+
+private fun Context.findActivity(): Activity? {
+    var currentContext = this
+    while (currentContext is ContextWrapper) {
+        if (currentContext is Activity) return currentContext
+        currentContext = currentContext.baseContext
+    }
+    return null
 }

@@ -20,11 +20,14 @@ import com.sixclassguys.maplecalendar.domain.repository.MemberRepository
 import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
 import com.sixclassguys.maplecalendar.domain.repository.NotificationRepository
 import com.sixclassguys.maplecalendar.domain.repository.ReportRepository
+import com.sixclassguys.maplecalendar.domain.usecase.AcceptBossPartyInvitationUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.AutoLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.CheckCharacterAuthorityUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ConnectBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.CreateBossPartyAlarmUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.CreateBossPartyBoardUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.CreateBossPartyUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.DeclineBossPartyInvitationUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DeleteBossPartyAlarmUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DeleteBossPartyChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DeleteCharacterUseCase
@@ -34,6 +37,7 @@ import com.sixclassguys.maplecalendar.domain.usecase.FetchCharactersWithApiKeyUs
 import com.sixclassguys.maplecalendar.domain.usecase.GetApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartiesUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyAlarmTimesUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyBoardsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyChatHistoryUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyDetailUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetCharacterBasicUseCase
@@ -47,21 +51,27 @@ import com.sixclassguys.maplecalendar.domain.usecase.GetSavedFcmTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetTodayEventsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GoogleLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.HideBossPartyChatUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.InviteBossPartyMemberUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.KickBossPartyMemberUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.LeaveBossPartyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.LogoutUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ObserveBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.RegisterCharactersUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.RegisterTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ReissueJwtTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ReportBossPartyChatUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.SearchCharactersUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SendBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SetCharacterOcidUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SetOpenApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SubmitEventAlarmUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SubmitRepresentativeCharacterUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleBossPartyAlarmUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.ToggleBossPartyBoardLikeUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleBossPartyChatAlarmUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleEventAlarmUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleGlobalAlarmStatusUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.TransferBossPartyLeaderUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.UnregisterTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.UpdateBossPartyPeriodUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.UpdateRepresentativeCharacterUseCase
@@ -142,7 +152,14 @@ val useCaseModule = module {
     single<CreateBossPartyAlarmUseCase> { CreateBossPartyAlarmUseCase(get()) }
     single<UpdateBossPartyPeriodUseCase> { UpdateBossPartyPeriodUseCase(get()) }
     single<DeleteBossPartyAlarmUseCase> { DeleteBossPartyAlarmUseCase(get()) }
-    single<GetBossPartyChatHistoryUseCase>  { GetBossPartyChatHistoryUseCase(get()) }
+    single<SearchCharactersUseCase> { SearchCharactersUseCase(get()) }
+    single<InviteBossPartyMemberUseCase> { InviteBossPartyMemberUseCase(get()) }
+    single<AcceptBossPartyInvitationUseCase> { AcceptBossPartyInvitationUseCase(get()) }
+    single<DeclineBossPartyInvitationUseCase> { DeclineBossPartyInvitationUseCase(get()) }
+    single<KickBossPartyMemberUseCase> { KickBossPartyMemberUseCase(get()) }
+    single<LeaveBossPartyUseCase> { LeaveBossPartyUseCase(get()) }
+    single<TransferBossPartyLeaderUseCase> { TransferBossPartyLeaderUseCase(get()) }
+    single<GetBossPartyChatHistoryUseCase> { GetBossPartyChatHistoryUseCase(get()) }
     single<ConnectBossChatUseCase> { ConnectBossChatUseCase(get()) }
     single<ToggleBossPartyChatAlarmUseCase> { ToggleBossPartyChatAlarmUseCase(get()) }
     single<ObserveBossChatUseCase> { ObserveBossChatUseCase(get()) }
@@ -151,17 +168,79 @@ val useCaseModule = module {
     single<DeleteBossPartyChatUseCase> { DeleteBossPartyChatUseCase(get()) }
     single<DisconnectBossPartyChatUseCase> { DisconnectBossPartyChatUseCase(get()) }
     single<ReportBossPartyChatUseCase> { ReportBossPartyChatUseCase(get()) }
+    single<GetBossPartyBoardsUseCase> { GetBossPartyBoardsUseCase(get()) }
+    single<CreateBossPartyBoardUseCase> { CreateBossPartyBoardUseCase(get()) }
+    single<ToggleBossPartyBoardLikeUseCase> { ToggleBossPartyBoardLikeUseCase(get()) }
 }
 
 val viewModelModule = module {
     // ViewModel (화면마다 생명주기를 관리하기 위해 factory 사용)
-    viewModel { HomeViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel {
+        HomeViewModel(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get()
+        )
+    }
     viewModel { LoginViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SettingViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { NotificationViewModel(get(), get(), get(), get()) }
-    viewModel { CalendarViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel {
+        CalendarViewModel(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get()
+        )
+    }
     viewModel { MapleCharacterViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { BossViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel {
+        BossViewModel(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get()
+        )
+    }
 
     // Reducer
     single { HomeReducer() }
@@ -178,15 +257,15 @@ fun initKoin(
     additionalModules: List<Module> = emptyList(),
     appDeclaration: KoinAppDeclaration = {}
 ) = startKoin {
-        appDeclaration()
-        modules(
-            appModule,
-            repositoryModule,
-            networkModule,
-            useCaseModule,
-            viewModelModule,
-            sharedModule,
-            platformModule
-        )
-        modules(additionalModules)
-    }
+    appDeclaration()
+    modules(
+        appModule,
+        repositoryModule,
+        networkModule,
+        useCaseModule,
+        viewModelModule,
+        sharedModule,
+        platformModule
+    )
+    modules(additionalModules)
+}

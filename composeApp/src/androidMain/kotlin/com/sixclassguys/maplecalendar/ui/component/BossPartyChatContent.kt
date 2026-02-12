@@ -217,11 +217,7 @@ fun BossPartyChatContent(
                         modifier = Modifier.fillParentMaxHeight(), // 부모 높이만큼 채움
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "채팅을 시작해보세요!",
-                            style = Typography.bodySmall,
-                            color = MapleGray
-                        )
+                        EmptyEventScreen("아직 채팅이 없어요.")
                     }
                 }
             } else {

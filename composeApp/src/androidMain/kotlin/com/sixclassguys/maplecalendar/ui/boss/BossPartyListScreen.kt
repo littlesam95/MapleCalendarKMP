@@ -1,5 +1,6 @@
 package com.sixclassguys.maplecalendar.ui.boss
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.InsertInvitation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,9 +27,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
 import com.sixclassguys.maplecalendar.presentation.boss.BossIntent
 import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
 import com.sixclassguys.maplecalendar.theme.MapleStatBackground
@@ -35,7 +39,9 @@ import com.sixclassguys.maplecalendar.theme.MapleStatTitle
 import com.sixclassguys.maplecalendar.theme.MapleWhite
 import com.sixclassguys.maplecalendar.theme.Typography
 import com.sixclassguys.maplecalendar.ui.component.BossPartyCard
+import com.sixclassguys.maplecalendar.ui.component.BossPartyInvitationDialog
 import com.sixclassguys.maplecalendar.utils.MapleWorld
+import org.koin.compose.getKoin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +51,19 @@ fun BossPartyListScreen(
     onPartyClick: (Long) -> Unit,
     onAddParty: () -> Unit
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val eventBus = getKoin().get<NotificationEventBus>()
+
+    LaunchedEffect(Unit) {
+        eventBus.kickedPartyId.collect { kickedId ->
+            if (kickedId != null) {
+                viewModel.onIntent(BossIntent.FetchBossParties)
+                Toast.makeText(context, "파티에서 추방되었어요.", Toast.LENGTH_SHORT).show()
+                eventBus.emitKickedPartyId(null)
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.onIntent(BossIntent.FetchBossParties)
@@ -97,18 +115,34 @@ fun BossPartyListScreen(
                         color = MapleStatTitle,
                         style = Typography.titleMedium
                     )
-                    IconButton(
-                        onClick = {
-                            val allWorlds = MapleWorld.entries.map { it.worldName }
-                            viewModel.onIntent(BossIntent.FetchCharacters(allWorlds))
-                            onAddParty()
-                        }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            tint = MapleWhite
-                        )
+                        IconButton(
+                            onClick = {
+                                viewModel.onIntent(BossIntent.ShowBossPartyInvitationDialog)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.InsertInvitation,
+                                contentDescription = null,
+                                tint = MapleWhite
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                val allWorlds = MapleWorld.entries.map { it.worldName }
+                                viewModel.onIntent(BossIntent.FetchCharacters(allWorlds))
+                                onAddParty()
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                tint = MapleWhite
+                            )
+                        }
                     }
                 }
 
@@ -121,7 +155,7 @@ fun BossPartyListScreen(
                     // 🚀 파티 카드 리스트
                     LazyColumn(
                         modifier = Modifier.fillMaxSize()
-                            .padding(horizontal = 16.dp)
+                            .padding(16.dp)
                     ) {
                         items(uiState.bossParties) { party ->
                             BossPartyCard(bossParty = party, onPartyClick = { onPartyClick(party.id) })
@@ -130,5 +164,18 @@ fun BossPartyListScreen(
                 }
             }
         }
+    }
+    
+    if (uiState.showBossInvitationDialog) {
+        BossPartyInvitationDialog(
+            invitations = uiState.bossPartiesInvited,
+            onAccept = { bossPartyId ->
+                viewModel.onIntent(BossIntent.AcceptBossPartyInvitation(bossPartyId))
+            },
+            onReject = { bossPartyId ->
+                viewModel.onIntent(BossIntent.DeclineBossPartyInvitation(bossPartyId))
+            },
+            onDismiss = { viewModel.onIntent(BossIntent.DismissBossPartyInvitationDialog) }
+        )
     }
 }

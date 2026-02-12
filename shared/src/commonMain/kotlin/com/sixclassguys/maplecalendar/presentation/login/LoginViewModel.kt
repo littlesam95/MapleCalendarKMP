@@ -39,9 +39,9 @@ class LoginViewModel(
         initUiState()
     }
 
-    private fun loginWithGoogle() {
+    private fun loginWithGoogle(context: Any) {
         viewModelScope.launch {
-            val idToken = authManager.signInWithGoogle()
+            val idToken = authManager.signInWithGoogle(context)
 
             if (idToken != null) {
                 // 💡 여기서 이제 서버(Spring)에 토큰을 보내는 UseCase를 호출해야 합니다.
@@ -211,7 +211,7 @@ class LoginViewModel(
 
         when (intent) {
             is LoginIntent.ClickGoogleLogin -> {
-                loginWithGoogle()
+                loginWithGoogle(intent.context)
             }
 
             is LoginIntent.ClickLogin -> {

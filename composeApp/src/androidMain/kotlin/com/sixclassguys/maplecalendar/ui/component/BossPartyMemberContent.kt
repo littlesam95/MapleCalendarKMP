@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
@@ -60,7 +61,8 @@ fun BossPartyMemberContent(
     isLeader: Boolean,
     members: List<BossPartyMember>,
     onAddMember: () -> Unit,
-    onRemoveMember: (BossPartyMember) -> Unit,
+    onTransferLeader: (Long) -> Unit,
+    onRemoveMember: (Long) -> Unit,
     modifier: Modifier
 ) {
     val context = LocalContext.current
@@ -110,7 +112,7 @@ fun BossPartyMemberContent(
                     ) {
                         members.forEach { member ->
                             Box(modifier = Modifier.weight(1f)) {
-                                PartyMemberItem(isLeader, member, context, onRemoveMember)
+                                PartyMemberItem(isLeader, member, context, onTransferLeader, onRemoveMember)
                             }
                         }
                         if (members.size == 1) Spacer(modifier = Modifier.weight(1f))
@@ -126,7 +128,8 @@ fun PartyMemberItem(
     isLeader: Boolean,
     member: BossPartyMember,
     context: Context,
-    onRemoveMember: (BossPartyMember) -> Unit
+    onTransferLeader: (Long) -> Unit,
+    onRemoveMember: (Long) -> Unit
 ) {
     val worldMark = MapleWorld.getWorld(member.worldName)?.iconRes ?: R.drawable.ic_world_scania
     Box(
@@ -238,7 +241,19 @@ fun PartyMemberItem(
             }
         } else if (isLeader) {
             IconButton(
-                onClick = { onRemoveMember(member) },
+                onClick = { onTransferLeader(member.characterId) },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Build,
+                    contentDescription = "파티장 양도",
+                    tint = MapleOrange, // 금색 계열
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(4.dp))
+            IconButton(
+                onClick = { onRemoveMember(member.characterId) },
                 modifier = Modifier.align(Alignment.TopEnd)
                     .padding(4.dp)
                     .size(24.dp)

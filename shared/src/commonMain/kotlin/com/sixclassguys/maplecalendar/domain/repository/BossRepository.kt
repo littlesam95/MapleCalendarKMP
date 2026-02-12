@@ -3,6 +3,8 @@ package com.sixclassguys.maplecalendar.domain.repository
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.model.BossParty
 import com.sixclassguys.maplecalendar.domain.model.BossPartyAlarmTime
+import com.sixclassguys.maplecalendar.domain.model.BossPartyBoard
+import com.sixclassguys.maplecalendar.domain.model.BossPartyBoardHistory
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChat
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChatHistory
 import com.sixclassguys.maplecalendar.domain.model.BossPartyDetail
@@ -59,6 +61,18 @@ interface BossRepository {
         alarmId: Long
     ): Flow<ApiState<List<BossPartyAlarmTime>>>
 
+    suspend fun inviteMember(bossPartyId: Long, characterId: Long): Flow<ApiState<Unit>>
+
+    suspend fun acceptInvitation(bossPartyId: Long): Flow<ApiState<Long>>
+
+    suspend fun declineInvitation(bossPartyId: Long): Flow<ApiState<List<BossParty>>>
+
+    suspend fun kickMember(bossPartyId: Long, characterId: Long): Flow<ApiState<Unit>>
+
+    suspend fun leaveParty(bossPartyId: Long): Flow<ApiState<List<BossParty>>>
+
+    suspend fun transferLeader(bossPartyId: Long, targetCharacterId: Long): Flow<ApiState<Unit>>
+
     suspend fun getChatMessage(bossPartyId: Long, page: Int): Flow<ApiState<BossPartyChatHistory>>
 
     suspend fun connect(partyId: String): Flow<ApiState<Unit>>
@@ -74,4 +88,21 @@ interface BossRepository {
     suspend fun deleteMessage(bossPartyId: Long, chatId: Long): Flow<ApiState<Unit>>
 
     suspend fun disconnect()
+
+    suspend fun getBoardPosts(
+        bossPartyId: Long,
+        page: Int
+    ): Flow<ApiState<BossPartyBoardHistory>>
+
+    suspend fun createBoardPost(
+        bossPartyId: Long,
+        content: String, // 게시글 텍스트 내용
+        images: List<ByteArray> // 이미지 데이터들
+    ): Flow<ApiState<BossPartyBoard>>
+
+    suspend fun toggleBoardLike(
+        bossPartyId: Long,
+        boardId: Long,
+        likeType: String
+    ): Flow<ApiState<BossPartyBoard>>
 }

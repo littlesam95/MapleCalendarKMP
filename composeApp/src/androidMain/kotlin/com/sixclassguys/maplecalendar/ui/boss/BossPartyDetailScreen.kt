@@ -2,11 +2,15 @@ package com.sixclassguys.maplecalendar.ui.boss
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
@@ -43,13 +48,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
 import com.sixclassguys.maplecalendar.presentation.boss.BossIntent
 import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
 import com.sixclassguys.maplecalendar.theme.MapleBlack
@@ -57,15 +65,19 @@ import com.sixclassguys.maplecalendar.theme.MapleGray
 import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleStatBackground
 import com.sixclassguys.maplecalendar.theme.MapleWhite
+import com.sixclassguys.maplecalendar.theme.Typography
 import com.sixclassguys.maplecalendar.ui.component.BossPartyAlarmContent
 import com.sixclassguys.maplecalendar.ui.component.BossPartyAlarmSettingDialog
 import com.sixclassguys.maplecalendar.ui.component.BossPartyAlbumContent
+import com.sixclassguys.maplecalendar.ui.component.BossPartyBoardUploadDialog
 import com.sixclassguys.maplecalendar.ui.component.BossPartyChatContent
 import com.sixclassguys.maplecalendar.ui.component.BossPartyChatReportDialog
 import com.sixclassguys.maplecalendar.ui.component.BossPartyCollapsingHeader
 import com.sixclassguys.maplecalendar.ui.component.BossPartyDetailTabRow
 import com.sixclassguys.maplecalendar.ui.component.BossPartyMemberContent
+import com.sixclassguys.maplecalendar.ui.component.CharacterInviteDialog
 import com.sixclassguys.maplecalendar.util.BossPartyTab
+import org.koin.compose.getKoin
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("ConfigurationScreenWidthHeight")
@@ -74,6 +86,7 @@ fun BossPartyDetailScreen(
     viewModel: BossViewModel,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberLazyListState() // 리스트형 컨텐츠를 위해 LazyListState 사용
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -138,6 +151,19 @@ fun BossPartyDetailScreen(
 
     val scrollPercentage = -toolbarOffsetHeightPx / maxScrollOffsetPx
 
+    val eventBus = getKoin().get<NotificationEventBus>()
+
+    LaunchedEffect(Unit) {
+        eventBus.kickedPartyId.collect { kickedId ->
+            if (kickedId == uiState.selectedBossParty?.id) {
+                viewModel.onIntent(BossIntent.FetchBossParties)
+                Toast.makeText(context, "파티에서 추방되었어요.", Toast.LENGTH_SHORT).show()
+                eventBus.emitKickedPartyId(null)
+                onBack()
+            }
+        }
+    }
+
     LaunchedEffect(Unit) {
         scrollState.scrollToItem(0)
     }
@@ -161,6 +187,7 @@ fun BossPartyDetailScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
 
         onDispose {
+            viewModel.onIntent(BossIntent.DisconnectBossPartyChat)
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
@@ -221,11 +248,12 @@ fun BossPartyDetailScreen(
                             BossPartyMemberContent(
                                 isLeader = uiState.selectedBossParty?.isLeader ?: false,
                                 members = uiState.selectedBossParty?.members ?: emptyList(),
-                                onAddMember = {
-
+                                onAddMember = { viewModel.onIntent(BossIntent.ShowCharacterInviteDialog) },
+                                onTransferLeader = { characterId ->
+                                    viewModel.onIntent(BossIntent.TransferBossPartyLeader(characterId))
                                 },
-                                onRemoveMember = { character ->
-
+                                onRemoveMember = { characterId ->
+                                    viewModel.onIntent(BossIntent.KickBossPartyMember(characterId))
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -276,7 +304,21 @@ fun BossPartyDetailScreen(
                             val availableHeight =
                                 screenHeightDp - systemBarsHeight - collapsedTopBarHeight - 48.dp
                             BossPartyAlbumContent(
-                                posts = uiState.bossPartyAlbums,
+                                posts = uiState.bossPartyBoards,
+                                isLastPage = uiState.isBossPartyBoardLastPage,
+                                isLoading = uiState.isLoading,
+                                onLoadMore = {
+                                    viewModel.onIntent(BossIntent.FetchBossPartyBoardHistory)
+                                },
+                                onSubmitBoard = {
+                                    viewModel.onIntent(BossIntent.ShowBossPartyBoardDialog)
+                                },
+                                onLike = { postId ->
+                                    viewModel.onIntent(BossIntent.LikeBossPartyBoardPost(postId))
+                                },
+                                onDislike = { postId ->
+                                    viewModel.onIntent(BossIntent.DislikeBossPartyBoardPost(postId))
+                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(availableHeight)
@@ -349,8 +391,30 @@ fun BossPartyDetailScreen(
                 scrollPercentage = scrollPercentage,
                 onBack = onBack,
                 onShare = { /* 공유 로직 */ },
-                onDelete = { /* 삭제/탈퇴 로직 */ }
+                onDelete = { viewModel.onIntent(BossIntent.LeaveBossParty) }
             )
+        }
+    }
+
+    if (uiState.isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+                .background(MapleBlack.copy(alpha = 0.7f)) // 화면 어둡게 처리
+                .pointerInput(Unit) {}, // 터치 이벤트 전파 방지 (클릭 막기)
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(
+                    color = MapleOrange,
+                    strokeWidth = 4.dp
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "보스 파티 정보를 불러오는 중이에요...",
+                    color = MapleWhite,
+                    style = Typography.bodyLarge
+                )
+            }
         }
     }
 
@@ -361,6 +425,13 @@ fun BossPartyDetailScreen(
         )
     }
 
+    if (uiState.showCharacterInvitationDialog) {
+        CharacterInviteDialog(
+            onDismiss = { viewModel.onIntent(BossIntent.DismissCharacterInviteDialog) },
+            viewModel = viewModel
+        )
+    }
+
     if (uiState.showBossPartyChatReport && uiState.selectBossPartyChatToReport != null) {
         BossPartyChatReportDialog(
             chat = uiState.selectBossPartyChatToReport,
@@ -368,6 +439,13 @@ fun BossPartyDetailScreen(
             onReportSubmit = { chatId, reason, reasonDetail ->
                 viewModel.onIntent(BossIntent.ReportBossPartyChatMessage(chatId, reason, reasonDetail))
             }
+        )
+    }
+
+    if (uiState.showBossPartyBoardDialog) {
+        BossPartyBoardUploadDialog(
+            viewModel = viewModel,
+            onDismiss = { viewModel.onIntent(BossIntent.DismissBossPartyBoardDialog) }
         )
     }
 }

@@ -54,7 +54,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
 
             // 2. 타입별 처리
             when (type) {
-                "BOSS" -> {
+                "BOSS", "MEMBER_JOINED", "MEMBER_KICKED", "MEMBER_LEFT", "LEADER_TRANSFERRED" -> {
                     // 보스 파티 전용 알림 표시
                     eventBus.emitBossPartyId(contentId)
                     showBossNotification(title, body, contentId)
@@ -64,8 +64,18 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
                     showBossChatNotification(title, body, contentId)
                 }
 
+                "BOSS_INVITATION" -> {
+                    showBossNotification(title, body, contentId, type)
+                }
+
                 "REFRESH_BOSS_ALARM" -> {
                     eventBus.emitBossPartyId(contentId)
+                }
+
+                "YOU_ARE_KICKED" -> {
+                    // TODO: 추방 대상자는 즉시 onBack() 호출 및 보스 파티 리스트 갱신
+                    eventBus.emitKickedPartyId(contentId)
+                    showBossNotification(title, body, 0L, type)
                 }
 
                 else -> {
@@ -77,7 +87,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
         }
     }
 
-    private fun showBossNotification(title: String, body: String, partyId: Long) {
+    private fun showBossNotification(title: String, body: String, partyId: Long, type: String? = null) {
         val channelId = "BOSS_PARTY_ALARM_V1" // 보스 전용 채널
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
@@ -87,7 +97,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
                 channelId, "보스 파티 알림",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "보스 파티 예약 시간 알림"
+                description = "파티 초대, 멤버 변동 및 보스 입장 시간 알림"
                 enableLights(true)
                 enableVibration(true)
             }
@@ -97,8 +107,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
         // 클릭 시 파티 상세 화면 등으로 보낼 정보 설정
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-            // putExtra("navigate_to", "BOSS_DETAIL")
-            // putExtra("partyId", partyId)
+            putExtra("PARTY_ID", partyId)
+            putExtra("ALARM_TYPE", type) // 어떤 종류의 알림인지 전달
         }
 
         val pendingIntent = PendingIntent.getActivity(
@@ -116,6 +126,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setContentIntent(pendingIntent)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
 
         notificationManager.notify(partyId.toInt(), builder.build())
     }

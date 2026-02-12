@@ -2,6 +2,7 @@ package com.sixclassguys.maplecalendar.domain.model
 
 import com.sixclassguys.maplecalendar.util.Boss
 import com.sixclassguys.maplecalendar.util.BossDifficulty
+import com.sixclassguys.maplecalendar.util.JoinStatus
 
 data class BossParty(
     val id: Long,
@@ -13,6 +14,7 @@ data class BossParty(
     val isChatAlarmEnabled: Boolean,
     val leaderNickname: String,
     val memberCount: Int,
+    val joinStatus: JoinStatus,
     val createdAt: String,
     val updatedAt: String
 )

@@ -10,6 +10,8 @@ import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyCreateRequest
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.model.BossParty
 import com.sixclassguys.maplecalendar.domain.model.BossPartyAlarmTime
+import com.sixclassguys.maplecalendar.domain.model.BossPartyBoard
+import com.sixclassguys.maplecalendar.domain.model.BossPartyBoardHistory
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChat
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChatHistory
 import com.sixclassguys.maplecalendar.domain.model.BossPartyDetail
@@ -31,6 +33,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class BossRepositoryImpl(
@@ -283,6 +286,152 @@ class BossRepositoryImpl(
         emit(errorState)
     }
 
+    override suspend fun inviteMember(
+        bossPartyId: Long,
+        characterId: Long
+    ): Flow<ApiState<Unit>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            dataSource.inviteMember(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId,
+                characterId = characterId
+            )
+
+            emit(ApiState.Success(Unit))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun acceptInvitation(bossPartyId: Long): Flow<ApiState<Long>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.acceptInvitation(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId
+            )
+
+            emit(ApiState.Success(response))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun declineInvitation(bossPartyId: Long): Flow<ApiState<List<BossParty>>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.declineInvitation(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId
+            )
+            val bossParties = response.map { it.toDomain() }
+
+            emit(ApiState.Success(bossParties))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun kickMember(
+        bossPartyId: Long,
+        characterId: Long
+    ): Flow<ApiState<Unit>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            dataSource.kickMember(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId,
+                characterId = characterId
+            )
+
+            emit(ApiState.Success(Unit))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun leaveParty(bossPartyId: Long): Flow<ApiState<List<BossParty>>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.leaveParty(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId
+            )
+            val bossParties = response.map { it.toDomain() }
+
+            emit(ApiState.Success(bossParties))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun transferLeader(
+        bossPartyId: Long,
+        targetCharacterId: Long
+    ): Flow<ApiState<Unit>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            dataSource.transferLeader(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId,
+                targetCharacterId = targetCharacterId
+            )
+
+            emit(ApiState.Success(Unit))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
     override suspend fun getChatMessage(bossPartyId: Long, page: Int): Flow<ApiState<BossPartyChatHistory>> = flow {
         emit(ApiState.Loading)
 
@@ -384,7 +533,7 @@ class BossRepositoryImpl(
 
         try {
             val accessToken = dataStore.accessToken.first()
-            val response = dataSource.hideMessage(accessToken, bossPartyId, chatId)
+            dataSource.hideMessage(accessToken, bossPartyId, chatId)
 
             emit(ApiState.Success(Unit))
         } catch (e: Exception) {
@@ -403,7 +552,7 @@ class BossRepositoryImpl(
 
         try {
             val accessToken = dataStore.accessToken.first()
-            val response = dataSource.deleteMessage(accessToken, bossPartyId, chatId)
+            dataSource.deleteMessage(accessToken, bossPartyId, chatId)
 
             emit(ApiState.Success(Unit))
         } catch (e: Exception) {
@@ -418,4 +567,96 @@ class BossRepositoryImpl(
     }
 
     override suspend fun disconnect() = dataSource.disconnect()
+
+    override suspend fun getBoardPosts(
+        bossPartyId: Long,
+        page: Int
+    ): Flow<ApiState<BossPartyBoardHistory>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.getBoardPosts(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId,
+                page = page
+            )
+            val boards = response.content.map { it.toDomain() }
+
+            emit(ApiState.Success(
+                BossPartyBoardHistory(
+                    boards = boards,
+                    isLastPage = response.last
+                )
+            ))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun createBoardPost(
+        bossPartyId: Long,
+        content: String, // 게시글 텍스트 내용
+        images: List<ByteArray> // 이미지 데이터들
+    ): Flow<ApiState<BossPartyBoard>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val contentJson = Json.encodeToString(mapOf("content" to content))
+            val response = dataSource.createBoardPost(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId,
+                contentJson = contentJson,
+                imageFiles = images
+            )
+            Napier.d("Response: $response")
+            val board = response.toDomain()
+
+            emit(ApiState.Success(board))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
+    override suspend fun toggleBoardLike(
+        bossPartyId: Long,
+        boardId: Long,
+        likeType: String
+    ): Flow<ApiState<BossPartyBoard>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.toggleBoardLike(
+                accessToken = accessToken,
+                bossPartyId = bossPartyId,
+                boardId = boardId,
+                likeType = likeType,
+            )
+            val board = response.toDomain()
+
+            emit(ApiState.Success(board))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
 }
