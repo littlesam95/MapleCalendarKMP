@@ -3,6 +3,7 @@ package com.sixclassguys.maplecalendar.data.remote.dto
 import com.sixclassguys.maplecalendar.domain.model.BossParty
 import com.sixclassguys.maplecalendar.util.Boss
 import com.sixclassguys.maplecalendar.util.BossDifficulty
+import com.sixclassguys.maplecalendar.util.JoinStatus
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -16,6 +17,7 @@ data class BossPartyResponse(
     val isChatAlarmEnabled: Boolean = false,
     val leaderNickname: String? = null,
     val memberCount: Int? = null,
+    val joinStatus: JoinStatus?,
     val createdAt: String? = null,
     val updatedAt: String? = null
 ) {
@@ -32,6 +34,7 @@ data class BossPartyResponse(
             isChatAlarmEnabled = this.isChatAlarmEnabled,
             leaderNickname = this.leaderNickname ?: "",
             memberCount = this.memberCount ?: 0,
+            joinStatus = this.joinStatus ?: JoinStatus.INVITED,
             createdAt = this.createdAt ?: "1970-01-01",
             updatedAt = this.updatedAt ?: "1970-01-01"
         )
