@@ -2,7 +2,6 @@ package com.sixclassguys.maplecalendar.data.repository
 
 import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 class NotificationEventBusImpl : NotificationEventBus {
@@ -14,11 +13,18 @@ class NotificationEventBusImpl : NotificationEventBus {
     private val _bossPartyId = MutableSharedFlow<Long>(extraBufferCapacity = 1)
     override val bossPartyId = _bossPartyId.asSharedFlow()
 
+    private val _kickedPartyId = MutableSharedFlow<Long?>(extraBufferCapacity = 1)
+    override val kickedPartyId = _kickedPartyId.asSharedFlow()
+
     override suspend fun emitEvent(eventId: Long) {
         _events.emit(eventId)
     }
 
     override suspend fun emitBossPartyId(bossPartyId: Long) {
         _bossPartyId.emit(bossPartyId)
+    }
+
+    override suspend fun emitKickedPartyId(partyId: Long?) {
+        _kickedPartyId.emit(partyId)
     }
 }
