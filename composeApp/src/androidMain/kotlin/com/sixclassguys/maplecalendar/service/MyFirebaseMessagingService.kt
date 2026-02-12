@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-
 class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
 
     private val notificationRepository: NotificationRepository by inject()
@@ -41,26 +40,141 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
     override fun onMessageReceived(message: RemoteMessage) {
         CoroutineScope(Dispatchers.IO).launch {
             val isEnabled = dataStore.isNotificationMode.first()
-
-            // 데이터에서 eventId 추출
-            val eventIdStr = message.data["eventId"]
-            val eventId = eventIdStr?.toLongOrNull()
-
-            // 💡 EventBus에 eventId를 실어서 보냄
-            eventBus.emitEvent(eventId ?: 0L)
-
-            if (isEnabled) {
-                val title = message.notification?.title ?: message.data["title"] ?: "알림"
-                val body = message.notification?.body ?: message.data["body"] ?: "내용이 없습니다."
-
-                showNotification(title, body, eventId ?: 0L)
-            } else {
+            if (!isEnabled) {
                 Napier.d("알림이 꺼져 있습니다.")
+                return@launch
+            }
+
+            // 1. 공통 데이터 추출
+            val title = message.notification?.title ?: message.data["title"] ?: "Maplendar"
+            val body = message.notification?.body ?: message.data["body"] ?: "내용이 없습니다."
+            val type = message.data["type"] // BOSS, EVENT 등
+            val targetId = message.data["targetId"]?.toLongOrNull() ?: 0L
+            val contentId = message.data["contentId"]?.toLongOrNull() ?: 0L
+
+            // 2. 타입별 처리
+            when (type) {
+                "BOSS", "MEMBER_JOINED", "MEMBER_KICKED", "MEMBER_LEFT", "LEADER_TRANSFERRED" -> {
+                    // 보스 파티 전용 알림 표시
+                    eventBus.emitBossPartyId(contentId)
+                    showBossNotification(title, body, contentId)
+                }
+
+                "BOSSCHAT" -> {
+                    showBossChatNotification(title, body, contentId)
+                }
+
+                "BOSS_INVITATION" -> {
+                    showBossNotification(title, body, contentId, type)
+                }
+
+                "REFRESH_BOSS_ALARM" -> {
+                    eventBus.emitBossPartyId(contentId)
+                }
+
+                "YOU_ARE_KICKED" -> {
+                    // TODO: 추방 대상자는 즉시 onBack() 호출 및 보스 파티 리스트 갱신
+                    eventBus.emitKickedPartyId(contentId)
+                    showBossNotification(title, body, 0L, type)
+                }
+
+                else -> {
+                    // 기존 이벤트 알림 로직 (eventId 기반)
+                    eventBus.emitEvent(contentId)
+                    showEventNotification(title, body, contentId)
+                }
             }
         }
     }
 
-    private fun showNotification(title: String?, body: String?, eventId: Long) {
+    private fun showBossNotification(title: String, body: String, partyId: Long, type: String? = null) {
+        val channelId = "BOSS_PARTY_ALARM_V1" // 보스 전용 채널
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        // 채널 생성 (중복 호출되어도 안전함)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId, "보스 파티 알림",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "파티 초대, 멤버 변동 및 보스 입장 시간 알림"
+                enableLights(true)
+                enableVibration(true)
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        // 클릭 시 파티 상세 화면 등으로 보낼 정보 설정
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            putExtra("PARTY_ID", partyId)
+            putExtra("ALARM_TYPE", type) // 어떤 종류의 알림인지 전달
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            partyId.toInt(), // 알람마다 고유 ID 부여
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val builder = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.bottomnav_calendar) // 보스용 아이콘이 있다면 교체
+            .setContentTitle(title)
+            .setContentText(body)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setContentIntent(pendingIntent)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+
+        notificationManager.notify(partyId.toInt(), builder.build())
+    }
+
+    private fun showBossChatNotification(title: String, body: String, partyId: Long) {
+        val channelId = "BOSS_CHAT_ALARM_V1" // 보스 전용 채널
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        // 채널 생성 (중복 호출되어도 안전함)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId, "보스 파티 채팅 알림",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "보스 파티 채팅 알림"
+                enableLights(true)
+                enableVibration(true)
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        // 클릭 시 파티 상세 화면 등으로 보낼 정보 설정
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            // putExtra("navigate_to", "BOSS_DETAIL")
+            // putExtra("partyId", partyId)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            partyId.toInt(), // 알람마다 고유 ID 부여
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val builder = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.bottomnav_calendar) // 보스용 아이콘이 있다면 교체
+            .setContentTitle(title)
+            .setContentText(body)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setContentIntent(pendingIntent)
+
+        notificationManager.notify(partyId.toInt(), builder.build())
+    }
+
+    private fun showEventNotification(title: String?, body: String?, eventId: Long) {
         val channelId = "MAPLE_CALENDAR_HIGH_V3" // 채널명
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 

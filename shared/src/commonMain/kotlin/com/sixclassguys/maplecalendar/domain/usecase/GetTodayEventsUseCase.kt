@@ -9,7 +9,7 @@ class GetTodayEventsUseCase(
     private val repository: EventRepository
 ) {
 
-    suspend operator fun invoke(year: Int, month: Int, day: Int, apiKey: String): Flow<ApiState<List<MapleEvent>>> {
-        return repository.getTodayEvents(year, month, day, apiKey)
+    suspend operator fun invoke(year: Int, month: Int, day: Int): Flow<ApiState<List<MapleEvent>>> {
+        return repository.getTodayEvents(year, month, day)
     }
 }

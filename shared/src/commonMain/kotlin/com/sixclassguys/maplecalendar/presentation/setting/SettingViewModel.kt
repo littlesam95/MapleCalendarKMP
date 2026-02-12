@@ -87,9 +87,9 @@ class SettingViewModel(
         }
     }
 
-    private fun toggleGlobalAlarmStatus(apiKey: String) {
+    private fun toggleGlobalAlarmStatus() {
         viewModelScope.launch {
-            toggleGlobalAlarmStatusUseCase(apiKey).collect { state ->
+            toggleGlobalAlarmStatusUseCase().collect { state ->
                 when (state) {
                     is ApiState.Success -> {
                         onIntent(SettingIntent.ToggleGlobalAlarmStatusSuccess(state.data))
@@ -160,7 +160,7 @@ class SettingViewModel(
             }
 
             is SettingIntent.ToggleGlobalAlarmStatus -> {
-                toggleGlobalAlarmStatus(_uiState.value.nexonApiKey ?: "")
+                toggleGlobalAlarmStatus()
             }
 
             is SettingIntent.Logout -> {

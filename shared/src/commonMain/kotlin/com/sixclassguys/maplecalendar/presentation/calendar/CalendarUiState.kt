@@ -1,5 +1,6 @@
 package com.sixclassguys.maplecalendar.presentation.calendar
 
+import com.sixclassguys.maplecalendar.domain.model.BossPartySchedule
 import com.sixclassguys.maplecalendar.domain.model.MapleEvent
 import com.sixclassguys.maplecalendar.util.getTodayDate
 import kotlinx.datetime.LocalDate
@@ -16,6 +17,7 @@ data class CalendarUiState(
     val month: Month = Month.JANUARY,
     val days: List<LocalDate?> = emptyList(),
     val eventsMapByDay: Map<String, List<MapleEvent>> = emptyMap(),
+    val bossSchedulesMapByDay: Map<String, List<BossPartySchedule>> = emptyMap(),
     val eventsMapByMonth: Map<String, List<MapleEvent>> = emptyMap(),
     val selectedDate: LocalDate? = getTodayDate(),
     val selectedEvent: MapleEvent? = null,

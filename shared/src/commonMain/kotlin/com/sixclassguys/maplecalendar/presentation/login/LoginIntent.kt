@@ -7,7 +7,7 @@ sealed class LoginIntent {
 
     data object ErrorMessageConsumed : LoginIntent() // 추가
 
-    data object ClickGoogleLogin : LoginIntent()
+    data class ClickGoogleLogin(val context: Any) : LoginIntent()
 
     data class GoogleLoginSuccess(val member: Member, val isNewMember: Boolean) : LoginIntent()
 

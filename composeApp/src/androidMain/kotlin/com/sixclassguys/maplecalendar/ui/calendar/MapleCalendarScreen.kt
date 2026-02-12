@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
@@ -24,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
 import com.sixclassguys.maplecalendar.theme.Typography
+import com.sixclassguys.maplecalendar.ui.component.BossScheduleRow
 import com.sixclassguys.maplecalendar.ui.component.CalendarCard
 import com.sixclassguys.maplecalendar.ui.component.CarouselEventRow
 import com.sixclassguys.maplecalendar.ui.component.EmptyEventScreen
@@ -33,7 +36,8 @@ import com.sixclassguys.maplecalendar.ui.component.EmptyEventScreen
 @Composable
 fun MapleCalendarScreen(
     viewModel: CalendarViewModel,
-    onNavigateToEventDetail: (Long) -> Unit
+    onNavigateToEventDetail: (Long) -> Unit,
+    onNavigateToBossDetail: (Long) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -114,15 +118,39 @@ fun MapleCalendarScreen(
 
                 // 3. 오늘의 보스 일정 (현재 UIState에는 보스 데이터가 없으므로 자리만 유지)
                 item {
+                    val selectedDateText = uiState.selectedDate?.let {
+                        "${it.year}년 ${it.monthNumber}월 ${it.dayOfMonth}일"
+                    }
+
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(
-                        text = "오늘의 보스 일정",
+                        text = if (selectedDateText == null) "날짜를 선택해주세요!" else "$selectedDateText 보스 일정",
                         style = Typography.titleMedium,
                         modifier = Modifier.padding(16.dp)
                     )
 
+                    val year = uiState.selectedDate?.year ?: viewModel.getTodayDate().year
+                    val month = uiState.selectedDate?.monthNumber ?: viewModel.getTodayDate().monthNumber
+                    val day = uiState.selectedDate?.dayOfMonth ?: viewModel.getTodayDate().dayOfMonth
+                    val currentKey = "${year}-${month}-${day}"
+                    val nowBossSchedules = uiState.bossSchedulesMapByDay[currentKey] ?: emptyList()
+
                     // 보스 데이터가 비어있을 때 (이미지 포함된 뷰)
-                    EmptyEventScreen("보스 일정이 없어요.")
+                    if (nowBossSchedules.isEmpty()) {
+                        EmptyEventScreen("보스 일정이 없어요.")
+                    } else {
+                        LazyRow(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 8.dp)
+                        ) {
+                            items(nowBossSchedules) { schedule ->
+                                BossScheduleRow(
+                                    schedule = schedule,
+                                    onNavigateToBossDetail = onNavigateToBossDetail
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

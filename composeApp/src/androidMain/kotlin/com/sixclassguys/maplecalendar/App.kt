@@ -32,7 +32,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sixclassguys.maplecalendar.navigation.Navigation
 import com.sixclassguys.maplecalendar.navigation.navhost.NavHost
-import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
+import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
 import com.sixclassguys.maplecalendar.presentation.character.MapleCharacterViewModel
 import com.sixclassguys.maplecalendar.presentation.home.HomeViewModel
@@ -53,6 +53,7 @@ fun App() {
     val homeViewModel: HomeViewModel = koinViewModel(viewModelStoreOwner = activity)
     val calendarViewModel: CalendarViewModel = koinViewModel(viewModelStoreOwner = activity)
     val mapleCharacterViewModel: MapleCharacterViewModel = koinViewModel(viewModelStoreOwner = activity)
+    val bossViewModel: BossViewModel = koinViewModel(viewModelStoreOwner = activity)
     val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -93,15 +94,7 @@ fun App() {
                 if (currentRoute in screenWithBottomBar) {
                     BottomNavigationBar(
                         navController = navController,
-                        onCalendarClicked = {
-                            if (homeUiState.characterBasic == null) {
-                                navController.navigate("login_flow")
-                            } else {
-                                calendarViewModel.onIntent(CalendarIntent.FetchNexonOpenApiKey)
-                                calendarViewModel.onIntent(CalendarIntent.FetchGlobalAlarmStatus)
-                                navController.navigate("calendar_flow")
-                            }
-                        }
+                        isLoginSuccess = homeUiState.isLoginSuccess
                     )
                 }
             }
@@ -121,7 +114,8 @@ fun App() {
                 snackbarHostState = snackbarHostState,
                 homeViewModel = homeViewModel,
                 calendarViewModel = calendarViewModel,
-                mapleCharacterViewModel = mapleCharacterViewModel
+                mapleCharacterViewModel = mapleCharacterViewModel,
+                bossViewModel = bossViewModel
             )
         }
     }

@@ -23,7 +23,8 @@ import com.sixclassguys.maplecalendar.theme.Typography
 
 @Composable
 fun EmptyCharacterBasicCard(
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier
 ) {
     val stroke = Stroke(
         width = 3f,

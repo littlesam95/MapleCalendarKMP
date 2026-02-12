@@ -16,11 +16,11 @@ class AlarmDataSourceImpl(
     private val httpClient: HttpClient
 ) : AlarmDataSource {
 
-    override suspend fun submitEventAlarm(apiKey: String, request: AlarmRequest): EventResponse {
+    override suspend fun submitEventAlarm(accessToken: String, request: AlarmRequest): EventResponse {
         val response = try {
             httpClient.post("alarms/event") {
                 // 헤더 추가 부분
-                header("x-nxopen-api-key", apiKey)
+                header("Authorization", "Bearer $accessToken")
                 setBody(request)
 
                 // Content-Type 설정 (필요 시)
@@ -46,14 +46,11 @@ class AlarmDataSourceImpl(
         }
     }
 
-    override suspend fun toggleEventAlarm(apiKey: String, eventId: Long): EventResponse {
+    override suspend fun toggleEventAlarm(accessToken: String, eventId: Long): EventResponse {
         val response = try {
             httpClient.patch("alarms/toggle/$eventId") {
                 // 헤더 추가 부분
-                header("x-nxopen-api-key", apiKey)
-
-                // Content-Type 설정 (필요 시)
-                contentType(ContentType.Application.Json)
+                header("Authorization", "Bearer $accessToken")
             }
         } catch (e: Exception) {
             throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")

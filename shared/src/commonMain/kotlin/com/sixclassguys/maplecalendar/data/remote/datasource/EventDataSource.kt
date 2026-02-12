@@ -4,14 +4,14 @@ import com.sixclassguys.maplecalendar.data.remote.dto.EventResponse
 
 interface EventDataSource {
 
-    suspend fun fetchEventDetail(apiKey: String, eventId: Long): EventResponse?
+    suspend fun fetchEventDetail(accessToken: String, eventId: Long): EventResponse?
 
     suspend fun fetchTodayEvents(
         year: Int,
         month: Int,
         day: Int,
-        apiKey: String
+        accessToken: String
     ): List<EventResponse>
 
-    suspend fun fetchMonthlyEvents(year: Int, month: Int): List<EventResponse>
+    suspend fun fetchMonthlyEvents(year: Int, month: Int, accessToken: String): List<EventResponse>
 }

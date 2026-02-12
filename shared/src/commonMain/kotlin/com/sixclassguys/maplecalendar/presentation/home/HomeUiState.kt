@@ -1,5 +1,6 @@
 package com.sixclassguys.maplecalendar.presentation.home
 
+import com.sixclassguys.maplecalendar.domain.model.BossPartySchedule
 import com.sixclassguys.maplecalendar.domain.model.CharacterBasic
 import com.sixclassguys.maplecalendar.domain.model.CharacterDojangRanking
 import com.sixclassguys.maplecalendar.domain.model.CharacterRanking
@@ -20,7 +21,7 @@ data class HomeUiState(
     val characterUnion: CharacterUnion? = null,
     val isGlobalAlarmEnabled: Boolean = false,
     val events: List<MapleEvent> = emptyList(),
-    val bossSchedules: List<Boolean> = emptyList(),
+    val bossSchedules: List<BossPartySchedule> = emptyList(),
     val isNavigateToLogin: Boolean = false,
     val errorMessage: String? = null
 )

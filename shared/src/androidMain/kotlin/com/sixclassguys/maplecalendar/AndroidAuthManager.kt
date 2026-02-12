@@ -1,5 +1,6 @@
 package com.sixclassguys.maplecalendar
 
+import android.app.Activity
 import android.content.Context
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
@@ -16,7 +17,9 @@ class AndroidAuthManager(
 
     private val credentialManager = CredentialManager.create(context)
 
-    override suspend fun signInWithGoogle(): String? {
+    override suspend fun signInWithGoogle(context: Any): String? {
+        val activity = context as? Activity
+
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId("292941521076-fnd88tholisqj3rjvrc7b5f7i644sqns.apps.googleusercontent.com") // GCP에서 발급받은 WEB Client ID
@@ -27,7 +30,7 @@ class AndroidAuthManager(
             .build()
 
         return try {
-            val result = credentialManager.getCredential(context, request)
+            val result = credentialManager.getCredential(activity!!, request)
             val credential = result.credential
 
             if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {

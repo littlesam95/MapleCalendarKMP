@@ -127,6 +127,22 @@ class CalendarReducer {
                 }
             }
 
+            is CalendarIntent.FetchBossPartySchedulesSuccess -> {
+                currentState.copy(
+                    isLoading = false,
+                    isRefreshing = false,
+                    bossSchedulesMapByDay = currentState.bossSchedulesMapByDay + (intent.key to intent.schedules)
+                )
+            }
+
+            is CalendarIntent.FetchBossPartySchedulesFailed -> {
+                currentState.copy(
+                    isLoading = false,
+                    isRefreshing = false,
+                    errorMessage = intent.message
+                )
+            }
+
             is CalendarIntent.SaveEventsByMonth -> {
                 when (val result = intent.apiState) {
                     is ApiState.Success -> currentState.copy(

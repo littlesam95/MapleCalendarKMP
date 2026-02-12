@@ -6,14 +6,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface EventRepository {
 
-    suspend fun getEventDetail(apiKey: String, eventId: Long): Flow<ApiState<MapleEvent?>>
+    suspend fun getEventDetail(eventId: Long): Flow<ApiState<MapleEvent?>>
 
-    suspend fun getTodayEvents(
-        year: Int,
-        month: Int,
-        day: Int,
-        apiKey: String
-    ): Flow<ApiState<List<MapleEvent>>>
+    suspend fun getTodayEvents(year: Int, month: Int, day: Int): Flow<ApiState<List<MapleEvent>>>
 
     suspend fun getEvents(year: Int, month: Int): List<MapleEvent>
 }

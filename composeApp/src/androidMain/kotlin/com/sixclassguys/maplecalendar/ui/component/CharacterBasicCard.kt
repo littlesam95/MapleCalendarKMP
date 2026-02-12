@@ -44,7 +44,8 @@ fun CharacterBasicCard(
     dojangRanking: CharacterDojangRanking,
     overallRanking: CharacterRanking,
     serverRanking: CharacterRanking,
-    union: CharacterUnion
+    union: CharacterUnion,
+    modifier: Modifier
 ) {
     val worldMark = MapleWorld.getWorld(basic.worldName)?.iconRes ?: R.drawable.ic_world_scania
 

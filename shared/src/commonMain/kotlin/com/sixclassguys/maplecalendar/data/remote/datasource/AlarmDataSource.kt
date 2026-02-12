@@ -5,7 +5,7 @@ import com.sixclassguys.maplecalendar.data.remote.dto.EventResponse
 
 interface AlarmDataSource {
 
-    suspend fun submitEventAlarm(apiKey: String, request: AlarmRequest): EventResponse
+    suspend fun submitEventAlarm(accessToken: String, request: AlarmRequest): EventResponse
 
-    suspend fun toggleEventAlarm(apiKey: String, eventId: Long): EventResponse
+    suspend fun toggleEventAlarm(accessToken: String, eventId: Long): EventResponse
 }

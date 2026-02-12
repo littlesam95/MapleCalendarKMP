@@ -4,12 +4,15 @@ import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
@@ -20,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,6 +32,7 @@ import com.sixclassguys.maplecalendar.theme.MapleBlack
 import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleWhite
 import com.sixclassguys.maplecalendar.theme.Typography
+import com.sixclassguys.maplecalendar.ui.component.BossScheduleRow
 import com.sixclassguys.maplecalendar.ui.component.CarouselEventRow
 import com.sixclassguys.maplecalendar.ui.component.CharacterBasicCard
 import com.sixclassguys.maplecalendar.ui.component.EmptyCharacterBasicCard
@@ -43,19 +46,11 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     snackbarHostState: SnackbarHostState,
     onNavigateToLogin: () -> Unit,
-    onNavigateToCharacterList: () -> Unit
+    onNavigateToCharacterList: () -> Unit,
+    onNavigateToBossDetail: (Long) -> Unit
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val uriHandler = LocalUriHandler.current
-
-    LaunchedEffect(uiState.member) {
-        val member = uiState.member
-        if (member != null) {
-            Toast.makeText(context, "로그인에 성공했습니다!", Toast.LENGTH_SHORT).show()
-            // viewModel.onIntent(HomeIntent.LoadApiKey)
-        }
-    }
 
     LaunchedEffect(uiState.isNavigateToLogin) {
         if (uiState.isNavigateToLogin) {
@@ -78,7 +73,6 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize()
                 .background(MapleWhite)
-                .padding(horizontal = 20.dp)
         ) {
             // 1. 상단 앱바를 리스트의 첫 번째 아이템으로 삽입
             item {
@@ -102,7 +96,8 @@ fun HomeScreen(
                 when {
                     !uiState.isLoginSuccess -> {
                         EmptyCharacterBasicCard(
-                            onClick = { viewModel.onIntent(HomeIntent.Login) }
+                            onClick = { viewModel.onIntent(HomeIntent.Login) },
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
 
@@ -112,14 +107,16 @@ fun HomeScreen(
                             dojangRanking = dojangRanking,
                             overallRanking = overallRanking,
                             serverRanking = serverRanking,
-                            union = union
+                            union = union,
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
 
                     (basic == null) -> {
                         NoRepresentativeCharacterCard(
                             nickname = member?.nickname ?: "메이플스토리 용사",
-                            onClick = onNavigateToCharacterList
+                            onClick = onNavigateToCharacterList,
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
 
@@ -135,7 +132,8 @@ fun HomeScreen(
 
                     else -> {
                         EmptyCharacterBasicCard(
-                            onClick = { viewModel.onIntent(HomeIntent.Login) }
+                            onClick = { viewModel.onIntent(HomeIntent.Login) },
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
                 }
@@ -148,7 +146,8 @@ fun HomeScreen(
                     text = "오늘 진행하는 이벤트",
                     style = Typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MapleBlack
+                    color = MapleBlack,
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -169,7 +168,8 @@ fun HomeScreen(
                     text = "오늘의 보스 파티 일정",
                     style = Typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MapleBlack
+                    color = MapleBlack,
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -178,14 +178,24 @@ fun HomeScreen(
                     EmptyEventScreen("오늘은 보스 쉬는 날~")
                 } else {
                     // 보스 일정 리스트 (가로 스크롤 혹은 세로 배치)
-                    // BossScheduleRow(uiState.bossSchedules)
+                    LazyRow(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        items(uiState.bossSchedules) { schedule ->
+                            BossScheduleRow(
+                                schedule = schedule,
+                                onNavigateToBossDetail = onNavigateToBossDetail
+                            )
+                        }
+                    }
                 }
             }
 
             // 하단 여백
             item {
                 // 바텀바 높이(56dp) + 여유공간을 고려한 Spacer
-                Spacer(modifier = Modifier.height(120.dp))
+                Spacer(modifier = Modifier.height(144.dp))
             }
         }
     }

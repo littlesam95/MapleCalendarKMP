@@ -9,7 +9,7 @@ class GetEventDetailUseCase(
     private val repository: EventRepository
 ) {
 
-    suspend operator fun invoke(apiKey: String, eventId: Long): Flow<ApiState<MapleEvent?>> {
-        return repository.getEventDetail(apiKey, eventId)
+    suspend operator fun invoke(eventId: Long): Flow<ApiState<MapleEvent?>> {
+        return repository.getEventDetail(eventId)
     }
 }

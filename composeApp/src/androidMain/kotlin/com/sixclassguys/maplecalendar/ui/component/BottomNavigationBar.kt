@@ -1,6 +1,9 @@
 package com.sixclassguys.maplecalendar.ui.component
 
 import android.widget.Toast
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,10 +27,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -47,7 +55,7 @@ import com.sixclassguys.maplecalendar.theme.MapleWhite
 fun BottomNavigationBar(
     modifier: Modifier = Modifier,
     navController: NavController,
-    onCalendarClicked: () -> Unit
+    isLoginSuccess: Boolean
 ) {
     val context = LocalContext.current
     val navItems = listOf(
@@ -57,6 +65,14 @@ fun BottomNavigationBar(
     val currentRoute = navBackStackEntry.value?.destination?.route
 
     val systemBottomPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
+    // 1. 상태 추가: 메뉴가 열려있는지 여부
+    var isExpanded by remember { mutableStateOf(false) }
+
+    val animProgress by animateFloatAsState(
+        targetValue = if (isExpanded) 1f else 0f,
+        animationSpec = spring(stiffness = Spring.StiffnessLow)
+    )
 
     Box(
         modifier = modifier.fillMaxWidth()
@@ -145,9 +161,57 @@ fun BottomNavigationBar(
             }
         }
 
-        // 3. 중앙 FAB (흰색 테두리가 있는 단풍잎)
+        if (animProgress > 0f) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = (-10).dp) // FAB 중심점 맞춤
+            ) {
+                // (아이콘, 라벨, 경로, 각도)
+                val menuItems = listOf(
+                    Triple(R.drawable.ic_calendar, "calendar_flow", 150f), // 왼쪽 위
+                    Triple(R.drawable.ic_character, "character_flow", 90f),  // 정중앙 위
+                    Triple(R.drawable.ic_boss, "boss_flow", 30f)      // 오른쪽 위
+                )
+
+                menuItems.forEach { (icon, destination, angle) ->
+                    val radius = 80.dp // 퍼지는 반지름 거리
+
+                    // 각도를 라디안으로 변환하여 좌표 계산
+                    val angleRad = Math.toRadians(angle.toDouble())
+                    val xOffset = (radius.value * kotlin.math.cos(angleRad)).dp * animProgress
+                    val yOffset = -(radius.value * kotlin.math.sin(angleRad)).dp * animProgress
+
+                    SmallFloatingActionButton(
+                        onClick = {
+                            isExpanded = false
+                            navController.navigate(destination)
+                        },
+                        modifier = Modifier.offset(x = xOffset, y = yOffset)
+                            .size(48.dp)
+                            .alpha(animProgress), // 나타날 때 서서히 밝아짐
+                        containerColor = MapleOrange, // 와이어프레임의 주황색 버튼
+                        contentColor = MapleWhite,
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            painter = painterResource(icon),
+                            contentDescription = destination,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+        }
+
         FloatingActionButton(
-            onClick = { onCalendarClicked() },
+            onClick = {
+                if (isLoginSuccess) {
+                    isExpanded = !isExpanded
+                } else {
+                    navController.navigate("login_flow")
+                }
+            }, // 클릭 시 메뉴 토글
             containerColor = MapleOrange,
             contentColor = MapleWhite,
             shape = CircleShape,
@@ -160,7 +224,7 @@ fun BottomNavigationBar(
             Icon(
                 modifier = Modifier.size(60.dp),
                 painter = painterResource(R.drawable.bottomnav_calendar),
-                contentDescription = "달력",
+                contentDescription = "중앙 FAB",
                 tint = Color.Unspecified
             )
         }

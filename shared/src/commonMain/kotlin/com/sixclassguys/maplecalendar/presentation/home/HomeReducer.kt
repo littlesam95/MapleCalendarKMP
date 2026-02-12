@@ -16,7 +16,8 @@ class HomeReducer {
                 isLoading = false,
                 isAutoLoginFinished = true,
                 isLoginSuccess = true,
-                member = intent.member
+                member = intent.member,
+                isGlobalAlarmEnabled = intent.member.isGlobalAlarmEnabled
             )
         }
 
@@ -118,6 +119,26 @@ class HomeReducer {
         }
 
         is HomeIntent.LoadEventsFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
+        is HomeIntent.FetchBossPartySchedules -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is HomeIntent.FetchBossPartySchedulesSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                bossSchedules = intent.schedules
+            )
+        }
+
+        is HomeIntent.FetchBossPartySchedulesFailed -> {
             currentState.copy(
                 isLoading = false,
                 errorMessage = intent.message

@@ -8,6 +8,7 @@ import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.model.Member
 import com.sixclassguys.maplecalendar.domain.usecase.AutoLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetApiKeyUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetDailyBossPartySchedulesUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetFcmTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetTodayEventsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ReissueJwtTokenUseCase
@@ -32,7 +33,8 @@ class HomeViewModel(
     private val autoLoginUseCase: AutoLoginUseCase,
     private val reissueJwtTokenUseCase: ReissueJwtTokenUseCase,
     private val toggleGlobalAlarmStatusUseCase: ToggleGlobalAlarmStatusUseCase,
-    private val getTodayEventsUseCase: GetTodayEventsUseCase
+    private val getTodayEventsUseCase: GetTodayEventsUseCase,
+    private val getDailyBossPartySchedulesUseCase: GetDailyBossPartySchedulesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState())
@@ -160,16 +162,9 @@ class HomeViewModel(
         }
     }
 
-    private fun toggleGlobalAlarmStatus(apiKey: String) {
-        Napier.d("toggleGlobalAlarmStatus 호출됨! apiKey 존재여부: ${apiKey.isNotEmpty()}")
-
-        if (apiKey.isEmpty()) {
-            Napier.e("에러: API Key가 없어서 서버 통신을 시작할 수 없습니다.")
-            return
-        }
-
+    private fun toggleGlobalAlarmStatus() {
         viewModelScope.launch {
-            toggleGlobalAlarmStatusUseCase(apiKey).collect { state ->
+            toggleGlobalAlarmStatusUseCase().collect { state ->
                 Napier.d("통신 상태 변경 감지: $state") // 💡 2. 상태 변화 관찰
                 when (state) {
                     is ApiState.Success -> {
@@ -197,8 +192,7 @@ class HomeViewModel(
             getTodayEventsUseCase(
                 today.year,
                 today.monthNumber,
-                today.dayOfMonth,
-                _uiState.value.nexonApiKey ?: ""
+                today.dayOfMonth
             ).collect { state ->
                 when (state) {
                     is ApiState.Success -> {
@@ -209,6 +203,32 @@ class HomeViewModel(
                     is ApiState.Error -> {
                         Napier.e("이벤트 조회 실패")
                         onIntent(HomeIntent.LoadEventsFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun getTodayBossSchedules() {
+        viewModelScope.launch {
+            val now = Clock.System.now()
+            val seoulZone = TimeZone.of("Asia/Seoul")
+            val currentLocalDateTime = now.toLocalDateTime(seoulZone)
+            val today: LocalDate = currentLocalDateTime.date
+            getDailyBossPartySchedulesUseCase(
+                today.year,
+                today.monthNumber,
+                today.dayOfMonth
+            ).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(HomeIntent.FetchBossPartySchedulesSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(HomeIntent.FetchBossPartySchedulesFailed(state.message))
                     }
 
                     else -> {}
@@ -233,6 +253,7 @@ class HomeViewModel(
 
             is HomeIntent.AutoLoginSuccess -> {
                 getTodayEvents()
+                getTodayBossSchedules()
             }
 
             is HomeIntent.AutoLoginFailed -> {
@@ -240,7 +261,6 @@ class HomeViewModel(
             }
 
             is HomeIntent.EmptyAccessToken -> {
-                Napier.d("Access Token이 비었습니다잉.")
                 getTodayEvents()
             }
 
@@ -274,7 +294,7 @@ class HomeViewModel(
             }
 
             is HomeIntent.ToggleGlobalAlarmStatus -> {
-                toggleGlobalAlarmStatus(_uiState.value.nexonApiKey ?: "")
+                toggleGlobalAlarmStatus()
             }
 
             else -> {}

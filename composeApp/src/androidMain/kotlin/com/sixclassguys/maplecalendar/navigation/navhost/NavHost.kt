@@ -1,17 +1,23 @@
 package com.sixclassguys.maplecalendar.navigation.navhost
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.sixclassguys.maplecalendar.navigation.Navigation
+import com.sixclassguys.maplecalendar.presentation.boss.BossIntent
+import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
 import com.sixclassguys.maplecalendar.presentation.character.MapleCharacterViewModel
@@ -19,6 +25,9 @@ import com.sixclassguys.maplecalendar.presentation.home.HomeViewModel
 import com.sixclassguys.maplecalendar.presentation.login.LoginIntent
 import com.sixclassguys.maplecalendar.presentation.login.LoginViewModel
 import com.sixclassguys.maplecalendar.ui.board.BoardScreen
+import com.sixclassguys.maplecalendar.ui.boss.BossPartyCreateScreen
+import com.sixclassguys.maplecalendar.ui.boss.BossPartyDetailScreen
+import com.sixclassguys.maplecalendar.ui.boss.BossPartyListScreen
 import com.sixclassguys.maplecalendar.ui.calendar.MapleCalendarScreen
 import com.sixclassguys.maplecalendar.ui.calendar.MapleEventDetailScreen
 import com.sixclassguys.maplecalendar.ui.character.MapleCharacterFetchScreen
@@ -44,8 +53,11 @@ fun NavHost(
     snackbarHostState: SnackbarHostState,
     homeViewModel: HomeViewModel,
     calendarViewModel: CalendarViewModel,
-    mapleCharacterViewModel: MapleCharacterViewModel
+    mapleCharacterViewModel: MapleCharacterViewModel,
+    bossViewModel: BossViewModel
 ) {
+    val context = LocalContext.current
+
     NavHost(
         modifier = modifier,
         navController = navController,
@@ -76,6 +88,11 @@ fun NavHost(
                     },
                     onNavigateToCharacterList = {
                         navController.navigate("character_flow")
+                    },
+                    onNavigateToBossDetail = { bossPartyId ->
+                        // BossViewModel에 해당 파티 정보를 불러오라고 시킨 뒤 이동
+                        bossViewModel.onIntent(BossIntent.FetchBossPartyDetail(bossPartyId))
+                        navController.navigate(Navigation.BossPartyDetail.destination)
                     }
                 )
             }
@@ -94,6 +111,11 @@ fun NavHost(
                     viewModel = calendarViewModel,
                     onNavigateToEventDetail = {
                         navController.navigate(Navigation.EventDetail.destination)
+                    },
+                    onNavigateToBossDetail = { bossPartyId ->
+                        // BossViewModel에 해당 파티 정보를 불러오라고 시킨 뒤 이동
+                        bossViewModel.onIntent(BossIntent.FetchBossPartyDetail(bossPartyId))
+                        navController.navigate(Navigation.BossPartyDetail.destination)
                     }
                 )
             }
@@ -145,6 +167,47 @@ fun NavHost(
             }
         }
 
+        navigation(
+            startDestination = Navigation.BossPartyList.destination,
+            route = "boss_flow"
+        ) {
+            composable(Navigation.BossPartyList.destination) {
+                BossPartyListScreen(
+                    viewModel = bossViewModel,
+                    onBack = { navController.popBackStack() },
+                    onPartyClick = { bossPartyId ->
+                        bossViewModel.onIntent(BossIntent.FetchBossPartyDetail(bossPartyId))
+                        navController.navigate(Navigation.BossPartyDetail.destination)
+                    },
+                    onAddParty = {
+                        navController.navigate(Navigation.BossPartyCreate.destination)
+                    }
+                )
+            }
+            composable(Navigation.BossPartyCreate.destination) {
+                BossPartyCreateScreen(
+                    viewModel = bossViewModel,
+                    onBack = { navController.popBackStack() },
+                    onNavigateToDetail = { bossPartyId ->
+                        bossViewModel.onIntent(BossIntent.FetchBossPartyDetail(bossPartyId))
+                        navController.navigate(Navigation.BossPartyDetail.destination) {
+                            popUpTo(Navigation.BossPartyCreate.destination) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable(Navigation.BossPartyDetail.destination) {
+                BossPartyDetailScreen(
+                    viewModel = bossViewModel,
+                    onBack = {
+                        bossViewModel.onIntent(BossIntent.DisconnectBossPartyChat)
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+
         composable(Navigation.Board.destination) {
             BoardScreen()
         }
@@ -174,7 +237,13 @@ fun NavHost(
                     viewModel = loginViewModel,
                     onBackClick = { navController.popBackStack() },
                     onGoogleLoginClick = {
-                        loginViewModel.onIntent(LoginIntent.ClickGoogleLogin)
+                        val activity = context.findActivity()
+                        if (activity != null) {
+                            loginViewModel.onIntent(LoginIntent.ClickGoogleLogin(activity))
+                        } else {
+                            // Activity를 찾지 못했을 때의 예외 처리 (로그 확인용)
+                            println("Debug: Activity not found from context $context")
+                        }
                     },
                     onNavigateToRegistration = {
                         // navController.navigate(Navigation.CharacterRegistration.destination)
@@ -217,4 +286,13 @@ fun NavHost(
             }
         }
     }
+}
+
+private fun Context.findActivity(): Activity? {
+    var currentContext = this
+    while (currentContext is ContextWrapper) {
+        if (currentContext is Activity) return currentContext
+        currentContext = currentContext.baseContext
+    }
+    return null
 }

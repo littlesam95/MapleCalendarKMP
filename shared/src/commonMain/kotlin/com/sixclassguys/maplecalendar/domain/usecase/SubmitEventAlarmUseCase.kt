@@ -10,11 +10,10 @@ class SubmitEventAlarmUseCase(
 ) {
 
     suspend operator fun invoke(
-        apiKey: String,
         eventId: Long,
         isEnabled: Boolean,
         alarmTimes: List<String>
     ): Flow<ApiState<MapleEvent>> {
-        return repository.submitEventAlarm(apiKey, eventId, isEnabled, alarmTimes)
+        return repository.submitEventAlarm(eventId, isEnabled, alarmTimes)
     }
 }

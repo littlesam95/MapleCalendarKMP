@@ -14,12 +14,10 @@ class EventDataSourceImpl(
     private val httpClient: HttpClient
 ) : EventDataSource {
 
-    override suspend fun fetchEventDetail(apiKey: String, eventId: Long): EventResponse?  {
+    override suspend fun fetchEventDetail(accessToken: String, eventId: Long): EventResponse?  {
         val response = try {
             httpClient.get("events/$eventId") {
-                header("x-nxopen-api-key", apiKey)
-
-                contentType(ContentType.Application.Json)
+                header("Authorization", "Bearer $accessToken")
             }
         } catch (e: Exception) {
             // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
@@ -51,16 +49,14 @@ class EventDataSourceImpl(
         year: Int,
         month: Int,
         day: Int,
-        apiKey: String
+        accessToken: String
     ): List<EventResponse> {
         val response = try {
             httpClient.get("events/today") {
-                header("x-nxopen-api-key", apiKey)
+                header("Authorization", "Bearer $accessToken")
                 parameter("year", year)
                 parameter("month", month)
                 parameter("day", day)
-
-                contentType(ContentType.Application.Json)
             }
         } catch (e: Exception) {
             // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
@@ -88,13 +84,11 @@ class EventDataSourceImpl(
         }
     }
 
-    override suspend fun fetchMonthlyEvents(year: Int, month: Int): List<EventResponse> {
+    override suspend fun fetchMonthlyEvents(year: Int, month: Int, accessToken: String): List<EventResponse> {
         val response = try {
             httpClient.get("events") {
                 parameter("year", year)
                 parameter("month", month)
-
-                contentType(ContentType.Application.Json)
             }
         } catch (e: Exception) {
             throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")

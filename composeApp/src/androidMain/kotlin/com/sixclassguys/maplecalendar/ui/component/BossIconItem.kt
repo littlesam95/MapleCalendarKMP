@@ -48,7 +48,7 @@ fun BossIconItem(
         Box(
             modifier = Modifier.size(60.dp)
                 .clip(RoundedCornerShape(12.dp)) // 둥근 사각형
-                .background(if (isSelected) Color(0xFFFFF3E0) else Color(0xFFF5F5F5)) // 배경색 차이
+                .background(if (isSelected) MapleOrange else Color.Transparent) // 배경색 차이
                 .border(
                     width = 3.dp,
                     color = if (isSelected) MapleOrange else Color.Transparent, // 선택 시 강조색 테두리
@@ -60,6 +60,7 @@ fun BossIconItem(
                 painter = painterResource(id = boss.iconRes),
                 contentDescription = boss.bossName,
                 modifier = Modifier.size(50.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .alpha(if (isSelected) 1f else 0.6f), // 미선택 시 약간 흐리게
                 contentScale = ContentScale.Fit
             )

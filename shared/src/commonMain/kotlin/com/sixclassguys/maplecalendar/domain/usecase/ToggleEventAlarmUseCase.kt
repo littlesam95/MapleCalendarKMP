@@ -9,7 +9,7 @@ class ToggleEventAlarmUseCase(
     private val repository: AlarmRepository
 ) {
 
-    suspend operator fun invoke(apiKey: String, eventId: Long): Flow<ApiState<MapleEvent>> {
-        return repository.toggleEventAlarm(apiKey, eventId)
+    suspend operator fun invoke(eventId: Long): Flow<ApiState<MapleEvent>> {
+        return repository.toggleEventAlarm(eventId)
     }
 }

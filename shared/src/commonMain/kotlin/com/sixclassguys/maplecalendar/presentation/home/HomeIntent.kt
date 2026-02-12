@@ -1,5 +1,6 @@
 package com.sixclassguys.maplecalendar.presentation.home
 
+import com.sixclassguys.maplecalendar.domain.model.BossPartySchedule
 import com.sixclassguys.maplecalendar.domain.model.CharacterBasic
 import com.sixclassguys.maplecalendar.domain.model.CharacterDojangRanking
 import com.sixclassguys.maplecalendar.domain.model.CharacterRanking
@@ -45,6 +46,12 @@ sealed class HomeIntent {
     data class LoadEventsSuccess(val events: List<MapleEvent>) : HomeIntent()
 
     data class LoadEventsFailed(val message: String) : HomeIntent()
+
+    data object FetchBossPartySchedules : HomeIntent()
+
+    data class FetchBossPartySchedulesSuccess(val schedules: List<BossPartySchedule>) : HomeIntent()
+
+    data class FetchBossPartySchedulesFailed(val message: String) : HomeIntent()
 
     data object SyncNotificationWithSystem : HomeIntent()
 

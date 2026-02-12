@@ -1,5 +1,8 @@
 package com.sixclassguys.maplecalendar.ui.login
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

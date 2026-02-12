@@ -20,4 +20,6 @@ interface MapleCharacterDataSource {
     suspend fun setRepresentative(accessToken: String, ocid: String)
 
     suspend fun deleteCharacter(accessToken: String, ocid: String)
+
+    suspend fun searchCharacters(accessToken: String, name: String): MapleCharacterListResponse
 }
