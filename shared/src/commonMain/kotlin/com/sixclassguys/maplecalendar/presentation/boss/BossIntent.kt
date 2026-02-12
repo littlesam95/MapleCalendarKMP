@@ -2,6 +2,8 @@ package com.sixclassguys.maplecalendar.presentation.boss
 
 import com.sixclassguys.maplecalendar.domain.model.BossParty
 import com.sixclassguys.maplecalendar.domain.model.BossPartyAlarmTime
+import com.sixclassguys.maplecalendar.domain.model.BossPartyBoard
+import com.sixclassguys.maplecalendar.domain.model.BossPartyBoardHistory
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChat
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChatHistory
 import com.sixclassguys.maplecalendar.domain.model.BossPartyDetail
@@ -20,6 +22,22 @@ sealed class BossIntent {
     data class FetchBossPartiesSuccess(val bossParties: List<BossParty>) : BossIntent()
 
     data class FetchBossPartiesFailed(val message: String) : BossIntent()
+
+    data object ShowBossPartyInvitationDialog : BossIntent()
+
+    data object DismissBossPartyInvitationDialog : BossIntent()
+
+    data class AcceptBossPartyInvitation(val bossPartyId: Long) : BossIntent()
+
+    data class AcceptBossPartyInvitationSuccess(val bossPartyId: Long) : BossIntent()
+
+    data class AcceptBossPartyInvitationFailed(val message: String) : BossIntent()
+
+    data class DeclineBossPartyInvitation(val bossPartyId: Long) : BossIntent()
+
+    data object DeclineBossPartyInvitationSuccess : BossIntent()
+
+    data class DeclineBossPartyInvitationFailed(val message: String) : BossIntent()
 
     data class FetchCharacters(val allWorldNames: List<String>) : BossIntent()
 
@@ -99,6 +117,40 @@ sealed class BossIntent {
 
     data class ToggleBossPartyAlarmFailed(val message: String) : BossIntent()
 
+    data object ShowCharacterInviteDialog : BossIntent()
+
+    data object DismissCharacterInviteDialog : BossIntent()
+
+    data class SearchCharacters(val name: String, val allWorldNames: List<String>) : BossIntent()
+
+    data class SearchCharactersSuccess(val characters: Map<String, Map<String, List<CharacterSummary>>>) : BossIntent()
+
+    data class SearchCharactersFailed(val message: String) : BossIntent()
+
+    data class InviteBossPartyMember(val characterId: Long) : BossIntent()
+
+    data object InviteBossPartyMemberSuccess : BossIntent()
+
+    data class InviteBossPartyMemberFailed(val message: String) : BossIntent()
+
+    data class KickBossPartyMember(val characterId: Long) : BossIntent()
+
+    data object KickBossPartyMemberSuccess : BossIntent()
+
+    data class KickBossPartyMemberFailed(val message: String) : BossIntent()
+
+    data object LeaveBossParty : BossIntent()
+
+    data class LeaveBossPartySuccess(val newBossParties: List<BossParty>) : BossIntent()
+
+    data class LeaveBossPartyFailed(val message: String) : BossIntent()
+
+    data class TransferBossPartyLeader(val characterId: Long) : BossIntent()
+
+    data object TransferBossPartyLeaderSuccess : BossIntent()
+
+    data class TransferBossPartyLeaderFailed(val message: String) : BossIntent()
+
     data object ConnectBossPartyChat : BossIntent()
 
     data object ToggleBossPartyChatAlarm : BossIntent()
@@ -153,6 +205,52 @@ sealed class BossIntent {
     data class DeleteBossPartyChatMessageFailed(val message: String) : BossIntent()
 
     data object DisconnectBossPartyChat : BossIntent()
+
+    data object ShowBossPartyBoardDialog : BossIntent()
+
+    data object DismissBossPartyBoardDialog : BossIntent()
+
+    data object FetchBossPartyBoardHistory : BossIntent()
+
+    data class FetchBossPartyBoardHistorySuccess(val bossPartyBoardHistory: BossPartyBoardHistory) :
+        BossIntent()
+
+    data class FetchBossPartyBoardHistoryFailed(val message: String) : BossIntent()
+
+    data class UpdateBossPartyBoardImage(val image: ByteArray?) : BossIntent() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+
+            other as UpdateBossPartyBoardImage
+
+            return image.contentEquals(other.image)
+        }
+
+        override fun hashCode(): Int {
+            return image?.contentHashCode() ?: 0
+        }
+    }
+
+    data class UpdateBossPartyBoardComment(val comment: String) : BossIntent()
+
+    data object SubmitBossPartyBoard : BossIntent()
+
+    data class SubmitBossPartyBoardSuccess(val bossPartyBoard: BossPartyBoard) : BossIntent()
+
+    data class SubmitBossPartyBoardFailed(val message: String) : BossIntent()
+
+    data class LikeBossPartyBoardPost(val postId: Long) : BossIntent()
+
+    data class LikeBossPartyBoardPostSuccess(val bossPartyBoard: BossPartyBoard) : BossIntent()
+
+    data class LikeBossPartyBoardPostFailed(val message: String) : BossIntent()
+
+    data class DislikeBossPartyBoardPost(val postId: Long) : BossIntent()
+
+    data class DislikeBossPartyBoardPostSuccess(val bossPartyBoard: BossPartyBoard) : BossIntent()
+
+    data class DislikeBossPartyBoardFailed(val message: String) : BossIntent()
 
     data class SelectBossPartyDetailMenu(val selectedBossPartyDetailMenu: BossPartyTab) :
         BossIntent()

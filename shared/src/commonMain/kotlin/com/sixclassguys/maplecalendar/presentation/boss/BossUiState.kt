@@ -2,7 +2,7 @@ package com.sixclassguys.maplecalendar.presentation.boss
 
 import com.sixclassguys.maplecalendar.domain.model.BossParty
 import com.sixclassguys.maplecalendar.domain.model.BossPartyAlarmTime
-import com.sixclassguys.maplecalendar.domain.model.BossPartyAlbum
+import com.sixclassguys.maplecalendar.domain.model.BossPartyBoard
 import com.sixclassguys.maplecalendar.domain.model.BossPartyChat
 import com.sixclassguys.maplecalendar.domain.model.BossPartyDetail
 import com.sixclassguys.maplecalendar.domain.model.CharacterSummary
@@ -16,6 +16,8 @@ import kotlinx.datetime.LocalDate
 data class BossUiState(
     val isLoading: Boolean = false,
     val bossParties: List<BossParty> = emptyList(),
+    val bossPartiesInvited: List<BossParty> = emptyList(),
+    val showBossInvitationDialog: Boolean = false,
     val characters: List<Pair<String, CharacterSummary>> = emptyList(),
     val selectedRegion: String = "그란디스",
     val selectedBoss: Boss = Boss.SEREN,
@@ -37,6 +39,9 @@ data class BossUiState(
     val selectedMinute: String = "",
     val alarmMessage: String = "",
     val isBossPartyChatAlarmOn: Boolean = false,
+    val showCharacterInvitationDialog: Boolean = false,
+    val searchKeyword: String = "",
+    val searchCharacters: List<Pair<String, CharacterSummary>> = emptyList(),
     val bossPartyChats: List<BossPartyChat> = emptyList(),
     val bossPartyChatUiItems: List<BossPartyChatUiItem> = emptyList(),
     val bossPartyChatPage: Int = 0,
@@ -44,6 +49,12 @@ data class BossUiState(
     val bossPartyChatMessage: String = "",
     val showBossPartyChatReport: Boolean = false,
     val selectBossPartyChatToReport: BossPartyChat? = null,
-    val bossPartyAlbums: List<BossPartyAlbum> = emptyList(),
+    val showBossPartyBoardDialog: Boolean = false,
+    val bossPartyBoards: List<BossPartyBoard> = emptyList(),
+    val bossPartyBoardPage: Int = 0,
+    val isBossPartyBoardLastPage: Boolean = false,
+    val uploadImage: List<ByteArray> = emptyList(),
+    val uploadComment: String = "",
+    val uploadSuccessEvent: Long = 0L,
     val errorMessage: String? = null
 )
