@@ -43,6 +43,7 @@ import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyDetailUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetCharacterBasicUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetCharactersUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetDailyBossPartySchedulesUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetDailyEventsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetEventDetailUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetFcmTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetGlobalAlarmStatusUseCase
@@ -128,6 +129,7 @@ val useCaseModule = module {
     single<GetFcmTokenUseCase> { GetFcmTokenUseCase(get()) }
     single<GetGlobalAlarmStatusUseCase> { GetGlobalAlarmStatusUseCase(get()) }
     single<RegisterTokenUseCase> { RegisterTokenUseCase(get()) }
+    single<GetDailyEventsUseCase> { GetDailyEventsUseCase(get()) }
     single<GetEventDetailUseCase> { GetEventDetailUseCase(get()) }
     single<GetTodayEventsUseCase> { GetTodayEventsUseCase(get()) }
     single<GetDailyBossPartySchedulesUseCase> { GetDailyBossPartySchedulesUseCase(get()) }
@@ -177,7 +179,6 @@ val viewModelModule = module {
     // ViewModel (화면마다 생명주기를 관리하기 위해 factory 사용)
     viewModel {
         HomeViewModel(
-            get(),
             get(),
             get(),
             get(),
