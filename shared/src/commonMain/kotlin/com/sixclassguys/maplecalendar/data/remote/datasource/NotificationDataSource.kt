@@ -7,5 +7,5 @@ interface NotificationDataSource {
 
     suspend fun registerToken(request: FcmTokenRequest): HttpResponse
 
-    suspend fun unregisterToken(apiKey: String, request: FcmTokenRequest): HttpResponse
+    suspend fun unregisterToken(accessToken: String, request: FcmTokenRequest)
 }

@@ -97,22 +97,22 @@ class FirebaseNotificationRepository(
         emit(errorState)
     }.flowOn(Dispatchers.IO)
 
-    override suspend fun unregisterToken(apiKey: String, token: String): Flow<ApiState<Unit>> = flow {
+    override suspend fun unregisterToken(token: String): Flow<ApiState<Unit>> = flow {
         emit(ApiState.Loading) // 로딩 시작 알림
 
-        val response = notificationDataSource.unregisterToken(
-            apiKey = apiKey,
-            request = FcmTokenRequest(
-                token = token,
-                platform = getPlatform().name
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = notificationDataSource.unregisterToken(
+                accessToken = accessToken,
+                request = FcmTokenRequest(
+                    token = token,
+                    platform = getPlatform().name
+                )
             )
-        )
 
-        if (response.status.isSuccess()) {
-            dataStore.deleteToken()
-            emit(ApiState.Success(Unit)) // 성공 알림
-        } else {
-            emit(ApiState.Error("알림 토큰 제거에 실패했어요.")) // 서버 측 에러
+            emit(ApiState.Success(response))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
         }
     }.catch { e ->
         val errorState = when (e) {

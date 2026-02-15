@@ -13,5 +13,5 @@ interface NotificationRepository {
 
     fun registerToken(token: String): Flow<ApiState<Unit>>
 
-    suspend fun unregisterToken(apiKey: String, token: String): Flow<ApiState<Unit>>
+    suspend fun unregisterToken(token: String): Flow<ApiState<Unit>>
 }

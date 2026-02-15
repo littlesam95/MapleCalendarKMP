@@ -8,7 +8,7 @@ class UnregisterTokenUseCase(
     private val repository: NotificationRepository
 ) {
 
-    suspend operator fun invoke(apiKey: String, token: String): Flow<ApiState<Unit>> {
-        return repository.unregisterToken(apiKey, token)
+    suspend operator fun invoke(token: String): Flow<ApiState<Unit>> {
+        return repository.unregisterToken(token)
     }
 }

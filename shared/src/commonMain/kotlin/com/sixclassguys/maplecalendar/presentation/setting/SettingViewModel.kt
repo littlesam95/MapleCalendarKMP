@@ -105,9 +105,27 @@ class SettingViewModel(
         }
     }
 
-    private fun unregisterFcmToken(apiKey: String, token: String) {
+    private fun getSavedFcmToken() {
         viewModelScope.launch {
-            unregisterTokenUseCase(apiKey, token).collect { state ->
+            getSavedFcmTokenUseCase().collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        unregisterFcmToken(state.data ?: "")
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(SettingIntent.LogoutFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun unregisterFcmToken(fcmToken: String) {
+        viewModelScope.launch {
+            unregisterTokenUseCase(fcmToken).collect { state ->
                 when (state) {
                     is ApiState.Success -> {
                         logout()
@@ -164,7 +182,7 @@ class SettingViewModel(
             }
 
             is SettingIntent.Logout -> {
-                unregisterFcmToken(_uiState.value.nexonApiKey ?: "", _uiState.value.fcmToken ?: "")
+                getSavedFcmToken()
             }
 
             else -> {}
