@@ -57,6 +57,8 @@ class AppPreferences(
         preferences.remove(OPEN_API_KEY)
         preferences.remove(KEY_CHARACTER_OCID)
         preferences.remove(KEY_IS_NOTIFICATION_MODE)
+        preferences.remove(ACCESS_TOKEN)
+        preferences.remove(REFRESH_TOKEN)
     }
 
     companion object {

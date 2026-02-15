@@ -72,6 +72,7 @@ class AuthRepositoryImpl(
             val loginResult = response.toDomain()
             dataStore.setNotificationMode(loginResult.member.isGlobalAlarmEnabled)
             dataStore.saveJwtTokens(loginResult.accessToken, loginResult.refreshToken)
+            dataStore.saveToken(fcmToken)
             emit(ApiState.Success(loginResult))
         } catch (e: Exception) {
             emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))

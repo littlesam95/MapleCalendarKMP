@@ -37,6 +37,11 @@ fun SplashScreen(
     LaunchedEffect(uiState.isAutoLoginFinished) {
         if (uiState.isAutoLoginFinished) {
             onNavigateToHome()
+        }
+    }
+
+    LaunchedEffect(uiState.isLoginSuccess) {
+        if (uiState.isLoginSuccess) {
             Toast.makeText(context, "로그인에 성공했습니다!", Toast.LENGTH_SHORT).show()
         }
     }
