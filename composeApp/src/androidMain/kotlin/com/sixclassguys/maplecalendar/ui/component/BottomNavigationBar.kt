@@ -55,7 +55,8 @@ import com.sixclassguys.maplecalendar.theme.MapleWhite
 fun BottomNavigationBar(
     modifier: Modifier = Modifier,
     navController: NavController,
-    isLoginSuccess: Boolean
+    isLoginSuccess: Boolean,
+    onFetchEvent: () -> Unit
 ) {
     val context = LocalContext.current
     val navItems = listOf(
@@ -185,6 +186,9 @@ fun BottomNavigationBar(
                     SmallFloatingActionButton(
                         onClick = {
                             isExpanded = false
+                            if (destination == "calendar_flow") {
+                                onFetchEvent()
+                            }
                             navController.navigate(destination)
                         },
                         modifier = Modifier.offset(x = xOffset, y = yOffset)

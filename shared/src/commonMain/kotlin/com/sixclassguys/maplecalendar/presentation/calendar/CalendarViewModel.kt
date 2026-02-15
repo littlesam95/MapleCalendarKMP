@@ -37,11 +37,9 @@ class CalendarViewModel(
     val uiState = _uiState.asStateFlow()
 
     init {
-        onIntent(CalendarIntent.FetchNexonOpenApiKey)
-        onIntent(CalendarIntent.FetchGlobalAlarmStatus)
+        // onIntent(CalendarIntent.FetchNexonOpenApiKey
         viewModelScope.launch {
             eventBus.events.collect { eventId ->
-                // 💡 알림이 오면 즉시 데이터 갱신
                 onIntent(CalendarIntent.SelectEvent(eventId))
             }
         }
@@ -199,7 +197,7 @@ class CalendarViewModel(
                 getGlobalAlarmStatus()
             }
 
-            is CalendarIntent.FetchNexonOpenApiKeySuccess -> {
+            is CalendarIntent.FetchGlobalAlarmStatusSuccess -> {
                 onIntent(CalendarIntent.ChangeMonth(0))
             }
 

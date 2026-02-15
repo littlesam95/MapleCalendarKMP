@@ -33,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import com.sixclassguys.maplecalendar.navigation.Navigation
 import com.sixclassguys.maplecalendar.navigation.navhost.NavHost
 import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
+import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
 import com.sixclassguys.maplecalendar.presentation.character.MapleCharacterViewModel
 import com.sixclassguys.maplecalendar.presentation.home.HomeViewModel
@@ -94,7 +95,10 @@ fun App() {
                 if (currentRoute in screenWithBottomBar) {
                     BottomNavigationBar(
                         navController = navController,
-                        isLoginSuccess = homeUiState.isLoginSuccess
+                        isLoginSuccess = homeUiState.isLoginSuccess,
+                        onFetchEvent = {
+                            calendarViewModel.onIntent(CalendarIntent.FetchGlobalAlarmStatus)
+                        }
                     )
                 }
             }
