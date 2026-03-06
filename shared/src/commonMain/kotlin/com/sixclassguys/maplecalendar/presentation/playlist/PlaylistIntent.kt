@@ -11,6 +11,8 @@ sealed class PlaylistIntent {
 
     data class PlayMapleBgm(val bgm: MapleBgm, val bgms: List<MapleBgm>) : PlaylistIntent()
 
+    data object InitSelectedPlaylist : PlaylistIntent()
+
     data class FetchMapleBgmDetailSuccess(val bgm: MapleBgm, val bgms: List<MapleBgm>) : PlaylistIntent()
 
     data class FetchMapleBgmDetailFailure(val message: String) : PlaylistIntent()
@@ -44,6 +46,12 @@ sealed class PlaylistIntent {
     data class FetchRecentMapleBgmsSuccess(val recentMapleBgmsHistory: MapleBgmHistory) : PlaylistIntent()
 
     data class FetchRecentMapleBgmsFailure(val message: String) : PlaylistIntent()
+
+    data class SearchMapleBgms(val query: String) : PlaylistIntent()
+
+    data class SearchMapleBgmsSuccess(val searchedMapleBgmsHistory: MapleBgmHistory) : PlaylistIntent()
+
+    data class SearchMapleBgmsFailure(val message: String) : PlaylistIntent()
 
     data class ToggleMapleBgmLikeStatus(val status: MapleBgmLikeStatus) : PlaylistIntent()
 

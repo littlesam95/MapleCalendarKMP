@@ -1,7 +1,6 @@
 package com.sixclassguys.maplecalendar.presentation.playlist
 
 import com.sixclassguys.maplecalendar.RepeatMode
-import io.github.aakira.napier.Napier
 
 class PlaylistReducer {
 
@@ -9,6 +8,12 @@ class PlaylistReducer {
         is PlaylistIntent.PlayMapleBgm -> {
             currentState.copy(
                 isLoading = true
+            )
+        }
+
+        is PlaylistIntent.InitSelectedPlaylist -> {
+            currentState.copy(
+                selectedPlaylist = null
             )
         }
 
@@ -145,6 +150,48 @@ class PlaylistReducer {
         }
 
         is PlaylistIntent.FetchRecentMapleBgmsFailure -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
+        is PlaylistIntent.SearchMapleBgms -> {
+            when (intent.query == currentState.searchKeyword) {
+                true -> {
+                    currentState.copy(
+                        isLoading = true,
+                        searchKeyword = intent.query,
+                    )
+                }
+
+                false -> {
+                    currentState.copy(
+                        isLoading = true,
+                        searchKeyword = intent.query,
+                        searchedMapleBgms = emptyList(),
+                        isSearchedMapleBgmsLastPage = false,
+                        searchedMapleBgmsPage = 0
+                    )
+                }
+            }
+        }
+
+        is PlaylistIntent.SearchMapleBgmsSuccess -> {
+            val history = intent.searchedMapleBgmsHistory
+
+            val combinedSearchedMapleBgms = (currentState.searchedMapleBgms + history.bgms)
+                .distinctBy { it.id }
+
+            currentState.copy(
+                isLoading = false,
+                searchedMapleBgms = combinedSearchedMapleBgms,
+                isSearchedMapleBgmsLastPage = history.isLastPage,
+                searchedMapleBgmsPage = currentState.searchedMapleBgmsPage + 1
+            )
+        }
+
+        is PlaylistIntent.SearchMapleBgmsFailure -> {
             currentState.copy(
                 isLoading = false,
                 errorMessage = intent.message

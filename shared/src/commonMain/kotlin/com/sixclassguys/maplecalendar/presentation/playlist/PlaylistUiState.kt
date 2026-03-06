@@ -16,6 +16,10 @@ data class PlaylistUiState(
     val isRecentMapleBgmsLastPage: Boolean = false,
     val recentMapleBgmsPage: Int = 0,
     val myPlaylists: List<MapleBgmPlaylist> = emptyList(),
+    val searchKeyword: String = "",
+    val searchedMapleBgms: List<MapleBgm> = emptyList(),
+    val isSearchedMapleBgmsLastPage: Boolean = false,
+    val searchedMapleBgmsPage: Int = 0,
 
     // Player 관련 상태
     val isPlaying: Boolean = false,

@@ -73,6 +73,7 @@ import com.sixclassguys.maplecalendar.domain.usecase.RegisterTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ReissueJwtTokenUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.RemoveMapleBgmFromPlaylistUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ReportBossPartyChatUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.SearchMapleBgmUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SearchCharactersUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SendBossChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.SetCharacterOcidUseCase
@@ -194,6 +195,7 @@ val useCaseModule = module {
     single<GetMapleBgmDetailUseCase> { GetMapleBgmDetailUseCase(get()) }
     single<GetTopMapleBgmsUseCase> { GetTopMapleBgmsUseCase(get()) }
     single<GetRecentMapleBgmsUseCase> { GetRecentMapleBgmsUseCase(get()) }
+    single<SearchMapleBgmUseCase> { SearchMapleBgmUseCase(get()) }
     single<ToggleMapleBgmLikeUseCase> { ToggleMapleBgmLikeUseCase(get()) }
     single<GetMapleBgmPlaylistsUseCase> { GetMapleBgmPlaylistsUseCase(get()) }
     single<GetMapleBgmPlaylistDetailUseCase> { GetMapleBgmPlaylistDetailUseCase(get()) }
@@ -271,7 +273,24 @@ val viewModelModule = module {
             get()
         )
     }
-    viewModel { PlaylistViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel {
+        PlaylistViewModel(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get()
+        )
+    }
 
     // Reducer
     single { HomeReducer() }

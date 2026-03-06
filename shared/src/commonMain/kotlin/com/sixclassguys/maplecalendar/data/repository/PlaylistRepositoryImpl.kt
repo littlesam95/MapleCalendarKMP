@@ -103,6 +103,36 @@ class PlaylistRepositoryImpl(
         emit(errorState)
     }
 
+    override suspend fun searchBgms(query: String, page: Int): Flow<ApiState<MapleBgmHistory>> = flow {
+        emit(ApiState.Loading)
+
+        try {
+            val accessToken = dataStore.accessToken.first()
+            val response = dataSource.searchBgms(
+                accessToken = accessToken,
+                query = query,
+                page = page
+            )
+
+            val bgms = response.content.map { it.toDomain() }
+
+            emit(ApiState.Success(
+                MapleBgmHistory(
+                    bgms = bgms,
+                    isLastPage = response.last
+                )
+            ))
+        } catch (e: Exception) {
+            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+        }
+    }.catch { e ->
+        val errorState = when (e) {
+            is ApiException -> ApiState.Error(e.message)
+            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        }
+        emit(errorState)
+    }
+
     override suspend fun toggleLike(
         bgmId: Long,
         status: MapleBgmLikeStatus

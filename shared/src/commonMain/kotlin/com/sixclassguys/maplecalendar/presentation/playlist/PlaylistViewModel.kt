@@ -15,10 +15,10 @@ import com.sixclassguys.maplecalendar.domain.usecase.GetMapleBgmPlaylistsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetRecentMapleBgmsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetTopMapleBgmsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.RemoveMapleBgmFromPlaylistUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.SearchMapleBgmUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.ToggleMapleBgmLikeUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.UpdateMapleBgmPlaylistUseCase
 import com.sixclassguys.maplecalendar.util.MapleBgmLikeStatus
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -29,6 +29,7 @@ class PlaylistViewModel(
     private val getMapleBgmDetailUseCase: GetMapleBgmDetailUseCase,
     private val getTopMapleBgmsUseCase: GetTopMapleBgmsUseCase,
     private val getRecentMapleBgmsUseCase: GetRecentMapleBgmsUseCase,
+    private val searchMapleBgmUseCase: SearchMapleBgmUseCase,
     private val toggleMapleBgmLikeUseCase: ToggleMapleBgmLikeUseCase,
     private val getMapleBgmPlaylistsUseCase: GetMapleBgmPlaylistsUseCase,
     private val getMapleBgmPlaylistDetailUseCase: GetMapleBgmPlaylistDetailUseCase,
@@ -188,6 +189,24 @@ class PlaylistViewModel(
         }
     }
 
+    private fun searchMapleBgms(query: String, page: Int) {
+        viewModelScope.launch {
+            searchMapleBgmUseCase(query, page).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(PlaylistIntent.SearchMapleBgmsSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(PlaylistIntent.SearchMapleBgmsFailure(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
     private fun toggleMapleBgmLikeStatus(bgmId: Long, likeStatus: MapleBgmLikeStatus) {
         viewModelScope.launch {
             toggleMapleBgmLikeUseCase(bgmId, likeStatus).collect { state ->
@@ -315,6 +334,8 @@ class PlaylistViewModel(
     }
 
     private fun updateMapleBgmToPlaylist(playlistId: Long, from: Int, to: Int) {
+        if (playlistId == 0L) return
+
         viewModelScope.launch {
             _uiState.update { currentState ->
                 val newList = currentState.currentPlaylist.toMutableList().apply {
@@ -387,6 +408,12 @@ class PlaylistViewModel(
 
             is PlaylistIntent.FetchRecentMapleBgms -> {
                 fetchRecentMapleBgms(_uiState.value.recentMapleBgmsPage)
+            }
+
+            is PlaylistIntent.SearchMapleBgms -> {
+                if (intent.query.isNotEmpty()) {
+                    searchMapleBgms(intent.query, _uiState.value.searchedMapleBgmsPage)
+                }
             }
 
             is PlaylistIntent.ToggleMapleBgmLikeStatus -> {

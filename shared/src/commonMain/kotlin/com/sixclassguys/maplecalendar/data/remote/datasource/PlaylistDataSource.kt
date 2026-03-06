@@ -26,6 +26,13 @@ interface PlaylistDataSource {
         size: Int = 20
     ): SliceResponse<MapleBgmResponse>
 
+    suspend fun searchBgms(
+        accessToken: String,
+        query: String,
+        page: Int,
+        size: Int = 20
+    ): SliceResponse<MapleBgmResponse>
+
     suspend fun toggleLike(
         accessToken: String,
         bgmId: Long,

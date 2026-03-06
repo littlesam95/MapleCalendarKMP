@@ -15,6 +15,8 @@ interface PlaylistRepository {
 
     suspend fun getRecentBgms(page: Int): Flow<ApiState<MapleBgmHistory>>
 
+    suspend fun searchBgms(query: String, page: Int): Flow<ApiState<MapleBgmHistory>>
+
     suspend fun toggleLike(bgmId: Long, status: MapleBgmLikeStatus): Flow<ApiState<MapleBgm>>
 
     suspend fun getMyPlaylists(): Flow<ApiState<List<MapleBgmPlaylist>>>
