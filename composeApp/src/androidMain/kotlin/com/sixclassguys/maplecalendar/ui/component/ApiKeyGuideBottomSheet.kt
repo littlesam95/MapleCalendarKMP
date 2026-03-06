@@ -1,6 +1,9 @@
 package com.sixclassguys.maplecalendar.ui.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalOverscrollConfiguration
+import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,9 +28,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,7 +55,10 @@ import com.sixclassguys.maplecalendar.theme.Typography
 @Composable
 fun ApiKeyGuideBottomSheet(onDismiss: () -> Unit) {
     val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
+        skipPartiallyExpanded = true,
+        confirmValueChange = { newValue ->
+            true
+        }
     )
     val pagerState = rememberPagerState(pageCount = { 4 })
 
@@ -103,6 +115,7 @@ fun ApiKeyGuideBottomSheet(onDismiss: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GuideStepPage(step: Int) {
     val title = when (step) {
@@ -125,11 +138,42 @@ fun GuideStepPage(step: Int) {
                 "Key를 복사하시고 Maplendar로 돌아오셔서\n" +
                 "API Key를 입력하시면 끝!"
     }
+    val scrollState = rememberScrollState()
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                // 위로 스크롤할 때 (available.y < 0)
+                // 내부 스크롤이 끝까지 내려가지 않았다면(스크롤 가능하면)
+                // 시트가 위로 들썩이지 않게 내부에서 이벤트를 선소비합니다.
+                if (available.y < 0 && scrollState.value < scrollState.maxValue) {
+                    return Offset.Zero
+                }
+
+                // 아래로 스크롤할 때 (이미 작성하신 로직)
+                if (available.y > 0 && scrollState.value > 0) {
+                    return Offset.Zero
+                }
+                return Offset.Zero
+            }
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                // 핵심: 위(y < 0)든 아래(y > 0)든 스크롤이 끝에 닿았을 때
+                // 남은 에너지를 부모(BottomSheet)에게 전달하지 않고 여기서 "먹어버립니다".
+                return available
+            }
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
             .padding(24.dp)
-            .verticalScroll(rememberScrollState())
+            .nestedScroll(nestedScrollConnection) // 부모와의 스크롤 고리 제어
+            .verticalScroll(scrollState)
     ) {
         Text(
             text = "STEP $step.",
