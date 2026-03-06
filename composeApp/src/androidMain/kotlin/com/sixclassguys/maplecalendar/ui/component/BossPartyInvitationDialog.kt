@@ -2,7 +2,9 @@ package com.sixclassguys.maplecalendar.ui.component
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +25,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -33,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -89,7 +93,11 @@ fun BossPartyInvitationDialog(
         }
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(onDismissRequest = {
+        if (!uiState.isLoading) {
+            onDismiss()
+        }
+    }) {
         Surface(
             modifier = Modifier.fillMaxWidth()
                 .wrapContentHeight()
@@ -115,20 +123,44 @@ fun BossPartyInvitationDialog(
                     shape = RoundedCornerShape(20.dp),
                     color = MapleWhite
                 ) {
-                    if (uiState.bossPartiesInvited.isEmpty()) {
-                        EmptyEventScreen("초대받은 보스 파티가 없어요.")
-                    } else {
-                        // 초대 목록 (최대 높이를 제한하여 리스트가 길어질 경우 스크롤 가능하게 처리)
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.heightIn(max = 500.dp)
+                    when {
+                        uiState.isLoading -> Box(
+                            modifier = Modifier.fillMaxWidth()
+                                .background(MapleBlack.copy(alpha = 0.7f)) // 화면 어둡게 처리
+                                .pointerInput(Unit) {}, // 터치 이벤트 전파 방지 (클릭 막기)
+                            contentAlignment = Alignment.Center
                         ) {
-                            items(uiState.bossPartiesInvited) { invitation ->
-                                InvitationCard(
-                                    invitation = invitation,
-                                    onAccept = { onAccept(invitation.id) },
-                                    onReject = { onReject(invitation.id) }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator(
+                                    color = MapleOrange,
+                                    strokeWidth = 4.dp
                                 )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "보스 파티에 입장하는 중이에요...",
+                                    color = MapleWhite,
+                                    style = Typography.bodyLarge
+                                )
+                            }
+                        }
+
+                        else -> {
+                            if (uiState.bossPartiesInvited.isEmpty()) {
+                                EmptyEventScreen("초대받은 보스 파티가 없어요.")
+                            } else {
+                                // 초대 목록 (최대 높이를 제한하여 리스트가 길어질 경우 스크롤 가능하게 처리)
+                                LazyColumn(
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.heightIn(max = 500.dp)
+                                ) {
+                                    items(uiState.bossPartiesInvited) { invitation ->
+                                        InvitationCard(
+                                            invitation = invitation,
+                                            onAccept = { onAccept(invitation.id) },
+                                            onReject = { onReject(invitation.id) }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

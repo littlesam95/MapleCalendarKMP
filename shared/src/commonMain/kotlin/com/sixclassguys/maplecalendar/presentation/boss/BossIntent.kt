@@ -193,6 +193,8 @@ sealed class BossIntent {
 
     data class ReportBossPartyChatMessageFailed(val message: String) : BossIntent()
 
+    data object RefreshBossPartyChat : BossIntent()
+
     data object FetchBossPartyChatHistory : BossIntent()
 
     data class FetchBossPartyChatHistorySuccess(val bossPartyChatHistory: BossPartyChatHistory) :

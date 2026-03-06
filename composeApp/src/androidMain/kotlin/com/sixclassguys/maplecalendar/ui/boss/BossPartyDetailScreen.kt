@@ -202,6 +202,7 @@ fun BossPartyDetailScreen(
                     // 앱이 포그라운드로 돌아왔을 때 실행
                     // 현재 연결 상태를 체크한 뒤 연결이 끊겨있다면 다시 연결 시도
                     viewModel.onIntent(BossIntent.ConnectBossPartyChat)
+                    viewModel.onIntent(BossIntent.RefreshBossPartyChat)
                 }
 
                 Lifecycle.Event.ON_PAUSE -> {

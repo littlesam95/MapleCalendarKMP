@@ -573,6 +573,7 @@ class BossReducer {
             currentState.copy(
                 isMemberInviteLoading = false,
                 showCharacterInvitationDialog = false,
+                searchKeyword = "",
                 createdPartyId = null
             )
         }
@@ -784,6 +785,17 @@ class BossReducer {
             currentState.copy(
                 isLoading = false,
                 errorMessage = intent.message,
+                createdPartyId = null
+            )
+        }
+
+        is BossIntent.RefreshBossPartyChat -> {
+            currentState.copy(
+                isLoading = true,
+                bossPartyChats = emptyList(),      // 기존 리스트 초기화
+                bossPartyChatUiItems = emptyList(),
+                bossPartyChatPage = 0,             // 페이지 번호 초기화
+                isBossPartyChatLastPage = false,
                 createdPartyId = null
             )
         }
