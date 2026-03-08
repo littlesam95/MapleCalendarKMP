@@ -7,10 +7,17 @@ class HomeViewModel: ObservableObject {
     @Published var uiState = HomeUiState(
         isLoading: false,
         isAutoLoginFinished: false,
+        isLoginSuccess: false,
+        member: nil,
         nexonApiKey: nil,
         characterBasic: nil,
+        characterDojangRanking: nil,
+        characterOverallRanking: nil,
+        characterServerRanking: nil,
+        characterUnion: nil,
         isGlobalAlarmEnabled: false,
         events: [],
+        bossSchedules: [],
         isNavigateToLogin: false,
         errorMessage: nil
     )
@@ -52,19 +59,24 @@ class HomeViewModel: ObservableObject {
     private func getCharacterBasic(apiKey: String) {
         Task {
             do {
-                let fcmToken = "SIMULATOR_DUMMY_TOKEN" // iOS 시뮬레이터에서는 FCM 토큰 추출 불가
+                let fcmToken = (try? await getFcmTokenUseCase.invoke())?
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                 
-                let flow = try await autoLoginUseCase.invoke(apiKey: apiKey, fcmToken: fcmToken)
+                let flow = try await autoLoginUseCase.invoke(fcmToken: fcmToken)
                 
                 try await flow.collect(collector: FlowCollectorWrapper<AnyObject> { state, completionHandler in
                     Task { @MainActor in
                         if let success = state as? ApiStateSuccess<AnyObject> {
-                            // 1. rawData를 Member 타입으로 캐스팅 (로그에서 확인된 타입)
-                            if let data = success.data as? shared.Member {
+                            if let loginResult = success.data as? LoginResult {
+                                let data = loginResult.member
                                 // 1. 서버에서 내려준 성공 여부 확인 (data.characterBasic이 null인 경우 대응)
                                 if let domainModel = data.characterBasic {
                                     self.onIntent(intent: HomeIntent.LoadCharacterBasicSuccess(
                                         characterBasic: domainModel,
+                                        characterDojangRanking: data.characterDojang,
+                                        characterOverallRanking: data.characterOverallRanking,
+                                        characterServerRanking: data.characterServerRanking,
+                                        characterUnion: data.characterUnionLevel,
                                         isGlobalAlarmEnabled: data.isGlobalAlarmEnabled
                                     ))
                                 } else {
@@ -74,12 +86,17 @@ class HomeViewModel: ObservableObject {
                                     self.onIntent(intent: HomeIntent.LoadCharacterBasicFailed(message: errorMessage))
                                 }
                             }
+                        } else if let error = state as? ApiStateError {
+                            self.onIntent(intent: HomeIntent.LoadCharacterBasicFailed(message: error.message))
+                        } else if state is ApiStateEmpty {
+                            self.onIntent(intent: HomeIntent.EmptyAccessToken())
                         }
                         completionHandler(nil)
                     }
                 })
             } catch {
                 print("❌ Critical Error: \(error)")
+                self.onIntent(intent: HomeIntent.LoadCharacterBasicFailed(message: error.localizedDescription))
             }
         }
     }
@@ -87,20 +104,30 @@ class HomeViewModel: ObservableObject {
     private func getTodayEvents() {
         Task {
             do {
-                let apiKey = uiState.nexonApiKey ?? ""
-                let flow = try await getTodayEventsUseCase.invoke(year: 2026, month: 1, day: 15, apiKey: apiKey)
+                let components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+                guard let year = components.year,
+                      let month = components.month,
+                      let day = components.day else {
+                    self.onIntent(intent: HomeIntent.LoadEventsFailed(message: "오늘 날짜 정보를 불러오지 못했습니다."))
+                    return
+                }
+
+                let flow = try await getTodayEventsUseCase.invoke(year: Int32(year), month: Int32(month), day: Int32(day))
                 
                 try await flow.collect(collector: FlowCollectorWrapper<AnyObject> { state, completionHandler in
                     Task { @MainActor in
                         if let success = state as? ApiStateSuccess<NSArray>,
                            let events = success.data as? [MapleEvent] {
                             self.onIntent(intent: HomeIntent.LoadEventsSuccess(events: events))
+                        } else if let error = state as? ApiStateError {
+                            self.onIntent(intent: HomeIntent.LoadEventsFailed(message: error.message))
                         }
                         completionHandler(nil)
                     }
                 })
             } catch {
                 print("Today Events Load Error: \(error)")
+                self.onIntent(intent: HomeIntent.LoadEventsFailed(message: error.localizedDescription))
             }
         }
     }
@@ -127,6 +154,8 @@ class HomeViewModel: ObservableObject {
             getCharacterBasic(apiKey: i.apiKey)
             
         case is HomeIntent.LoadApiKeyFailed,
+             is HomeIntent.LoadEmptyApiKey,
+             is HomeIntent.EmptyAccessToken,
              is HomeIntent.LoadCharacterBasicSuccess,
              is HomeIntent.LoadCharacterBasicFailed:
             getTodayEvents()

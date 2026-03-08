@@ -48,10 +48,21 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				presentation/login/AuthLogin.swift,
 			);
 			target = 34FB3CF8C98A6880D898D953 /* iosApp */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		4A05D9462F5B341300789D8E /* Exceptions for "iosApp" folder in "Copy Bundle Resources" phase from "iosApp" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 6E34DF21B2B1A65E25032F71 /* Resources */;
+			membershipExceptions = (
+				presentation/login/AuthLogin.swift,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		109BB97DC5A65A7C1B260E31 /* Configuration */ = {
@@ -63,6 +74,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				8973B635FFA9C785F28A092F /* Exceptions for "iosApp" folder in "iosApp" target */,
+				4A05D9462F5B341300789D8E /* Exceptions for "iosApp" folder in "Copy Bundle Resources" phase from "iosApp" target */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";

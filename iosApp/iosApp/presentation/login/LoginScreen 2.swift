@@ -1,8 +1,7 @@
 import SwiftUI
 import shared
-import AuthenticationServices 
 
-struct LoginScreen: View {
+struct LoginScreen2: View {
     
     @ObservedObject var viewModel: LoginViewModel
     var onNavigateToCharacterSelection: () -> Void
@@ -31,14 +30,38 @@ struct LoginScreen: View {
                         .foregroundColor(.mapleGray)
                         .lineSpacing(8)
                     
-                    Text("로그인하셔서 이벤트 및 보스 파티 알림 등\n다양한 기능을 이용해보세요!").font(.system(size: 16))
+                    Text("NEXON Open API 사이트에서 넥슨 아이디로 로그인하여\nAPI Key를 확인하세요!").font(.system(size: 16))
                         .foregroundColor(.mapleGray)
                         .lineSpacing(4)
                 }
                 
                 Spacer().frame(height: 40)
                 
-                
+                // 3. API Key 입력 필드 (OutlinedTextField 대응)
+                ZStack(alignment: .leading) {
+                    if viewModel.uiState.nexonApiKey.isEmpty {
+                        Text("NEXON Open API Key를 입력하세요.").foregroundColor(.mapleGray)
+                            .padding(.horizontal, 16)
+                    }
+                    
+                    TextField("", text: Binding(
+                        get: { viewModel.uiState.nexonApiKey },
+                        set: { viewModel.onIntent(intent: LoginIntent.UpdateApiKey(apiKey: $0)) }
+                    )).padding(.horizontal, 16)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        if !viewModel.uiState.isLoading && !normalizedApiKey.isEmpty {
+                            viewModel.onIntent(intent: LoginIntent.ClickLogin())
+                        }
+                    }
+                }
+                .frame(height: 60)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(viewModel.uiState.nexonApiKey.isEmpty ? Color.mapleGray : Color.mapleBlack, lineWidth: 1)
+                )
                 
                 // 에러 메시지 표시
                 if let errorMessage = viewModel.uiState.errorMessage {
@@ -50,25 +73,24 @@ struct LoginScreen: View {
                 
                 Spacer().frame(height: 24)
                 
-                
-                // 5. 애플 로그인 버튼 추가
-                SignInWithAppleButton(
-                    .continue) // 또는 .signIn
-                { request in
-                    request.requestedScopes = [.fullName, .email]
-            }
-                    onCompletion: { result in
-                        switch result {
-                        case .success(let authResults):
-                            handleAppleLogin(authResults)
-                        case .failure(let error):
-                            print("Apple 로그인 실패: \(error.localizedDescription)")
+                // 4. 로그인 버튼
+                Button(action: {
+                    viewModel.onIntent(intent: LoginIntent.ClickLogin())
+                }) {
+                    HStack {
+                        if viewModel.uiState.isLoading {
+                            ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Text("Open API Key로 로그인").font(.system(size: 24, weight: .bold))
                         }
                     }
-                .signInWithAppleButtonStyle(.black) // 테마에 맞춰 .white 선택 가능
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .cornerRadius(16)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 64)
+                    .background(viewModel.uiState.isLoading || normalizedApiKey.isEmpty ? Color.mapleGray : Color.mapleBlack)
+                    .foregroundColor(.white)
+                    .cornerRadius(16)
+                }
+                .disabled(viewModel.uiState.isLoading || normalizedApiKey.isEmpty)
                 
                 Spacer()
             }
@@ -82,20 +104,6 @@ struct LoginScreen: View {
                 onNavigateToHome()
             }
         }
-        .onChange(of: viewModel.uiState.errorMessage) { oldValue, newValue in
-                if let error = newValue {
-                    // ❌ 로그인이 실패했을 때 출력됩니다.
-                    print("🚨 [SwiftUI] 로그인 실패: \(error)")
-                }
-            }
-        .onChange(of: viewModel.uiState.isLoading) { oldValue, newValue in
-                // ⏳ 로딩 상태 변화 확인
-                if newValue {
-                    print("⏳ [SwiftUI] 서버와 통신 중...")
-                } else {
-                    print("✅ [SwiftUI] 통신 종료")
-                }
-            }
         .onChange(of: viewModel.uiState.navigateToSelection) { oldValue, newValue in
             if newValue {
                 onNavigateToCharacterSelection()
@@ -121,29 +129,4 @@ struct LoginScreen: View {
             }
         }
     }
-    
-    
-    // 애플 로그인 결과 처리 함수
-    private func handleAppleLogin(_ result: ASAuthorization) {
-        if let appleIDCredential = result.credential as? ASAuthorizationAppleIDCredential {
-            let userIdentifier = appleIDCredential.user
-            guard let tokenData = appleIDCredential.identityToken,
-                  let idToken = String(data: tokenData, encoding: .utf8) else { return }
-
-            // 💡 핵심: Shared 모듈의 ViewModel에 데이터 전달
-            // 서버에서 요구하는 정보들을 Intent에 실어서 보냅니다.
-            viewModel.onIntent(intent: LoginIntent.ClickAppleLogin(
-                provider: "apple",
-                idToken: idToken,
-                identifier: userIdentifier,
-                firstName: appleIDCredential.fullName?.givenName,
-                lastName: appleIDCredential.fullName?.familyName
-            ))
-            
-            // 디버깅용 로그 (개발 완료 후 제거 권장)
-            print("✅ Apple Login Intent Sent: \(userIdentifier)")
-        }
-    }
 }
-
-

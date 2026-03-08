@@ -10,7 +10,7 @@ struct HomeScreen: View {
         NavigationView {
             ScrollView {
                 HStack {
-                    Image("ic_home_logo.xml") .resizable()
+                    Image("ic_logo") .resizable()
                         .renderingMode(.original)
                         .aspectRatio(contentMode: .fit)
                         .frame(height: 28)

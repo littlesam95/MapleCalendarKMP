@@ -58,17 +58,18 @@ class LoginViewModel(
         }
     }
 
-    private fun loginWithApple(context: Any) {
+    private fun loginWithApple(intent: LoginIntent.ClickAppleLogin? = null) {
         viewModelScope.launch {
-            val idToken = authManager.signInWithApple(context)
+            val idToken = intent?.idToken ?: authManager.signInWithApple()
+            val platform = intent?.provider?.lowercase() ?: "apple"
 
-            if (idToken != null) {
+            if (!idToken.isNullOrBlank()) {
                 // 💡 여기서 이제 서버(Spring)에 토큰을 보내는 UseCase를 호출해야 합니다.
                 // 예: authenticateWithGoogleUseCase(idToken).collect { ... }
                 println("애플 토큰 획득 성공: $idToken")
 
                 // 임시로 성공 처리하거나 다음 스텝(서버 검증)으로 넘김
-                submitUserInfo("apple", idToken)
+                submitUserInfo(platform, idToken.trim())
             } else {
                 onIntent(LoginIntent.LoginFailed("애플 로그인에 실패했습니다."))
             }
@@ -111,7 +112,7 @@ class LoginViewModel(
                             }
 
                             is ApiState.Error -> {
-                                onIntent(LoginIntent.LoginFailed("구글 로그인에 실패했습니다."))
+                                onIntent(LoginIntent.LoginFailed("애플 로그인에 실패했습니다."))
                             }
 
                             else -> {}
@@ -259,6 +260,10 @@ class LoginViewModel(
 
             is LoginIntent.ClickLogin -> {
                 loginWithApiKey()
+            }
+
+            is LoginIntent.ClickAppleLogin -> {
+                loginWithApple(intent)
             }
 
             is LoginIntent.SelectRepresentativeCharacter -> {

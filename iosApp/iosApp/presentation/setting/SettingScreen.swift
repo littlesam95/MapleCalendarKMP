@@ -18,8 +18,10 @@ struct SettingScreen: View {
             Spacer()
             
             // 2. 로그인 상태에 따른 UI 분기
-            // uiState.nexonApiKey의 유무로 로그인 여부를 판단
-            if viewModel.uiState.nexonApiKey == nil {
+            let isLoggedIn = !(viewModel.uiState.nexonApiKey?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .isEmpty ?? true)
+            if !isLoggedIn {
                 // [와이어프레임 1] 로그아웃 상태
                 MapleButton(
                     text: "로그인",

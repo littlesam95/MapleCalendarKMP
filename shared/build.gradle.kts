@@ -53,7 +53,7 @@ kotlin {
 
             // Coil core 및 Compose 지원
             implementation(libs.coil.compose)
-            implementation(libs.coil.network.okhttp)
+
 
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
@@ -84,6 +84,7 @@ kotlin {
 
             // Coil & GIF
             implementation(libs.coil.gif)
+            implementation(libs.coil.network.okhttp)
 
             // ExoPlayer
             implementation(libs.bundles.media3)
@@ -124,7 +125,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         val apiKey = localProperties.getProperty("NEXON_API_KEY") ?: ""
 
-        buildConfigField("String", "NEXON_API_KEY", apiKey)
+        buildConfigField("String", "NEXON_API_KEY", "\"$apiKey\"")
     }
 }
 

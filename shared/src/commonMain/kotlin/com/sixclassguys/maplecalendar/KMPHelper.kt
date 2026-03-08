@@ -15,6 +15,7 @@ import com.sixclassguys.maplecalendar.domain.repository.MemberRepository
 import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
 import com.sixclassguys.maplecalendar.domain.repository.NotificationRepository
 import com.sixclassguys.maplecalendar.domain.usecase.AutoLoginUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.AppleLoginUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.DoLoginWithApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetApiKeyUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetCharacterBasicUseCase
@@ -45,6 +46,7 @@ class KMPHelper : KoinComponent {
 
     // --- 1. UseCases (도메인 로직) ---
     val autoLoginUseCase: AutoLoginUseCase by inject()
+    val appleLoginUseCase: AppleLoginUseCase by inject()
     val doLoginWithApiKeyUseCase: DoLoginWithApiKeyUseCase by inject()
     val submitRepresentativeCharacterUseCase: SubmitRepresentativeCharacterUseCase by inject()
     val getApiKeyUseCase: GetApiKeyUseCase by inject()

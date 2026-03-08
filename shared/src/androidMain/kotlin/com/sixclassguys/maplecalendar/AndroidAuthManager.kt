@@ -45,7 +45,7 @@ class AndroidAuthManager(
         }
     }
 
-    override suspend fun signInWithApple(context: Any): String? {
+    override suspend fun signInWithApple(): String? {
         // TODO: Apple Developer Console에서 설정하기
 
         return null

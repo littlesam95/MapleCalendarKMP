@@ -6,8 +6,13 @@ class LoginViewModel: ObservableObject {
     
     @Published var uiState = LoginUiState(
         isLoading: false,
+        googleIdToken: nil,
+        appleIdToken: nil,
         nexonApiKey: "",
         isLoginSuccess: false,
+        member: nil,
+        showRegistrationDialog: false,
+        isEmptyCharacter: false,
         characters: [:],
         characterImages: [:],
         isWorldSheetOpen: false,
@@ -19,6 +24,8 @@ class LoginViewModel: ObservableObject {
 
     private lazy var helper = KMPHelperKt.getKMPHelper()
     
+    private lazy var getFcmTokenUseCase = helper.getFcmTokenUseCase
+    private lazy var appleLoginUseCase = helper.appleLoginUseCase
     private lazy var doLoginWithApiKeyUseCase = helper.doLoginWithApiKeyUseCase
     private lazy var submitRepresentativeCharacterUseCase = helper.submitRepresentativeCharacterUseCase
     private lazy var setOpenApiKeyUseCase = helper.setOpenApiKeyUseCase
@@ -28,7 +35,7 @@ class LoginViewModel: ObservableObject {
     private let worldOrder: [String: Int] = [
         "스카니아": 0, "베라": 1, "루나": 2, "제니스": 3, "크로아": 4, "유니온": 5,
         "엘리시움": 6, "이노시스": 7, "레드": 8, "오로라": 9, "아케인": 10, "노바": 11,
-        "챌린저스1": 12, "챌린저스2": 13, "챌린저스3": 14, "챌린저스4": 15
+        "에오스": 12, "핼리오스": 13, "챌린저스1": 14, "챌린저스2": 15, "챌린저스3": 16, "챌린저스4": 17
     ]
 
     // 2. 뷰에서 사용할 필터링된 월드 목록 (Computed Property)
@@ -50,17 +57,31 @@ class LoginViewModel: ObservableObject {
 
     // MARK: - 로직 처리 함수
 
+    private func normalizedApiKey() -> String {
+        uiState.nexonApiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     private func loginWithApiKey() {
-        print("로그인 시도 중: \(uiState.nexonApiKey)")
+        let apiKey = normalizedApiKey()
+        guard !apiKey.isEmpty else {
+            onIntent(intent: LoginIntent.LoginFailed(message: "NEXON Open API Key를 입력해주세요."))
+            return
+        }
+
+        if apiKey != uiState.nexonApiKey {
+            onIntent(intent: LoginIntent.UpdateApiKey(apiKey: apiKey))
+        }
+
+        print("로그인 시도 중: \(apiKey)")
         Task {
             do {
-                let flow = try await doLoginWithApiKeyUseCase.invoke(apiKey: uiState.nexonApiKey)
+                let flow = try await doLoginWithApiKeyUseCase.invoke(apiKey: apiKey)
                 try await flow.collect(collector: FlowCollectorWrapper<AnyObject> { state, completionHandler in
                     // UI 업데이트는 메인 액터에서 수행
                     Task { @MainActor in
                         if let success = state as? ApiStateSuccess<AnyObject>, let data = success.data {
                             
-                            if let domainResult = data as? LoginResult {
+                            if let domainResult = data as? LoginInfo {
                                 let ocid = domainResult.representativeOcid
                                 let validWorlds = [
                                     "스카니아", "베라", "루나", "제니스", "크로아", "유니온",
@@ -74,20 +95,32 @@ class LoginViewModel: ObservableObject {
                                     // 월드 이름이 리스트에 있고, 해당 월드에 캐릭터가 존재하는 경우만 유지
                                     validWorlds.contains(worldName) && !characters.isEmpty
                                 }
-                                
-                                if ocid == nil {
-                                    self.onIntent(intent: LoginIntent.SelectRepresentativeCharacter(characters: filteredCharacters))
+
+                                let representativeOcid = ocid?.trimmingCharacters(in: .whitespacesAndNewlines)
+                                if representativeOcid?.isEmpty ?? true {
+                                    if filteredCharacters.isEmpty {
+                                        self.onIntent(intent: LoginIntent.FetchApiKeyWithEmptyCharacters(message: "선택 가능한 캐릭터가 없습니다."))
+                                    } else {
+                                        self.onIntent(intent: LoginIntent.SelectRepresentativeCharacter(characters: filteredCharacters))
+                                    }
                                 } else {
                                     self.onIntent(intent: LoginIntent.SetOpenApiKey())
                                 }
-                            }
-                            else if let response = data as? shared.LoginResponse {
+                            } else if let response = data as? shared.LoginResponse {
                                 let domainResult = response.toDomain()
-                                if domainResult.representativeOcid == nil {
-                                    self.onIntent(intent: LoginIntent.SelectRepresentativeCharacter(characters: domainResult.characters))
+
+                                let representativeOcid = domainResult.representativeOcid?.trimmingCharacters(in: .whitespacesAndNewlines)
+                                if representativeOcid?.isEmpty ?? true {
+                                    if domainResult.characters.isEmpty {
+                                        self.onIntent(intent: LoginIntent.FetchApiKeyWithEmptyCharacters(message: "선택 가능한 캐릭터가 없습니다."))
+                                    } else {
+                                        self.onIntent(intent: LoginIntent.SelectRepresentativeCharacter(characters: domainResult.characters))
+                                    }
                                 } else {
                                     self.onIntent(intent: LoginIntent.SetOpenApiKey())
                                 }
+                            } else {
+                                self.onIntent(intent: LoginIntent.LoginFailed(message: "로그인 응답을 처리하지 못했습니다."))
                             }
                         } else if let error = state as? ApiStateError {
                             print("로그인 실패: \(error.message)")
@@ -101,6 +134,47 @@ class LoginViewModel: ObservableObject {
             } catch {
                 print("네트워크 오류 발생: \(error.localizedDescription)")
                 self.onIntent(intent: LoginIntent.LoginFailed(message: error.localizedDescription))
+            }
+        }
+    }
+
+    private func loginWithApple(intent: LoginIntent.ClickAppleLogin) {
+        let provider = intent.provider
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        let idToken = intent.idToken.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !provider.isEmpty, !idToken.isEmpty else {
+            onIntent(intent: LoginIntent.AppleLoginFailed(message: "애플 로그인 정보가 올바르지 않습니다."))
+            return
+        }
+
+        Task {
+            do {
+                let fcmToken = (try? await getFcmTokenUseCase.invoke())?
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let flow = try await appleLoginUseCase.invoke(
+                    provider: provider,
+                    idToken: idToken,
+                    fcmToken: fcmToken
+                )
+
+                try await flow.collect(collector: FlowCollectorWrapper<AnyObject> { state, completionHandler in
+                    Task { @MainActor in
+                        if let success = state as? ApiStateSuccess<AnyObject>,
+                           let loginResult = success.data as? LoginResult {
+                            self.onIntent(intent: LoginIntent.AppleLoginSuccess(
+                                member: loginResult.member,
+                                isNewMember: loginResult.isNewMember
+                            ))
+                        } else if let error = state as? ApiStateError {
+                            self.onIntent(intent: LoginIntent.AppleLoginFailed(message: error.message))
+                        }
+                        completionHandler(nil)
+                    }
+                })
+            } catch {
+                self.onIntent(intent: LoginIntent.AppleLoginFailed(message: error.localizedDescription))
             }
         }
     }
@@ -164,10 +238,16 @@ class LoginViewModel: ObservableObject {
     }
 
     private func submitRepresentativeCharacter() {
+        let apiKey = normalizedApiKey()
+        guard !apiKey.isEmpty else {
+            onIntent(intent: LoginIntent.SubmitRepresentativeCharacterFailed(message: "NEXON Open API Key를 다시 입력해주세요."))
+            return
+        }
+
         Task {
             do {
                 let ocid = uiState.selectedCharacter?.ocid ?? ""
-                let flow = try await submitRepresentativeCharacterUseCase.invoke(apiKey: uiState.nexonApiKey, ocid: ocid)
+                let flow = try await submitRepresentativeCharacterUseCase.invoke(apiKey: apiKey, ocid: ocid)
                 
                 try await flow.collect(collector: FlowCollectorWrapper<AnyObject> { state, completionHandler in
                     Task { @MainActor in
@@ -186,19 +266,38 @@ class LoginViewModel: ObservableObject {
     }
 
     private func saveApiKey() {
+        let apiKey = normalizedApiKey()
+        guard !apiKey.isEmpty else {
+            onIntent(intent: LoginIntent.SetOpenApiKeyFailed(message: "NEXON Open API Key를 다시 입력해주세요."))
+            return
+        }
+
+        if apiKey != uiState.nexonApiKey {
+            onIntent(intent: LoginIntent.UpdateApiKey(apiKey: apiKey))
+        }
+
         Task {
-            do {
-                let flow = try await setOpenApiKeyUseCase.invoke(apiKey: uiState.nexonApiKey)
-                
-                for try await state in flow {
-                    if state is ApiStateSuccess<AnyObject> {
-                        self.onIntent(intent: LoginIntent.LoginSuccess())
-                    } else if let error = state as? ApiStateError {
-                        self.onIntent(intent: LoginIntent.SetOpenApiKeyFailed(message: error.message))
-                    }
+            let flow = setOpenApiKeyUseCase.invoke(apiKey: apiKey)
+
+            for await state in flow {
+                let rawState = state as AnyObject
+
+                if rawState is ApiStateLoading {
+                    continue
                 }
-            } catch {
-                self.onIntent(intent: LoginIntent.SetOpenApiKeyFailed(message: error.localizedDescription))
+
+                if rawState is ApiStateSuccess<KotlinUnit> {
+                    self.onIntent(intent: LoginIntent.LoginSuccess())
+                    break
+                }
+
+                if let error = rawState as? ApiStateError {
+                    self.onIntent(intent: LoginIntent.SetOpenApiKeyFailed(message: error.message))
+                    break
+                }
+
+                self.onIntent(intent: LoginIntent.SetOpenApiKeyFailed(message: "API Key 저장에 실패했습니다."))
+                break
             }
         }
     }
@@ -206,8 +305,13 @@ class LoginViewModel: ObservableObject {
     private func updateImageState(newImages: [String: String?]) {
         self.uiState = LoginUiState(
             isLoading: uiState.isLoading,
+            googleIdToken: uiState.googleIdToken,
+            appleIdToken: uiState.appleIdToken,
             nexonApiKey: uiState.nexonApiKey,
             isLoginSuccess: uiState.isLoginSuccess,
+            member: uiState.member,
+            showRegistrationDialog: uiState.showRegistrationDialog,
+            isEmptyCharacter: uiState.isEmptyCharacter,
             characters: uiState.characters,
             characterImages: newImages,
             isWorldSheetOpen: uiState.isWorldSheetOpen,
@@ -221,8 +325,13 @@ class LoginViewModel: ObservableObject {
     func initState() {
         self.uiState = LoginUiState(
             isLoading: false,
+            googleIdToken: nil,
+            appleIdToken: nil,
             nexonApiKey: "",
             isLoginSuccess: false,
+            member: nil,
+            showRegistrationDialog: false,
+            isEmptyCharacter: false,
             characters: [:],
             characterImages: [:],
             isWorldSheetOpen: false,
@@ -240,6 +349,8 @@ class LoginViewModel: ObservableObject {
 
         // 2. Side Effect 처리
         switch intent {
+            case let appleIntent as LoginIntent.ClickAppleLogin:
+                loginWithApple(intent: appleIntent)
             case is LoginIntent.ClickLogin:
                 loginWithApiKey()
             case is LoginIntent.SelectRepresentativeCharacter:

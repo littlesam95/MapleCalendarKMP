@@ -72,7 +72,11 @@ struct ContentView: View {
                 LoginScreen(
                     viewModel: loginViewModel,
                     onNavigateToCharacterSelection: { path.append("CharacterSelection") },
-                    onNavigateToHome: { showLogin = false }
+                    onNavigateToHome: {
+                        showLogin = false
+                        selectedTab = 0
+                        homeViewModel.onIntent(intent: HomeIntent.LoadApiKey())
+                    }
                 )
             }
         }

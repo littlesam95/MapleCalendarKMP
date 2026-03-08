@@ -42,6 +42,7 @@ class AuthDataSourceImpl(
             }
             400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
             401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
+            403 -> throw ApiException(403, "접근이 거부되었습니다(403). API 키 문제가 아니라 서버 접근 정책 문제일 수 있습니다.")
             404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
             in 500..599 -> {
                 throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")

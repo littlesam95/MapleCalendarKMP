@@ -101,10 +101,10 @@ class SettingViewModel: ObservableObject {
         }
     }
     
-    private func toggleGlobalAlarmStatus(apiKey: String) {
+    private func toggleGlobalAlarmStatus() {
         Task {
             do {
-                let flow = try await toggleGlobalAlarmStatusUseCase.invoke(apiKey: apiKey)
+                let flow = try await toggleGlobalAlarmStatusUseCase.invoke()
                 
                 try await flow.collect(collector: FlowCollectorWrapper<AnyObject> { state, completionHandler in
                     Task { @MainActor in
@@ -123,23 +123,31 @@ class SettingViewModel: ObservableObject {
         }
     }
     
-    private func unregisterFcmToken(apiKey: String, token: String) {
+    private func unregisterFcmToken(token: String) {
         Task {
             do {
-                let flow = try await unregisterTokenUseCase.invoke(apiKey: apiKey, token: token)
+                let trimmedToken = token.trimmingCharacters(in: .whitespacesAndNewlines)
+                if trimmedToken.isEmpty {
+                    self.logout()
+                    return
+                }
+
+                let flow = try await unregisterTokenUseCase.invoke(token: token)
                 
                 try await flow.collect(collector: FlowCollectorWrapper<AnyObject> { state, completionHandler in
                     Task { @MainActor in
                         if let success = state as? ApiStateSuccess<AnyObject> {
                             self.logout()
                         } else if let error = state as? ApiStateError {
-                            self.onIntent(intent: SettingIntent.LogoutFailed(message: error.message))
+                            print("Unregister token failed, continue logout: \(error.message)")
+                            self.logout()
                         }
                         completionHandler(nil)
                     }
                 })
             } catch {
                 print("Unregister Fcm Token Error: \(error)")
+                self.logout()
             }
         }
     }
@@ -177,9 +185,9 @@ class SettingViewModel: ObservableObject {
             case is SettingIntent.FetchGlobalAlarmStatus:
                 getGlobalAlarmStatus()
             case is SettingIntent.ToggleGlobalAlarmStatus:
-                toggleGlobalAlarmStatus(apiKey: uiState.nexonApiKey ?? "")
+                toggleGlobalAlarmStatus()
             case is SettingIntent.Logout :
-                unregisterFcmToken(apiKey: uiState.nexonApiKey ?? "", token: uiState.fcmToken ?? "")
+                unregisterFcmToken(token: uiState.fcmToken ?? "")
             default:
                 break
         }

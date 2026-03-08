@@ -133,6 +133,7 @@ class AuthRepositoryImpl(
         emit(ApiState.Loading)
 
         try {
+            val normalizedProvider = provider.trim().lowercase().ifEmpty { "apple" }
             val response: AuthAppleResponse =
                 dataSource.loginWithApple(
                     AuthAppleRequest(
@@ -140,8 +141,10 @@ class AuthRepositoryImpl(
                         idToken,
                         fcmToken,
                         getPlatform().name
+
                     )
                 )
+
 
             // 데이터 계층의 모델을 도메인 모델로 변환
             val loginResult = response.toDomain()

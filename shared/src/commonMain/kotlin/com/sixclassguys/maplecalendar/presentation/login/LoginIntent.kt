@@ -13,7 +13,13 @@ sealed class LoginIntent {
 
     data class GoogleLoginFailed(val message: String) : LoginIntent()
 
-    data object ClickAppleLogin : LoginIntent()
+    data class ClickAppleLogin(
+        val provider: String,    // "APPLE" 또는 "GOOGLE"
+        val idToken: String,
+        val identifier: String,
+        val firstName: String? = null,
+        val lastName: String? = null
+    ) : LoginIntent()
 
     data class AppleLoginSuccess(val member: Member, val isNewMember: Boolean) : LoginIntent()
 
