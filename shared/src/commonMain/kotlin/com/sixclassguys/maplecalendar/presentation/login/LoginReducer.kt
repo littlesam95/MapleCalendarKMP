@@ -1,5 +1,7 @@
 package com.sixclassguys.maplecalendar.presentation.login
 
+import io.github.aakira.napier.Napier
+
 class LoginReducer {
 
     fun reduce(currentState: LoginUiState, intent: LoginIntent): LoginUiState = when (intent) {
@@ -31,6 +33,12 @@ class LoginReducer {
             )
         }
 
+        is LoginIntent.ClickAppleLoginInAndroid -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
         is LoginIntent.ClickAppleLogin -> {
             currentState.copy(
                 isLoading = true
@@ -47,6 +55,8 @@ class LoginReducer {
         }
 
         is LoginIntent.AppleLoginFailed -> {
+            Napier.d("Message: ${intent.message}")
+
             currentState.copy(
                 isLoading = false,
                 errorMessage = intent.message

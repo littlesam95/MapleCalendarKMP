@@ -58,10 +58,16 @@ class LoginViewModel(
         }
     }
 
-    private fun loginWithApple(intent: LoginIntent.ClickAppleLogin? = null) {
+    private fun loginWithApple(
+        intent: LoginIntent.ClickAppleLogin? = null,
+        intentAndroid: LoginIntent.ClickAppleLoginInAndroid? = null
+    ) {
         viewModelScope.launch {
-            val idToken = intent?.idToken ?: authManager.signInWithApple()
+            val context = intentAndroid?.context
+            val idToken = intent?.idToken ?: authManager.signInWithApple(context)
             val platform = intent?.provider?.lowercase() ?: "apple"
+
+            Napier.d("Apple ID 토큰: $idToken")
 
             if (!idToken.isNullOrBlank()) {
                 // 💡 여기서 이제 서버(Spring)에 토큰을 보내는 UseCase를 호출해야 합니다.
@@ -71,7 +77,7 @@ class LoginViewModel(
                 // 임시로 성공 처리하거나 다음 스텝(서버 검증)으로 넘김
                 submitUserInfo(platform, idToken.trim())
             } else {
-                onIntent(LoginIntent.LoginFailed("애플 로그인에 실패했습니다."))
+                onIntent(LoginIntent.AppleLoginFailed("애플 로그인에 실패했습니다."))
             }
         }
     }
@@ -93,7 +99,7 @@ class LoginViewModel(
                             }
 
                             is ApiState.Error -> {
-                                onIntent(LoginIntent.LoginFailed("구글 로그인에 실패했습니다."))
+                                onIntent(LoginIntent.GoogleLoginFailed("구글 로그인에 실패했습니다."))
                             }
 
                             else -> {}
@@ -112,7 +118,7 @@ class LoginViewModel(
                             }
 
                             is ApiState.Error -> {
-                                onIntent(LoginIntent.LoginFailed("애플 로그인에 실패했습니다."))
+                                onIntent(LoginIntent.AppleLoginFailed("애플 로그인에 실패했습니다."))
                             }
 
                             else -> {}
@@ -262,8 +268,12 @@ class LoginViewModel(
                 loginWithApiKey()
             }
 
+            is LoginIntent.ClickAppleLoginInAndroid -> {
+                loginWithApple(intentAndroid = intent)
+            }
+
             is LoginIntent.ClickAppleLogin -> {
-                loginWithApple(intent)
+                loginWithApple(intent = intent)
             }
 
             is LoginIntent.SelectRepresentativeCharacter -> {
