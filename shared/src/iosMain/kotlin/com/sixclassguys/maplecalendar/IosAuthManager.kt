@@ -7,6 +7,7 @@ import platform.UIKit.*
 import platform.darwin.NSObject
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
+
 class IosAuthManager(
     private val onSignIn: suspend () -> String?,
     private val onSignOut: () -> Unit
@@ -18,7 +19,7 @@ class IosAuthManager(
 
     override suspend fun signInWithGoogle(context: Any): String? = onSignIn()
 
-    override suspend fun signInWithApple(): String? = suspendCancellableCoroutine { continuation ->
+    override suspend fun signInWithApple(context: Any?): String? = suspendCancellableCoroutine { continuation ->
         val appleIDProvider = ASAuthorizationAppleIDProvider()
         val request = appleIDProvider.createRequest()
         request.requestedScopes = listOf(ASAuthorizationScopeEmail, ASAuthorizationScopeFullName)
