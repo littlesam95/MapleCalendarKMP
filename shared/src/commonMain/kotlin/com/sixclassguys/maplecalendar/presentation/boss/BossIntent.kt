@@ -17,6 +17,12 @@ import kotlinx.datetime.LocalDate
 
 sealed class BossIntent {
 
+    data object FetchGlobalAlarmStatus : BossIntent()
+
+    data class FetchGlobalAlarmStatusSuccess(val isEnabled: Boolean) : BossIntent()
+
+    data class FetchGlobalAlarmStatusFailed(val message: String) : BossIntent()
+
     data object FetchBossParties : BossIntent()
 
     data class FetchBossPartiesSuccess(val bossParties: List<BossParty>) : BossIntent()

@@ -1,8 +1,14 @@
 package com.sixclassguys.maplecalendar.ui.boss
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +35,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -40,6 +48,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,6 +69,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
 import com.sixclassguys.maplecalendar.presentation.boss.BossIntent
 import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
+import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
 import com.sixclassguys.maplecalendar.theme.MapleBlack
 import com.sixclassguys.maplecalendar.theme.MapleGray
 import com.sixclassguys.maplecalendar.theme.MapleOrange
@@ -77,6 +87,7 @@ import com.sixclassguys.maplecalendar.ui.component.BossPartyDetailTabRow
 import com.sixclassguys.maplecalendar.ui.component.BossPartyMemberContent
 import com.sixclassguys.maplecalendar.ui.component.CharacterInviteDialog
 import com.sixclassguys.maplecalendar.util.BossPartyTab
+import kotlinx.coroutines.launch
 import org.koin.compose.getKoin
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -153,6 +164,58 @@ fun BossPartyDetailScreen(
     val scrollPercentage = -toolbarOffsetHeightPx / maxScrollOffsetPx
 
     val eventBus = getKoin().get<NotificationEventBus>()
+
+    val scope = rememberCoroutineScope()
+    val launcherToAlarm = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.onIntent(BossIntent.ToggleBossPartyAlarm)
+        } else {
+            // 권한이 거부되었을 때
+            scope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = "알림 권한을 허용하셔야 알림을 받을 수 있어요.",
+                    actionLabel = "설정",
+                    duration = SnackbarDuration.Long
+                )
+
+                // 사용자가 '설정' 버튼을 눌렀을 때 앱 정보 화면으로 이동
+                if (result == SnackbarResult.ActionPerformed) {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
+                }
+            }
+        }
+    }
+    val launcherToChat = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.onIntent(BossIntent.ToggleBossPartyChatAlarm)
+        } else {
+            // 권한이 거부되었을 때
+            scope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = "알림 권한을 허용하셔야 알림을 받을 수 있어요.",
+                    actionLabel = "설정",
+                    duration = SnackbarDuration.Long
+                )
+
+                // 사용자가 '설정' 버튼을 눌렀을 때 앱 정보 화면으로 이동
+                if (result == SnackbarResult.ActionPerformed) {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
+                }
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         eventBus.invitedPartyId.collect { invitedId ->
@@ -268,7 +331,21 @@ fun BossPartyDetailScreen(
                                 isLeader = uiState.selectedBossParty?.isLeader ?: false,
                                 snackbarHostState = snackbarHostState,
                                 onToggleAlarm = {
-                                    viewModel.onIntent(BossIntent.ToggleBossPartyAlarm)
+                                    if (uiState.isGlobalAlarmEnabled) {
+                                        if (uiState.isBossPartyDetailAlarmOn) {
+                                            // Android 13 이상 대응 (Tiramisu = 33)
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                                launcherToAlarm.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                            } else {
+                                                viewModel.onIntent(BossIntent.ToggleBossPartyAlarm)
+                                            }
+                                        } else {
+                                            // OFF로 바꿀 때는 권한 요청 필요 없음
+                                            viewModel.onIntent(BossIntent.ToggleBossPartyAlarm)
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "전체 알림을 먼저 허용해주세요.", Toast.LENGTH_SHORT).show()
+                                    }
                                 },
                                 onAddAlarm = { viewModel.onIntent(BossIntent.ShowAlarmCreateDialog) },
                                 onDeleteAlarm = { viewModel.onIntent(BossIntent.DeleteBossPartyAlarm(it)) },
@@ -325,7 +402,23 @@ fun BossPartyDetailScreen(
                                 isLeader = uiState.selectedBossParty?.isLeader ?: false,
                                 isLoading = uiState.isLoading,
                                 onLoadMore = { viewModel.onIntent(BossIntent.FetchBossPartyChatHistory) },
-                                onToggleAlarm = { viewModel.onIntent(BossIntent.ToggleBossPartyChatAlarm) },
+                                onToggleAlarm = {
+                                    if (uiState.isGlobalAlarmEnabled) {
+                                        if (uiState.isBossPartyDetailAlarmOn) {
+                                            // Android 13 이상 대응 (Tiramisu = 33)
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                                launcherToChat.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                            } else {
+                                                viewModel.onIntent(BossIntent.ToggleBossPartyChatAlarm)
+                                            }
+                                        } else {
+                                            // OFF로 바꿀 때는 권한 요청 필요 없음
+                                            viewModel.onIntent(BossIntent.ToggleBossPartyChatAlarm)
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "전체 알림을 먼저 허용해주세요.", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
                                 onHide = { bossPartyChatId ->
                                     viewModel.onIntent(
                                         BossIntent.HideBossPartyChatMessage(

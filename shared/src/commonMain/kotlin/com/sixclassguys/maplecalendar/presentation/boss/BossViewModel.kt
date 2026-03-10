@@ -19,6 +19,7 @@ import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyBoardsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyChatHistoryUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetBossPartyDetailUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetCharactersUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.GetGlobalAlarmStatusUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.HideBossPartyChatUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.InviteBossPartyMemberUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.KickBossPartyMemberUseCase
@@ -49,6 +50,7 @@ import kotlinx.datetime.toLocalDateTime
 class BossViewModel(
     private val reducer: BossReducer,
     private val eventBus: NotificationEventBus,
+    private val getGlobalAlarmStatusUseCase: GetGlobalAlarmStatusUseCase,
     private val getCharactersUseCase: GetCharactersUseCase,
     private val getBossPartiesUseCase: GetBossPartiesUseCase,
     private val createBossPartyUseCase: CreateBossPartyUseCase,
@@ -88,6 +90,24 @@ class BossViewModel(
                 // 알림이 오면 즉시 데이터 갱신
                 if (_uiState.value.selectedBossParty?.id == bossPartyId) {
                     onIntent(BossIntent.RefreshBossPartyDetail(bossPartyId))
+                }
+            }
+        }
+    }
+
+    private fun getGlobalAlarmStatus() {
+        viewModelScope.launch {
+            getGlobalAlarmStatusUseCase().collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(BossIntent.FetchGlobalAlarmStatusSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(BossIntent.FetchGlobalAlarmStatusFailed(state.message))
+                    }
+
+                    else -> {}
                 }
             }
         }
@@ -668,6 +688,14 @@ class BossViewModel(
         }
 
         when (intent) {
+            is BossIntent.FetchGlobalAlarmStatus -> {
+                getGlobalAlarmStatus()
+            }
+
+            is BossIntent.FetchGlobalAlarmStatusSuccess -> {
+                onIntent(BossIntent.FetchBossParties)
+            }
+
             is BossIntent.FetchBossParties -> {
                 getBossParties()
             }

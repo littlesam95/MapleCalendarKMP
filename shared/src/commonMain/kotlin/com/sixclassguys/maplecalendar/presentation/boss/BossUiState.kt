@@ -14,9 +14,10 @@ import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 
 data class BossUiState(
-    // 로딩
+    // 로딩 및 글로벌 알람 수신 여부
     val isLoading: Boolean = false,
     val isMemberInviteLoading: Boolean = false,
+    val isGlobalAlarmEnabled: Boolean = false,
 
     // 보스 파티 목록
     val bossParties: List<BossParty> = emptyList(),

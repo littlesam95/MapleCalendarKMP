@@ -74,6 +74,26 @@ class BossReducer {
     }
 
     fun reduce(currentState: BossUiState, intent: BossIntent): BossUiState = when (intent) {
+        is BossIntent.FetchGlobalAlarmStatus -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is BossIntent.FetchGlobalAlarmStatusSuccess -> {
+            currentState.copy(
+                isLoading = false,
+                isGlobalAlarmEnabled = intent.isEnabled
+            )
+        }
+
+        is BossIntent.FetchGlobalAlarmStatusFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
         is BossIntent.FetchBossParties -> {
             currentState.copy(
                 isLoading = true,

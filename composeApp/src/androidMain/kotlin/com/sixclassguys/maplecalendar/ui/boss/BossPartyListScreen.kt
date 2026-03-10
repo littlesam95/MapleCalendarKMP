@@ -103,7 +103,7 @@ fun BossPartyListScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.onIntent(BossIntent.FetchBossParties)
+        viewModel.onIntent(BossIntent.FetchGlobalAlarmStatus)
     }
 
     Scaffold(
