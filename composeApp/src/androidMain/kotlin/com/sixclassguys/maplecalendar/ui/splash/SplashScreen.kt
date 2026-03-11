@@ -1,5 +1,7 @@
 package com.sixclassguys.maplecalendar.ui.splash
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,9 +23,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sixclassguys.maplecalendar.R
+import com.sixclassguys.maplecalendar.presentation.home.HomeIntent
 import com.sixclassguys.maplecalendar.presentation.home.HomeViewModel
+import com.sixclassguys.maplecalendar.BuildConfig
 import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleWhite
+import com.sixclassguys.maplecalendar.ui.component.VersionUpdateDialog
 
 @Composable
 fun SplashScreen(
@@ -33,6 +38,10 @@ fun SplashScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.onIntent(HomeIntent.CheckLatestVersion(BuildConfig.VERSION_CODE))
+    }
 
     LaunchedEffect(uiState.isAutoLoginFinished) {
         if (uiState.isAutoLoginFinished) {
@@ -75,5 +84,20 @@ fun SplashScreen(
                 strokeWidth = 3.dp
             )
         }
+    }
+
+    if (uiState.showVersionUpdateDialog) {
+        VersionUpdateDialog(
+            appVersion = uiState.appVersion,
+            onDismiss = {
+                viewModel.onIntent(HomeIntent.DeclineVersionUpdate)
+            },
+            onConfirm = {
+                viewModel.onIntent(HomeIntent.AcceptVersionUpdate)
+                val url = uiState.appVersion?.storeUrl
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                context.startActivity(intent)
+            }
+        )
     }
 }
