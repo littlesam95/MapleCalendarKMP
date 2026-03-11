@@ -11,6 +11,44 @@ class HomeReducer {
             )
         }
 
+        is HomeIntent.CheckLatestVersion -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is HomeIntent.CheckLatestVersionSuccess -> {
+            currentState.copy(
+                appVersion = intent.appVersion
+            )
+        }
+
+        is HomeIntent.ShowVersionUpdateDialog -> {
+            currentState.copy(
+                isLoading = false,
+                showVersionUpdateDialog = true
+            )
+        }
+
+        is HomeIntent.DeclineVersionUpdate -> {
+            currentState.copy(
+                showVersionUpdateDialog = false
+            )
+        }
+
+        is HomeIntent.AcceptVersionUpdate -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
+        is HomeIntent.CheckLatestVersionFailed -> {
+            currentState.copy(
+                isLoading = false,
+                errorMessage = intent.message
+            )
+        }
+
         is HomeIntent.AutoLogin -> {
             currentState.copy(
                 isLoading = true

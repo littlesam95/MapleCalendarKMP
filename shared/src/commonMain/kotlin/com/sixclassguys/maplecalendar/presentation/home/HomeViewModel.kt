@@ -7,6 +7,7 @@ import com.sixclassguys.maplecalendar.PermissionChecker
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.model.Member
 import com.sixclassguys.maplecalendar.domain.usecase.AutoLoginUseCase
+import com.sixclassguys.maplecalendar.domain.usecase.CheckLatestVersionUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetDailyBossPartySchedulesUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetDailyEventsUseCase
 import com.sixclassguys.maplecalendar.domain.usecase.GetFcmTokenUseCase
@@ -27,6 +28,7 @@ class HomeViewModel(
     val savedStateHandle: SavedStateHandle,
     private val reducer: HomeReducer,
     private val permissionChecker: PermissionChecker,
+    private val checkLatestVersionUseCase: CheckLatestVersionUseCase,
     private val getFcmTokenUseCase: GetFcmTokenUseCase,
     private val autoLoginUseCase: AutoLoginUseCase,
     private val reissueJwtTokenUseCase: ReissueJwtTokenUseCase,
@@ -39,8 +41,6 @@ class HomeViewModel(
     val uiState = _uiState.asStateFlow()
 
     init {
-        onIntent(HomeIntent.AutoLogin)
-
         viewModelScope.launch {
             savedStateHandle.getStateFlow<String?>("login_member", null)
                 .collect { json ->
@@ -50,6 +50,24 @@ class HomeViewModel(
                         savedStateHandle["login_member"] = null
                     }
                 }
+        }
+    }
+
+    private fun checkLatestVersion(versionCode: Int) {
+        viewModelScope.launch {
+            checkLatestVersionUseCase(versionCode).collect { state ->
+                when (state) {
+                    is ApiState.Success -> {
+                        onIntent(HomeIntent.CheckLatestVersionSuccess(state.data))
+                    }
+
+                    is ApiState.Error -> {
+                        onIntent(HomeIntent.CheckLatestVersionFailed(state.message))
+                    }
+
+                    else -> {}
+                }
+            }
         }
     }
 
@@ -230,6 +248,21 @@ class HomeViewModel(
                         getTodayBossSchedules()
                     }
                 }
+            }
+
+            is HomeIntent.CheckLatestVersion -> {
+                checkLatestVersion(intent.versionCode)
+            }
+
+            is HomeIntent.CheckLatestVersionSuccess -> {
+                when (intent.appVersion.isUpdateRequired) {
+                    true -> onIntent(HomeIntent.ShowVersionUpdateDialog)
+                    false -> onIntent(HomeIntent.AutoLogin)
+                }
+            }
+
+            is HomeIntent.DeclineVersionUpdate -> {
+                onIntent(HomeIntent.AutoLogin)
             }
 
             is HomeIntent.AutoLogin -> {

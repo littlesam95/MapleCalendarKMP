@@ -1,5 +1,6 @@
 package com.sixclassguys.maplecalendar.presentation.home
 
+import com.sixclassguys.maplecalendar.domain.model.AppVersion
 import com.sixclassguys.maplecalendar.domain.model.BossPartySchedule
 import com.sixclassguys.maplecalendar.domain.model.CharacterBasic
 import com.sixclassguys.maplecalendar.domain.model.CharacterDojangRanking
@@ -10,6 +11,8 @@ import com.sixclassguys.maplecalendar.domain.model.Member
 
 data class HomeUiState(
     val isLoading: Boolean = false,
+    val appVersion: AppVersion? = null,
+    val showVersionUpdateDialog: Boolean = false,
     val isAutoLoginFinished: Boolean = false,
     val isLoginSuccess: Boolean = false,
     val member: Member? = null,

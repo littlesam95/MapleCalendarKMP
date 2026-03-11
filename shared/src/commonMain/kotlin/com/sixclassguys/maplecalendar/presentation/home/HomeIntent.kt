@@ -1,5 +1,6 @@
 package com.sixclassguys.maplecalendar.presentation.home
 
+import com.sixclassguys.maplecalendar.domain.model.AppVersion
 import com.sixclassguys.maplecalendar.domain.model.BossPartySchedule
 import com.sixclassguys.maplecalendar.domain.model.CharacterBasic
 import com.sixclassguys.maplecalendar.domain.model.CharacterDojangRanking
@@ -11,6 +12,18 @@ import com.sixclassguys.maplecalendar.domain.model.Member
 sealed class HomeIntent {
 
     data object PullToRefresh : HomeIntent()
+
+    data class CheckLatestVersion(val versionCode: Int) : HomeIntent()
+
+    data class CheckLatestVersionSuccess(val appVersion: AppVersion) : HomeIntent()
+
+    data object ShowVersionUpdateDialog : HomeIntent()
+
+    data object DeclineVersionUpdate : HomeIntent()
+
+    data object AcceptVersionUpdate : HomeIntent()
+
+    data class CheckLatestVersionFailed(val message: String) : HomeIntent()
 
     data object AutoLogin : HomeIntent()
 
