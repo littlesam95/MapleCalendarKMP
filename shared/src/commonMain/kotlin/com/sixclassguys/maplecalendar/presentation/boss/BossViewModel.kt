@@ -688,6 +688,10 @@ class BossViewModel(
         }
 
         when (intent) {
+            is BossIntent.PullToRefresh -> {
+                getBossParties()
+            }
+
             is BossIntent.FetchGlobalAlarmStatus -> {
                 getGlobalAlarmStatus()
             }

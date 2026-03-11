@@ -17,6 +17,8 @@ import kotlinx.datetime.LocalDate
 
 sealed class BossIntent {
 
+    data object PullToRefresh : BossIntent()
+
     data object FetchGlobalAlarmStatus : BossIntent()
 
     data class FetchGlobalAlarmStatusSuccess(val isEnabled: Boolean) : BossIntent()

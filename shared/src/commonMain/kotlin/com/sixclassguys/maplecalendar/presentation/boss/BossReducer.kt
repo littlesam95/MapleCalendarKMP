@@ -58,7 +58,11 @@ class BossReducer {
             )
 
             // 4. 날짜 구분선 (이전 메시지가 없거나 날짜가 바뀌었을 때)
-            if (previousMessageInTime == null || !isSameDay(currentChat.createdAt, previousMessageInTime.createdAt)) {
+            if (previousMessageInTime == null || !isSameDay(
+                    currentChat.createdAt,
+                    previousMessageInTime.createdAt
+                )
+            ) {
                 uiItems.add(BossPartyChatUiItem.DateDivider(currentChat.createdAt))
             }
         }
@@ -72,6 +76,13 @@ class BossReducer {
     }
 
     fun reduce(currentState: BossUiState, intent: BossIntent): BossUiState = when (intent) {
+        is BossIntent.PullToRefresh -> {
+            currentState.copy(
+                isLoading = true,
+                isRefreshing = true
+            )
+        }
+
         is BossIntent.FetchGlobalAlarmStatus -> {
             currentState.copy(
                 isLoading = true
@@ -81,6 +92,7 @@ class BossReducer {
         is BossIntent.FetchGlobalAlarmStatusSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 isGlobalAlarmEnabled = intent.isEnabled
             )
         }
@@ -88,6 +100,7 @@ class BossReducer {
         is BossIntent.FetchGlobalAlarmStatusFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message
             )
         }
@@ -102,6 +115,7 @@ class BossReducer {
         is BossIntent.FetchBossPartiesSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossParties = intent.bossParties.filter { it.joinStatus == JoinStatus.ACCEPTED },
                 bossPartiesInvited = intent.bossParties.filter { it.joinStatus == JoinStatus.INVITED },
                 createdPartyId = null
@@ -111,6 +125,7 @@ class BossReducer {
         is BossIntent.FetchBossPartiesFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -137,6 +152,7 @@ class BossReducer {
         is BossIntent.AcceptBossPartyInvitationSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 showBossInvitationDialog = false
             )
         }
@@ -144,6 +160,7 @@ class BossReducer {
         is BossIntent.AcceptBossPartyInvitationFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message
             )
         }
@@ -157,6 +174,7 @@ class BossReducer {
         is BossIntent.DeclineBossPartyInvitationSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossParties = intent.bossParties.filter { it.joinStatus == JoinStatus.ACCEPTED },
                 bossPartiesInvited = intent.bossParties.filter { it.joinStatus == JoinStatus.INVITED },
             )
@@ -165,6 +183,7 @@ class BossReducer {
         is BossIntent.DeclineBossPartyInvitationFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message
             )
         }
@@ -177,18 +196,20 @@ class BossReducer {
         }
 
         is BossIntent.FetchCharactersSuccess -> {
-            val characters: List<Pair<String, CharacterSummary>> = intent.characters.values // 1. 월드 그룹 Map들만 추출
-                .flatMap { worldMap ->
-                    // 2. 각 월드 그룹 내부의 worldName(Key)과 characters(Value) 순회
-                    worldMap.flatMap { (worldName, characters) ->
-                        // 3. 캐릭터 리스트를 Pair(월드 이름, 캐릭터)로 변환
-                        characters.map { character -> worldName to character }
+            val characters: List<Pair<String, CharacterSummary>> =
+                intent.characters.values // 1. 월드 그룹 Map들만 추출
+                    .flatMap { worldMap ->
+                        // 2. 각 월드 그룹 내부의 worldName(Key)과 characters(Value) 순회
+                        worldMap.flatMap { (worldName, characters) ->
+                            // 3. 캐릭터 리스트를 Pair(월드 이름, 캐릭터)로 변환
+                            characters.map { character -> worldName to character }
+                        }
                     }
-                }
-                .sortedByDescending { it.second.characterLevel } // 4. 레벨(Pair의 second) 기준 역순 정렬
+                    .sortedByDescending { it.second.characterLevel } // 4. 레벨(Pair의 second) 기준 역순 정렬
 
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 characters = characters,
                 createdPartyId = null
             )
@@ -197,6 +218,7 @@ class BossReducer {
         is BossIntent.FetchCharactersFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -205,6 +227,7 @@ class BossReducer {
         is BossIntent.InitBossPartyCreate -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 selectedRegion = "그란디스",
                 selectedBoss = Boss.SEREN,
                 selectedBossDifficulty = null,
@@ -219,6 +242,7 @@ class BossReducer {
         is BossIntent.SelectRegion -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 selectedRegion = intent.selectedRegion,
                 createdPartyId = null
             )
@@ -227,6 +251,7 @@ class BossReducer {
         is BossIntent.SelectBoss -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 selectedBoss = intent.selectedBoss,
                 selectedBossDifficulty = null,
                 createdPartyId = null
@@ -236,6 +261,7 @@ class BossReducer {
         is BossIntent.SelectBossDifficulty -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 selectedBossDifficulty = intent.selectedBossDifficulty,
                 showCreateDialog = true,
                 bossPartyCreateCharacter = currentState.characters.firstOrNull()?.second,
@@ -248,6 +274,7 @@ class BossReducer {
         is BossIntent.DismissBossPartyCreateDialog -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 selectedBossDifficulty = null,
                 showCreateDialog = false,
                 createdPartyId = null
@@ -257,6 +284,7 @@ class BossReducer {
         is BossIntent.SelectBossPartyCharacter -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyCreateCharacter = intent.character,
                 createdPartyId = null
             )
@@ -265,6 +293,7 @@ class BossReducer {
         is BossIntent.UpdateBossPartyTitle -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyCreateTitle = intent.title,
                 createdPartyId = null
             )
@@ -273,6 +302,7 @@ class BossReducer {
         is BossIntent.UpdateBossPartyDescription -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyCreateDescription = intent.description,
                 createdPartyId = null
             )
@@ -297,6 +327,7 @@ class BossReducer {
         is BossIntent.CreateBossPartyFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -333,6 +364,7 @@ class BossReducer {
         is BossIntent.FetchBossPartyDetailFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -340,13 +372,15 @@ class BossReducer {
 
         is BossIntent.RefreshBossPartyDetail -> {
             currentState.copy(
-                isLoading = true
+                isLoading = true,
+                isRefreshing = true
             )
         }
 
         is BossIntent.RefreshBossPartyDetailSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 selectedBossParty = intent.bossPartyDetail,
                 selectedBossPartyDetailMenu = BossPartyTab.ALARM,
                 isBossPartyDetailAlarmOn = intent.bossPartyDetail.isPartyAlarmEnabled,
@@ -360,6 +394,7 @@ class BossReducer {
         is BossIntent.RefreshBossPartyDetailFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message
             )
         }
@@ -367,6 +402,7 @@ class BossReducer {
         is BossIntent.ShowAlarmCreateDialog -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 showBossAlarmDialog = true,
                 createdPartyId = null
             )
@@ -375,6 +411,7 @@ class BossReducer {
         is BossIntent.DismissAlarmCreateDialog -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 showBossAlarmDialog = false,
                 createdPartyId = null
             )
@@ -383,6 +420,7 @@ class BossReducer {
         is BossIntent.UpdateAlarmTimeHour -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 selectedHour = intent.hour,
                 createdPartyId = null
             )
@@ -391,6 +429,7 @@ class BossReducer {
         is BossIntent.UpdateAlarmTimeMinute -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 selectedMinute = intent.minute,
                 createdPartyId = null
             )
@@ -399,6 +438,7 @@ class BossReducer {
         is BossIntent.UpdateAlarmMessage -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 alarmMessage = intent.message,
                 createdPartyId = null
             )
@@ -407,6 +447,7 @@ class BossReducer {
         is BossIntent.UpdateAlarmTimeSelectMode -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 selectedAlarmDate = intent.date,
                 createdPartyId = null
             )
@@ -422,6 +463,7 @@ class BossReducer {
         is BossIntent.CreateBossPartyAlarmSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyAlarmTimes = intent.bossPartyAlarmTimes,
                 showBossAlarmDialog = false,
                 selectedAlarmDate = null,
@@ -438,6 +480,7 @@ class BossReducer {
         is BossIntent.CreateBossPartyAlarmFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -446,6 +489,7 @@ class BossReducer {
         is BossIntent.UpdateAlarmTimePeriodMode -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 selectedDayOfWeek = intent.dayOfWeek,
                 createdPartyId = null
             )
@@ -454,6 +498,7 @@ class BossReducer {
         is BossIntent.UpdateThisWeekPeriodMode -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 isImmediatelyAlarm = intent.isImmediatelyAlarm,
                 createdPartyId = null
             )
@@ -469,6 +514,7 @@ class BossReducer {
         is BossIntent.UpdateBossPartyAlarmPeriodSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyAlarmTimes = intent.bossPartyAlarmTimes,
                 showBossAlarmDialog = false,
                 selectedAlarmDate = null,
@@ -485,6 +531,7 @@ class BossReducer {
         is BossIntent.UpdateBossPartyAlarmPeriodFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -500,6 +547,7 @@ class BossReducer {
         is BossIntent.DeleteBossPartyAlarmSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyAlarmTimes = intent.bossPartyAlarmTimes,
                 createdPartyId = null,
                 successMessage = intent.successMessage
@@ -509,6 +557,7 @@ class BossReducer {
         is BossIntent.DeleteBossPartyAlarmFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -524,6 +573,7 @@ class BossReducer {
         is BossIntent.ToggleBossPartyAlarmSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 isBossPartyDetailAlarmOn = intent.enabled,
                 createdPartyId = null
             )
@@ -532,6 +582,7 @@ class BossReducer {
         is BossIntent.ToggleBossPartyAlarmFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -559,18 +610,20 @@ class BossReducer {
         }
 
         is BossIntent.SearchCharactersSuccess -> {
-            val characters: List<Pair<String, CharacterSummary>> = intent.characters.values // 1. 월드 그룹 Map들만 추출
-                .flatMap { worldMap ->
-                    // 2. 각 월드 그룹 내부의 worldName(Key)과 characters(Value) 순회
-                    worldMap.flatMap { (worldName, characters) ->
-                        // 3. 캐릭터 리스트를 Pair(월드 이름, 캐릭터)로 변환
-                        characters.map { character -> worldName to character }
+            val characters: List<Pair<String, CharacterSummary>> =
+                intent.characters.values // 1. 월드 그룹 Map들만 추출
+                    .flatMap { worldMap ->
+                        // 2. 각 월드 그룹 내부의 worldName(Key)과 characters(Value) 순회
+                        worldMap.flatMap { (worldName, characters) ->
+                            // 3. 캐릭터 리스트를 Pair(월드 이름, 캐릭터)로 변환
+                            characters.map { character -> worldName to character }
+                        }
                     }
-                }
-                .sortedByDescending { it.second.characterLevel } // 4. 레벨(Pair의 second) 기준 역순 정렬
+                    .sortedByDescending { it.second.characterLevel } // 4. 레벨(Pair의 second) 기준 역순 정렬
 
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 searchCharacters = characters,
                 createdPartyId = null
             )
@@ -579,6 +632,7 @@ class BossReducer {
         is BossIntent.SearchCharactersFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -619,6 +673,7 @@ class BossReducer {
         is BossIntent.KickBossPartyMemberSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 createdPartyId = null,
                 successMessage = intent.successMessage
             )
@@ -627,6 +682,7 @@ class BossReducer {
         is BossIntent.KickBossPartyMemberFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -642,6 +698,7 @@ class BossReducer {
         is BossIntent.LeaveBossPartySuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossParties = intent.newBossParties.filter { it.joinStatus == JoinStatus.ACCEPTED },
                 bossPartiesInvited = intent.newBossParties.filter { it.joinStatus == JoinStatus.INVITED },
                 createdPartyId = null
@@ -651,6 +708,7 @@ class BossReducer {
         is BossIntent.LeaveBossPartyFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -666,6 +724,7 @@ class BossReducer {
         is BossIntent.TransferBossPartyLeaderSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 createdPartyId = null,
                 successMessage = intent.successMessage
             )
@@ -674,6 +733,7 @@ class BossReducer {
         is BossIntent.TransferBossPartyLeaderFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -696,6 +756,7 @@ class BossReducer {
         is BossIntent.ToggleBossPartyChatAlarmSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 isBossPartyChatAlarmOn = intent.enabled,
                 createdPartyId = null
             )
@@ -704,6 +765,7 @@ class BossReducer {
         is BossIntent.ToggleBossPartyChatAlarmFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -712,6 +774,7 @@ class BossReducer {
         is BossIntent.ConnectBossPartyChatSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 createdPartyId = null
             )
         }
@@ -730,6 +793,7 @@ class BossReducer {
 
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyChats = updatedList,
                 bossPartyChatUiItems = transformToUiItems(updatedList),
                 createdPartyId = null
@@ -739,14 +803,16 @@ class BossReducer {
         is BossIntent.ConnectBossPartyChatFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
-       }
+        }
 
         is BossIntent.UpdateBossPartyChatMessage -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyChatMessage = intent.bossPartyChatMessage,
                 createdPartyId = null
             )
@@ -762,6 +828,7 @@ class BossReducer {
         is BossIntent.SendBossPartyChatMessageSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyChatMessage = "",
                 createdPartyId = null
             )
@@ -770,6 +837,7 @@ class BossReducer {
         is BossIntent.SendBossPartyChatMessageFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -801,6 +869,7 @@ class BossReducer {
         is BossIntent.ReportBossPartyChatMessageSuccess -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 showBossPartyChatReport = false,
                 createdPartyId = null
             )
@@ -809,6 +878,7 @@ class BossReducer {
         is BossIntent.ReportBossPartyChatMessageFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -847,6 +917,7 @@ class BossReducer {
 
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyChats = combinedChats,
                 bossPartyChatUiItems = transformToUiItems(combinedChats),
                 isBossPartyChatLastPage = history.isLastPage,
@@ -858,6 +929,7 @@ class BossReducer {
         is BossIntent.FetchBossPartyChatHistoryFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -874,6 +946,7 @@ class BossReducer {
             val newBossChats = currentState.bossPartyChats
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyChats = newBossChats,
                 bossPartyChatUiItems = transformToUiItems(newBossChats),
                 createdPartyId = null
@@ -883,6 +956,7 @@ class BossReducer {
         is BossIntent.HideBossPartyChatMessageFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -899,6 +973,7 @@ class BossReducer {
             val newBossChats = currentState.bossPartyChats
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyChats = newBossChats,
                 bossPartyChatUiItems = transformToUiItems(newBossChats),
                 createdPartyId = null
@@ -908,6 +983,7 @@ class BossReducer {
         is BossIntent.DeleteBossPartyChatMessageFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -917,6 +993,7 @@ class BossReducer {
             Napier.d("연결끊겼다")
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 createdPartyId = null
             )
         }
@@ -952,6 +1029,7 @@ class BossReducer {
 
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyBoards = combinedBoards,
                 isBossPartyBoardLastPage = history.isLastPage,
                 bossPartyBoardPage = currentState.bossPartyBoardPage + 1,
@@ -962,6 +1040,7 @@ class BossReducer {
         is BossIntent.FetchBossPartyBoardHistoryFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -975,6 +1054,7 @@ class BossReducer {
 
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 uploadImage = newImages
             )
         }
@@ -982,6 +1062,7 @@ class BossReducer {
         is BossIntent.UpdateBossPartyBoardComment -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 uploadComment = intent.comment
             )
         }
@@ -1011,6 +1092,7 @@ class BossReducer {
         is BossIntent.SubmitBossPartyBoardFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -1030,6 +1112,7 @@ class BossReducer {
 
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyBoards = newBoards,
                 createdPartyId = null
             )
@@ -1038,6 +1121,7 @@ class BossReducer {
         is BossIntent.LikeBossPartyBoardPostFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -1057,6 +1141,7 @@ class BossReducer {
 
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 bossPartyBoards = newBoards,
                 createdPartyId = null
             )
@@ -1065,6 +1150,7 @@ class BossReducer {
         is BossIntent.DislikeBossPartyBoardFailed -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = intent.message,
                 createdPartyId = null
             )
@@ -1073,6 +1159,7 @@ class BossReducer {
         is BossIntent.SelectBossPartyDetailMenu -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 selectedBossPartyDetailMenu = intent.selectedBossPartyDetailMenu,
                 createdPartyId = null
             )
@@ -1081,6 +1168,7 @@ class BossReducer {
         is BossIntent.InitMessage -> {
             currentState.copy(
                 isLoading = false,
+                isRefreshing = false,
                 successMessage = null,
                 errorMessage = null
             )

@@ -22,6 +22,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sixclassguys.maplecalendar.domain.repository.NotificationEventBus
 import com.sixclassguys.maplecalendar.presentation.boss.BossIntent
 import com.sixclassguys.maplecalendar.presentation.boss.BossViewModel
+import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleStatBackground
 import com.sixclassguys.maplecalendar.theme.MapleStatTitle
 import com.sixclassguys.maplecalendar.theme.MapleWhite
@@ -55,6 +59,7 @@ fun BossPartyListScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val pullToRefreshState = rememberPullToRefreshState()
     val eventBus = getKoin().get<NotificationEventBus>()
 
     LaunchedEffect(Unit) {
@@ -129,73 +134,89 @@ fun BossPartyListScreen(
         },
         containerColor = MapleWhite
     ) { innerPadding ->
-        Column(
+        PullToRefreshBox(
+            state = pullToRefreshState,
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = { viewModel.onIntent(BossIntent.PullToRefresh) },
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = uiState.isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    color = MapleOrange,
+                    containerColor = MapleWhite
+                )
+            },
             modifier = Modifier.fillMaxSize()
-                .padding(innerPadding)
-                .background(MapleWhite) // 최하단 바닥 배경
         ) {
             Column(
                 modifier = Modifier.fillMaxSize()
-                    .padding(vertical = 8.dp)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                    .background(MapleStatBackground)
+                    .padding(innerPadding)
+                    .background(MapleWhite) // 최하단 바닥 배경
             ) {
-                // 헤더 영역
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(vertical = 16.dp, horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "BOSS PARTY",
-                        color = MapleStatTitle,
-                        style = Typography.titleMedium
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(
-                            onClick = {
-                                viewModel.onIntent(BossIntent.ShowBossPartyInvitationDialog)
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.InsertInvitation,
-                                contentDescription = null,
-                                tint = MapleWhite
-                            )
-                        }
-                        IconButton(
-                            onClick = {
-                                val allWorlds = MapleWorld.entries.map { it.worldName }
-                                viewModel.onIntent(BossIntent.FetchCharacters(allWorlds))
-                                onAddParty()
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = null,
-                                tint = MapleWhite
-                            )
-                        }
-                    }
-                }
-
                 Column(
                     modifier = Modifier.fillMaxSize()
-                        .padding(vertical = 16.dp, horizontal = 20.dp)
-                        .background(MapleWhite, shape = RoundedCornerShape(24.dp))
-                        .padding(12.dp) // 카드들과 흰 컨테이너 사이 여백
+                        .padding(vertical = 8.dp)
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                        .background(MapleStatBackground)
                 ) {
-                    // 🚀 파티 카드 리스트
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                            .padding(16.dp)
+                    // 헤더 영역
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(vertical = 16.dp, horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        items(uiState.bossParties) { party ->
-                            BossPartyCard(bossParty = party, onPartyClick = { onPartyClick(party.id) })
+                        Text(
+                            text = "BOSS PARTY",
+                            color = MapleStatTitle,
+                            style = Typography.titleMedium
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    viewModel.onIntent(BossIntent.ShowBossPartyInvitationDialog)
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.InsertInvitation,
+                                    contentDescription = null,
+                                    tint = MapleWhite
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    val allWorlds = MapleWorld.entries.map { it.worldName }
+                                    viewModel.onIntent(BossIntent.FetchCharacters(allWorlds))
+                                    onAddParty()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    tint = MapleWhite
+                                )
+                            }
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                            .padding(vertical = 16.dp, horizontal = 20.dp)
+                            .background(MapleWhite, shape = RoundedCornerShape(24.dp))
+                            .padding(12.dp) // 카드들과 흰 컨테이너 사이 여백
+                    ) {
+                        // 🚀 파티 카드 리스트
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize()
+                                .padding(16.dp)
+                        ) {
+                            items(uiState.bossParties) { party ->
+                                BossPartyCard(bossParty = party, onPartyClick = { onPartyClick(party.id) })
+                            }
                         }
                     }
                 }

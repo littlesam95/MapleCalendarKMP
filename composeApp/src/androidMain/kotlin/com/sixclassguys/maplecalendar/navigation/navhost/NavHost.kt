@@ -26,7 +26,6 @@ import com.sixclassguys.maplecalendar.presentation.login.LoginIntent
 import com.sixclassguys.maplecalendar.presentation.login.LoginViewModel
 import com.sixclassguys.maplecalendar.presentation.playlist.PlaylistIntent
 import com.sixclassguys.maplecalendar.presentation.playlist.PlaylistViewModel
-import com.sixclassguys.maplecalendar.presentation.setting.SettingIntent
 import com.sixclassguys.maplecalendar.presentation.setting.SettingViewModel
 import com.sixclassguys.maplecalendar.ui.board.BoardScreen
 import com.sixclassguys.maplecalendar.ui.boss.BossPartyCreateScreen
@@ -40,7 +39,6 @@ import com.sixclassguys.maplecalendar.ui.character.MapleCharacterSubmitScreen
 import com.sixclassguys.maplecalendar.ui.home.HomeScreen
 import com.sixclassguys.maplecalendar.ui.login.LoginScreen
 import com.sixclassguys.maplecalendar.ui.login.SelectRepresentativeCharacterScreen
-import com.sixclassguys.maplecalendar.ui.playlist.MapleBgmPlayScreen
 import com.sixclassguys.maplecalendar.ui.playlist.PlaylistScreen
 import com.sixclassguys.maplecalendar.ui.playlist.SearchMapleBgmScreen
 import com.sixclassguys.maplecalendar.ui.setting.SettingScreen
@@ -240,7 +238,6 @@ fun NavHost(
             composable(Navigation.BossPartyDetail.destination) {
                 BossPartyDetailScreen(
                     viewModel = bossViewModel,
-                    snackbarHostState = snackbarHostState,
                     onBack = {
                         bossViewModel.onIntent(BossIntent.DisconnectBossPartyChat)
                         navController.popBackStack()
