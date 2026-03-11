@@ -46,7 +46,14 @@ class CalendarReducer {
 
     fun reduce(currentState: CalendarUiState, intent: CalendarIntent): CalendarUiState {
         return when (intent) {
-            is CalendarIntent.Refresh -> {
+            is CalendarIntent.PullToRefresh -> {
+                currentState.copy(
+                    isLoading = true,
+                    isRefreshing = true
+                )
+            }
+
+            is CalendarIntent.PullToRefreshDetail -> {
                 currentState.copy(
                     isLoading = true,
                     isRefreshing = true
@@ -64,6 +71,7 @@ class CalendarReducer {
             is CalendarIntent.FetchNexonOpenApiKeySuccess -> {
                 currentState.copy(
                     isLoading = false,
+                    isRefreshing = false,
                     nexonApiKey = intent.key
                 )
             }
@@ -71,6 +79,7 @@ class CalendarReducer {
             is CalendarIntent.FetchNexonOpenApiKeyFailed -> {
                 currentState.copy(
                     isLoading = false,
+                    isRefreshing = false,
                     errorMessage = intent.message
                 )
             }
@@ -84,6 +93,7 @@ class CalendarReducer {
             is CalendarIntent.FetchGlobalAlarmStatusSuccess -> {
                 currentState.copy(
                     isLoading = false,
+                    isRefreshing = false,
                     isGlobalAlarmEnabled = intent.isEnabled
                 )
             }
@@ -91,6 +101,7 @@ class CalendarReducer {
             is CalendarIntent.FetchGlobalAlarmStatusFailed -> {
                 currentState.copy(
                     isLoading = false,
+                    isRefreshing = false,
                     errorMessage = intent.message
                 )
             }
@@ -99,6 +110,7 @@ class CalendarReducer {
                 val targetDate = getLocalDateByOffset(intent.offset)
                 currentState.copy(
                     isLoading = true, // 달이 바뀌면 로딩 표시
+                    isRefreshing = false,
                     monthOffset = intent.offset,
                     year = targetDate.year,
                     month = targetDate.month,
@@ -177,6 +189,7 @@ class CalendarReducer {
 
             is CalendarIntent.ClearSelectedEvent -> {
                 currentState.copy(
+                    isRefreshing = false,
                     selectedEvent = null,
                     isNotificationEnabled = false,
                     scheduledNotifications = emptyList()
@@ -194,6 +207,7 @@ class CalendarReducer {
                 val scheduledNotifications = intent.event?.notificationTimes ?: emptyList()
                 currentState.copy(
                     isLoading = false,
+                    isRefreshing = false,
                     selectedEvent = intent.event,
                     isNotificationEnabled = isNotificationEnabled,
                     scheduledNotifications = scheduledNotifications
@@ -203,6 +217,7 @@ class CalendarReducer {
             is CalendarIntent.SelectEventFailed -> {
                 currentState.copy(
                     isLoading = false,
+                    isRefreshing = false,
                     errorMessage = intent.message
                 )
             }
@@ -218,6 +233,7 @@ class CalendarReducer {
                 val scheduledNotifications = intent.event.notificationTimes
                 currentState.copy(
                     isLoading = false,
+                    isRefreshing = false,
                     selectedEvent = intent.event,
                     isNotificationEnabled = isNotificationEnabled,
                     scheduledNotifications = scheduledNotifications,
@@ -228,12 +244,14 @@ class CalendarReducer {
             is CalendarIntent.ToggleNotificationFailed -> {
                 currentState.copy(
                     isLoading = false,
+                    isRefreshing = false,
                     errorMessage = intent.message
                 )
             }
 
             is CalendarIntent.ShowAlarmDialog -> {
                 currentState.copy(
+                    isRefreshing = false,
                     showAlarmDialog = intent.show,
                 )
             }
@@ -250,6 +268,7 @@ class CalendarReducer {
                 val scheduledNotifications = intent.event.notificationTimes
                 currentState.copy(
                     isLoading = false,
+                    isRefreshing = false,
                     selectedEvent = event,
                     isNotificationEnabled = isNotificationEnabled,
                     scheduledNotifications = scheduledNotifications,
@@ -260,6 +279,7 @@ class CalendarReducer {
             is CalendarIntent.SubmitNotificationTimesFailed -> {
                 currentState.copy(
                     isLoading = false,
+                    isRefreshing = false,
                     errorMessage = intent.message
                 )
             }
@@ -267,6 +287,7 @@ class CalendarReducer {
             is CalendarIntent.InitMessage -> {
                 currentState.copy(
                     isLoading = false,
+                    isRefreshing = false,
                     successMessage = null,
                     errorMessage = null
                 )

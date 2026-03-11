@@ -8,7 +8,9 @@ import kotlinx.datetime.LocalDateTime
 
 sealed class CalendarIntent {
 
-    data object Refresh : CalendarIntent()
+    data object PullToRefresh : CalendarIntent()
+
+    data object PullToRefreshDetail : CalendarIntent()
 
     data object FetchNexonOpenApiKey : CalendarIntent()
 

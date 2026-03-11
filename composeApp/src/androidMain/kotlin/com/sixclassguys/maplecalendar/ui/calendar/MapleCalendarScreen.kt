@@ -15,15 +15,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarIntent
 import com.sixclassguys.maplecalendar.presentation.calendar.CalendarViewModel
+import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleWhite
 import com.sixclassguys.maplecalendar.theme.Typography
 import com.sixclassguys.maplecalendar.ui.component.BossScheduleRow
@@ -41,6 +46,7 @@ fun MapleCalendarScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val pullToRefreshState = rememberPullToRefreshState()
 
     LaunchedEffect(uiState.errorMessage) {
         val message = uiState.errorMessage
@@ -53,102 +59,117 @@ fun MapleCalendarScreen(
     Scaffold(
         containerColor = MapleWhite
     ) { padding ->
-        Column(
+        PullToRefreshBox(
+            state = pullToRefreshState,
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = { viewModel.onIntent(CalendarIntent.PullToRefresh) },
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = uiState.isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    color = MapleOrange,
+                    containerColor = MapleWhite
+                )
+            },
             modifier = Modifier.fillMaxSize()
-                .padding(bottom = padding.calculateBottomPadding())
         ) {
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 32.dp)
+            Column(
+                modifier = Modifier.fillMaxSize()
+                    .padding(bottom = padding.calculateBottomPadding())
             ) {
-                // 1. 캘린더 카드
-                item {
-                    Text(
-                        text = "캘린더",
-                        style = Typography.titleLarge,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 32.dp)
+                ) {
+                    // 1. 캘린더 카드
+                    item {
+                        Text(
+                            text = "캘린더",
+                            style = Typography.titleLarge,
+                            modifier = Modifier.padding(16.dp)
+                        )
 
-                    CalendarCard(
-                        uiState = uiState,
-                        onMonthChanged = { newOffset ->
-                            viewModel.onIntent(CalendarIntent.ChangeMonth(newOffset))
-                        },
-                        onDateClick = { date ->
-                            viewModel.onIntent(CalendarIntent.SelectDate(date))
-                        },
-                        today = viewModel.getTodayDate()
-                    )
-                }
-
-                // 2. 진행중인 이벤트 섹션
-                item {
-                    val selectedDateText = uiState.selectedDate?.let {
-                        "${it.year}년 ${it.monthNumber}월 ${it.dayOfMonth}일"
-                    }
-
-                    Text(
-                        text = if (selectedDateText == null) "날짜를 선택해주세요!" else "$selectedDateText 진행중인 이벤트",
-                        style = Typography.titleMedium,
-                        modifier = Modifier.padding(16.dp)
-                    )
-
-                    // 해당 월의 이벤트 중 선택된 날짜가 포함된 이벤트 필터링
-                    val year = uiState.selectedDate?.year ?: viewModel.getTodayDate().year
-                    val month = uiState.selectedDate?.monthNumber ?: viewModel.getTodayDate().monthNumber
-                    val day = uiState.selectedDate?.dayOfMonth ?: viewModel.getTodayDate().dayOfMonth
-                    val currentKey = "${year}-${month}-${day}"
-                    val nowEvents = uiState.eventsMapByDay[currentKey] ?: emptyList()
-
-                    if (nowEvents.isEmpty()) {
-                        EmptyEventScreen("진행중인 이벤트가 없어요.")
-                    } else {
-                        CarouselEventRow(
-                            nowEvents = nowEvents,
-                            onNavigateToEventDetail = { eventId ->
-                                onNavigateToEventDetail()
-                                val selected = nowEvents.find { it.id == eventId }
-                                selected?.let {
-                                    viewModel.onIntent(CalendarIntent.SelectEvent(it.id))
-                                }
-                            }
+                        CalendarCard(
+                            uiState = uiState,
+                            onMonthChanged = { newOffset ->
+                                viewModel.onIntent(CalendarIntent.ChangeMonth(newOffset))
+                            },
+                            onDateClick = { date ->
+                                viewModel.onIntent(CalendarIntent.SelectDate(date))
+                            },
+                            today = viewModel.getTodayDate()
                         )
                     }
-                }
 
-                // 3. 오늘의 보스 일정 (현재 UIState에는 보스 데이터가 없으므로 자리만 유지)
-                item {
-                    val selectedDateText = uiState.selectedDate?.let {
-                        "${it.year}년 ${it.monthNumber}월 ${it.dayOfMonth}일"
+                    // 2. 진행중인 이벤트 섹션
+                    item {
+                        val selectedDateText = uiState.selectedDate?.let {
+                            "${it.year}년 ${it.monthNumber}월 ${it.dayOfMonth}일"
+                        }
+
+                        Text(
+                            text = if (selectedDateText == null) "날짜를 선택해주세요!" else "$selectedDateText 진행중인 이벤트",
+                            style = Typography.titleMedium,
+                            modifier = Modifier.padding(16.dp)
+                        )
+
+                        // 해당 월의 이벤트 중 선택된 날짜가 포함된 이벤트 필터링
+                        val year = uiState.selectedDate?.year ?: viewModel.getTodayDate().year
+                        val month = uiState.selectedDate?.monthNumber ?: viewModel.getTodayDate().monthNumber
+                        val day = uiState.selectedDate?.dayOfMonth ?: viewModel.getTodayDate().dayOfMonth
+                        val currentKey = "${year}-${month}-${day}"
+                        val nowEvents = uiState.eventsMapByDay[currentKey] ?: emptyList()
+
+                        if (nowEvents.isEmpty()) {
+                            EmptyEventScreen("진행중인 이벤트가 없어요.")
+                        } else {
+                            CarouselEventRow(
+                                nowEvents = nowEvents,
+                                onNavigateToEventDetail = { eventId ->
+                                    onNavigateToEventDetail()
+                                    val selected = nowEvents.find { it.id == eventId }
+                                    selected?.let {
+                                        viewModel.onIntent(CalendarIntent.SelectEvent(it.id))
+                                    }
+                                }
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = if (selectedDateText == null) "날짜를 선택해주세요!" else "$selectedDateText 보스 일정",
-                        style = Typography.titleMedium,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    // 3. 오늘의 보스 일정 (현재 UIState에는 보스 데이터가 없으므로 자리만 유지)
+                    item {
+                        val selectedDateText = uiState.selectedDate?.let {
+                            "${it.year}년 ${it.monthNumber}월 ${it.dayOfMonth}일"
+                        }
 
-                    val year = uiState.selectedDate?.year ?: viewModel.getTodayDate().year
-                    val month = uiState.selectedDate?.monthNumber ?: viewModel.getTodayDate().monthNumber
-                    val day = uiState.selectedDate?.dayOfMonth ?: viewModel.getTodayDate().dayOfMonth
-                    val currentKey = "${year}-${month}-${day}"
-                    val nowBossSchedules = uiState.bossSchedulesMapByDay[currentKey] ?: emptyList()
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = if (selectedDateText == null) "날짜를 선택해주세요!" else "$selectedDateText 보스 일정",
+                            style = Typography.titleMedium,
+                            modifier = Modifier.padding(16.dp)
+                        )
 
-                    // 보스 데이터가 비어있을 때 (이미지 포함된 뷰)
-                    if (nowBossSchedules.isEmpty()) {
-                        EmptyEventScreen("보스 일정이 없어요.")
-                    } else {
-                        LazyRow(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 8.dp)
-                        ) {
-                            items(nowBossSchedules) { schedule ->
-                                BossScheduleRow(
-                                    schedule = schedule,
-                                    onNavigateToBossDetail = onNavigateToBossDetail
-                                )
+                        val year = uiState.selectedDate?.year ?: viewModel.getTodayDate().year
+                        val month = uiState.selectedDate?.monthNumber ?: viewModel.getTodayDate().monthNumber
+                        val day = uiState.selectedDate?.dayOfMonth ?: viewModel.getTodayDate().dayOfMonth
+                        val currentKey = "${year}-${month}-${day}"
+                        val nowBossSchedules = uiState.bossSchedulesMapByDay[currentKey] ?: emptyList()
+
+                        // 보스 데이터가 비어있을 때 (이미지 포함된 뷰)
+                        if (nowBossSchedules.isEmpty()) {
+                            EmptyEventScreen("보스 일정이 없어요.")
+                        } else {
+                            LazyRow(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(horizontal = 8.dp)
+                            ) {
+                                items(nowBossSchedules) { schedule ->
+                                    BossScheduleRow(
+                                        schedule = schedule,
+                                        onNavigateToBossDetail = onNavigateToBossDetail
+                                    )
+                                }
                             }
                         }
                     }

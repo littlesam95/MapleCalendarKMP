@@ -185,8 +185,19 @@ class CalendarViewModel(
 
         // 부수 효과 처리 (네트워크 통신 등)
         when (intent) {
-            is CalendarIntent.Refresh -> {
-                onIntent(CalendarIntent.SelectDate(_uiState.value.selectedDate ?: getTodayDate()))
+            is CalendarIntent.PullToRefresh -> {
+                val selectedDate = _uiState.value.selectedDate
+                val year = selectedDate?.year ?: getTodayDate().year
+                val month = selectedDate?.monthNumber ?: getTodayDate().monthNumber
+                val day = selectedDate?.dayOfMonth ?: getTodayDate().dayOfMonth
+                val key = "${year}-${month}-${day}"
+                fetchEventsByDay(year, month, day, key)
+                getTodayBossSchedules(year, month, day, key)
+            }
+
+            is CalendarIntent.PullToRefreshDetail -> {
+                val eventId = _uiState.value.selectedEvent?.id ?: 0L
+                fetchEvent(eventId)
             }
 
             is CalendarIntent.FetchNexonOpenApiKey -> {

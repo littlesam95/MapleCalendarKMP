@@ -26,6 +26,9 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -63,7 +66,6 @@ import com.sixclassguys.maplecalendar.ui.component.EventCollapsingHeader
 import com.sixclassguys.maplecalendar.ui.component.EventDetailHeader
 import com.sixclassguys.maplecalendar.ui.component.EventWebView
 import com.sixclassguys.maplecalendar.ui.component.NotificationSection
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 
 // 상단 바의 높이 설정 (dp 단위)
@@ -80,6 +82,7 @@ fun MapleEventDetailScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val pullToRefreshState = rememberPullToRefreshState()
     val scope = rememberCoroutineScope()
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -173,119 +176,135 @@ fun MapleEventDetailScreen(
     Scaffold(
         containerColor = Color.White
     ) { padding ->
-        Box(
+        PullToRefreshBox(
+            state = pullToRefreshState,
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = { viewModel.onIntent(CalendarIntent.PullToRefreshDetail) },
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = uiState.isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    color = MapleOrange,
+                    containerColor = MapleWhite
+                )
+            },
             modifier = Modifier.fillMaxSize()
-                .padding(bottom = padding.calculateBottomPadding())
-                .nestedScroll(nestedScrollConnection) // 👈 핵심: 스크롤 연결
         ) {
-            when {
-                event == null -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                            .background(MapleBlack.copy(alpha = 0.7f)) // 화면 어둡게 처리
-                            .pointerInput(Unit) {}, // 터치 이벤트 전파 방지 (클릭 막기)
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator(
-                                color = MapleOrange,
-                                strokeWidth = 4.dp
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "이벤트 정보를 불러오는 중이에요...",
-                                color = MapleWhite,
-                                style = Typography.bodyLarge
-                            )
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .padding(bottom = padding.calculateBottomPadding())
+                    .nestedScroll(nestedScrollConnection) // 👈 핵심: 스크롤 연결
+            ) {
+                when {
+                    event == null -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize()
+                                .background(MapleBlack.copy(alpha = 0.7f)) // 화면 어둡게 처리
+                                .pointerInput(Unit) {}, // 터치 이벤트 전파 방지 (클릭 막기)
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator(
+                                    color = MapleOrange,
+                                    strokeWidth = 4.dp
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "이벤트 정보를 불러오는 중이에요...",
+                                    color = MapleWhite,
+                                    style = Typography.bodyLarge
+                                )
+                            }
                         }
                     }
-                }
 
-                else -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize()
-                            .offset { IntOffset(0, (expandedHeightPx + toolbarOffsetHeightPx).toInt()) }
-                            .verticalScroll(scrollState) // 전체 스크롤 허용
-                    ) {
-                        // 2. 헤더 정보 (제목, 공유, 날짜, 태그)
-                        EventDetailHeader(
-                            event = event
-                        )
+                    else -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize()
+                                .offset { IntOffset(0, (expandedHeightPx + toolbarOffsetHeightPx).toInt()) }
+                                .verticalScroll(scrollState) // 전체 스크롤 허용
+                        ) {
+                            // 2. 헤더 정보 (제목, 공유, 날짜, 태그)
+                            EventDetailHeader(
+                                event = event
+                            )
 
-                        HorizontalDivider(thickness = 1.dp, color = MapleGray)
+                            HorizontalDivider(thickness = 1.dp, color = MapleGray)
 
-                        // 3. 알림 설정 섹션
-                        NotificationSection(
-                            isEnabled = uiState.isNotificationEnabled,
-                            onClick = { viewModel.onIntent(CalendarIntent.ShowAlarmDialog(true)) },
-                            onToggle = {
-                                if (uiState.isGlobalAlarmEnabled) {
-                                    if (uiState.isNotificationEnabled) {
-                                        // Android 13 이상 대응 (Tiramisu = 33)
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            // 3. 알림 설정 섹션
+                            NotificationSection(
+                                isEnabled = uiState.isNotificationEnabled,
+                                onClick = { viewModel.onIntent(CalendarIntent.ShowAlarmDialog(true)) },
+                                onToggle = {
+                                    if (uiState.isGlobalAlarmEnabled) {
+                                        if (uiState.isNotificationEnabled) {
+                                            // Android 13 이상 대응 (Tiramisu = 33)
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                            } else {
+                                                viewModel.onIntent(CalendarIntent.ToggleNotification)
+                                            }
                                         } else {
+                                            // OFF로 바꿀 때는 권한 요청 필요 없음
                                             viewModel.onIntent(CalendarIntent.ToggleNotification)
                                         }
                                     } else {
-                                        // OFF로 바꿀 때는 권한 요청 필요 없음
-                                        viewModel.onIntent(CalendarIntent.ToggleNotification)
+                                        Toast.makeText(context, "전체 알림을 먼저 허용해주세요.", Toast.LENGTH_SHORT).show()
                                     }
-                                } else {
-                                    Toast.makeText(context, "전체 알림을 먼저 허용해주세요.", Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            notificationTimes = uiState.scheduledNotifications
-                        )
+                                },
+                                notificationTimes = uiState.scheduledNotifications
+                            )
 
-                        HorizontalDivider(thickness = 8.dp, color = MapleGray)
+                            HorizontalDivider(thickness = 8.dp, color = MapleGray)
 
-                        // 4. 홈페이지 상세 (WebView)
-                        Text(
-                            text = "홈페이지",
-                            style = Typography.titleSmall,
-                            modifier = Modifier.padding(16.dp)
-                        )
+                            // 4. 홈페이지 상세 (WebView)
+                            Text(
+                                text = "홈페이지",
+                                style = Typography.titleSmall,
+                                modifier = Modifier.padding(16.dp)
+                            )
 
-                        // WebView를 Compose에서 사용하기 위해 AndroidView 활용
-                        EventWebView(
-                            url = event.url,
-                            parentScrollState = scrollState
-                        )// 💡 하단 여백 추가 (웹뷰 끝까지 내리기 편하게)
-                        Spacer(modifier = Modifier.height(50.dp))
-                    }
-
-                    EventCollapsingHeader(
-                        event = event,
-                        currentHeightPx = expandedHeightPx + toolbarOffsetHeightPx,
-                        scrollPercentage = scrollPercentage,
-                        onBack = onBack,
-                        onShare = {
-                            Toast.makeText(context, "준비중인 기능이에요.", Toast.LENGTH_SHORT).show()
+                            // WebView를 Compose에서 사용하기 위해 AndroidView 활용
+                            EventWebView(
+                                url = event.url,
+                                parentScrollState = scrollState
+                            )// 💡 하단 여백 추가 (웹뷰 끝까지 내리기 편하게)
+                            Spacer(modifier = Modifier.height(50.dp))
                         }
-                    )
+
+                        EventCollapsingHeader(
+                            event = event,
+                            currentHeightPx = expandedHeightPx + toolbarOffsetHeightPx,
+                            scrollPercentage = scrollPercentage,
+                            onBack = onBack,
+                            onShare = {
+                                Toast.makeText(context, "준비중인 기능이에요.", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
                 }
             }
-        }
 
-        if (uiState.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize()
-                    .background(MapleBlack.copy(alpha = 0.7f)) // 화면 어둡게 처리
-                    .pointerInput(Unit) {}, // 터치 이벤트 전파 방지 (클릭 막기)
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator(
-                        color = MapleOrange,
-                        strokeWidth = 4.dp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "이벤트 정보를 불러오는 중이에요...",
-                        color = MapleWhite,
-                        style = Typography.bodyLarge
-                    )
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                        .background(MapleBlack.copy(alpha = 0.7f)) // 화면 어둡게 처리
+                        .pointerInput(Unit) {}, // 터치 이벤트 전파 방지 (클릭 막기)
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(
+                            color = MapleOrange,
+                            strokeWidth = 4.dp
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "이벤트 정보를 불러오는 중이에요...",
+                            color = MapleWhite,
+                            style = Typography.bodyLarge
+                        )
+                    }
                 }
             }
         }
