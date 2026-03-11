@@ -5,6 +5,12 @@ import io.github.aakira.napier.Napier
 class HomeReducer {
 
     fun reduce(currentState: HomeUiState, intent: HomeIntent): HomeUiState = when (intent) {
+        is HomeIntent.PullToRefresh -> {
+            currentState.copy(
+                isLoading = true
+            )
+        }
+
         is HomeIntent.AutoLogin -> {
             currentState.copy(
                 isLoading = true

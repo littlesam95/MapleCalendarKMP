@@ -10,6 +10,8 @@ import com.sixclassguys.maplecalendar.domain.model.Member
 
 sealed class HomeIntent {
 
+    data object PullToRefresh : HomeIntent()
+
     data object AutoLogin : HomeIntent()
 
     data class AutoLoginSuccess(val member: Member) : HomeIntent()

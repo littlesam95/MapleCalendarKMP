@@ -17,6 +17,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,6 +54,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val pullToRefreshState = rememberPullToRefreshState()
 
     LaunchedEffect(uiState.isNavigateToLogin) {
         if (uiState.isNavigateToLogin) {
@@ -70,133 +74,149 @@ fun HomeScreen(
     Scaffold(
         // topBar를 비워둠으로써 전체가 스크롤되도록 설정
         containerColor = MapleWhite
-    ) {
-        LazyColumn(
+    ) { padding ->
+        PullToRefreshBox(
+            state = pullToRefreshState,
+            isRefreshing = uiState.isLoading, // ViewModel의 로딩 상태와 동기화
+            onRefresh = { viewModel.onIntent(HomeIntent.PullToRefresh) },
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = uiState.isLoading,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    color = MapleOrange, // 메이플 테마 색상
+                    containerColor = MapleWhite
+                )
+            },
             modifier = Modifier.fillMaxSize()
-                .background(MapleWhite)
         ) {
-            // 1. 상단 앱바를 리스트의 첫 번째 아이템으로 삽입
-            item {
-                HomeAppBar(
-                    onNotificationClick = {
-                        // 알림 모아보기 기능은 준비중
-                        Toast.makeText(context, "준비중입니다.", Toast.LENGTH_SHORT).show()
-                    }
-                )
-            }
-
-            // 2. 캐릭터 정보 섹션
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-                val member = uiState.member
-                val basic = member?.characterBasic
-                val dojangRanking = member?.characterDojang
-                val overallRanking = member?.characterOverallRanking
-                val serverRanking = member?.characterServerRanking
-                val union = member?.characterUnionLevel
-                when {
-                    !uiState.isLoginSuccess -> {
-                        EmptyCharacterBasicCard(
-                            onClick = { viewModel.onIntent(HomeIntent.Login) },
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                    }
-
-                    ((basic != null) && (dojangRanking != null) && (overallRanking != null) && (serverRanking != null) && (union != null)) -> {
-                        CharacterBasicCard(
-                            basic = basic,
-                            dojangRanking = dojangRanking,
-                            overallRanking = overallRanking,
-                            serverRanking = serverRanking,
-                            union = union,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                    }
-
-                    (basic == null) -> {
-                        NoRepresentativeCharacterCard(
-                            nickname = member?.nickname ?: "메이플스토리 용사",
-                            onClick = onNavigateToCharacterList,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                    }
-
-                    uiState.isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxWidth()
-                                .height(200.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = MapleOrange)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+                    .background(MapleWhite)
+            ) {
+                // 1. 상단 앱바를 리스트의 첫 번째 아이템으로 삽입
+                item {
+                    HomeAppBar(
+                        onNotificationClick = {
+                            // 알림 모아보기 기능은 준비중
+                            Toast.makeText(context, "준비중입니다.", Toast.LENGTH_SHORT).show()
                         }
-                    }
-
-                    else -> {
-                        EmptyCharacterBasicCard(
-                            onClick = { viewModel.onIntent(HomeIntent.Login) },
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-
-            // 3. 오늘 진행하는 이벤트 타이틀
-            item {
-                Text(
-                    text = "오늘 진행하는 이벤트",
-                    style = Typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MapleBlack,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (uiState.events.isEmpty() && !uiState.isLoading) {
-                    EmptyEventScreen("진행중인 이벤트가 없어요.")
-                } else {
-                    CarouselEventRow(
-                        nowEvents = uiState.events,
-                        onNavigateToEventDetail = { /* url 오픈 혹은 상세 페이지 */ }
                     )
                 }
-                Spacer(modifier = Modifier.height(32.dp)) // 항목 간 여백 확대
-            }
 
-            // 4. 오늘의 보스 파티 일정 (수정)
-            item {
-                Text(
-                    text = "오늘의 보스 파티 일정",
-                    style = Typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MapleBlack,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                // 2. 캐릭터 정보 섹션
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    val member = uiState.member
+                    val basic = member?.characterBasic
+                    val dojangRanking = member?.characterDojang
+                    val overallRanking = member?.characterOverallRanking
+                    val serverRanking = member?.characterServerRanking
+                    val union = member?.characterUnionLevel
+                    when {
+                        !uiState.isLoginSuccess -> {
+                            EmptyCharacterBasicCard(
+                                onClick = { viewModel.onIntent(HomeIntent.Login) },
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
 
-                if (!uiState.isLoginSuccess || uiState.bossSchedules.isEmpty()) {
-                    // 로그아웃이거나 일정이 없을 때 (이미지 4번 하단 슬픈 버섯 참고)
-                    EmptyEventScreen("오늘은 보스 쉬는 날~")
-                } else {
-                    // 보스 일정 리스트 (가로 스크롤 혹은 세로 배치)
-                    LazyRow(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 8.dp)
-                    ) {
-                        items(uiState.bossSchedules) { schedule ->
-                            BossScheduleRow(
-                                schedule = schedule,
-                                onNavigateToBossDetail = onNavigateToBossDetail
+                        ((basic != null) && (dojangRanking != null) && (overallRanking != null) && (serverRanking != null) && (union != null)) -> {
+                            CharacterBasicCard(
+                                basic = basic,
+                                dojangRanking = dojangRanking,
+                                overallRanking = overallRanking,
+                                serverRanking = serverRanking,
+                                union = union,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
+
+                        (basic == null) -> {
+                            NoRepresentativeCharacterCard(
+                                nickname = member?.nickname ?: "메이플스토리 용사",
+                                onClick = onNavigateToCharacterList,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
+
+                        uiState.isLoading -> {
+                            Box(
+                                modifier = Modifier.fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = MapleOrange)
+                            }
+                        }
+
+                        else -> {
+                            EmptyCharacterBasicCard(
+                                onClick = { viewModel.onIntent(HomeIntent.Login) },
+                                modifier = Modifier.padding(horizontal = 16.dp)
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
-            }
 
-            // 하단 여백
-            item {
-                // 바텀바 높이(56dp) + 여유공간을 고려한 Spacer
-                Spacer(modifier = Modifier.height(144.dp))
+                // 3. 오늘 진행하는 이벤트 타이틀
+                item {
+                    Text(
+                        text = "오늘 진행하는 이벤트",
+                        style = Typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MapleBlack,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (uiState.events.isEmpty() && !uiState.isLoading) {
+                        EmptyEventScreen("진행중인 이벤트가 없어요.")
+                    } else {
+                        CarouselEventRow(
+                            nowEvents = uiState.events,
+                            onNavigateToEventDetail = { /* url 오픈 혹은 상세 페이지 */ }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(32.dp)) // 항목 간 여백 확대
+                }
+
+                // 4. 오늘의 보스 파티 일정 (수정)
+                item {
+                    Text(
+                        text = "오늘의 보스 파티 일정",
+                        style = Typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MapleBlack,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (!uiState.isLoginSuccess || uiState.bossSchedules.isEmpty()) {
+                        // 로그아웃이거나 일정이 없을 때 (이미지 4번 하단 슬픈 버섯 참고)
+                        EmptyEventScreen("오늘은 보스 쉬는 날~")
+                    } else {
+                        // 보스 일정 리스트 (가로 스크롤 혹은 세로 배치)
+                        LazyRow(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 8.dp)
+                        ) {
+                            items(uiState.bossSchedules) { schedule ->
+                                BossScheduleRow(
+                                    schedule = schedule,
+                                    onNavigateToBossDetail = onNavigateToBossDetail
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 하단 여백
+                item {
+                    // 바텀바 높이(56dp) + 여유공간을 고려한 Spacer
+                    Spacer(modifier = Modifier.height(144.dp))
+                }
             }
         }
     }

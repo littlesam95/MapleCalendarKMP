@@ -219,6 +219,19 @@ class HomeViewModel(
         }
 
         when (intent) {
+            is HomeIntent.PullToRefresh -> {
+                when (_uiState.value.member == null) {
+                    true -> {
+                        getTodayEvents()
+                    }
+
+                    false -> {
+                        getTodayEvents()
+                        getTodayBossSchedules()
+                    }
+                }
+            }
+
             is HomeIntent.AutoLogin -> {
                 autoLogin()
             }
