@@ -106,6 +106,9 @@ android {
         versionCode = 16
         versionName = "0.4.0"
 
+        buildConfigField("int", "VERSION_CODE", "${versionCode}")
+        buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
+
         ndk {
             // 구글 플레이에서 요구하는 64비트 아키텍처를 포함합니다.
             abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
@@ -115,6 +118,9 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+    buildFeatures {
+        buildConfig = true // 이미 true로 되어있을 겁니다.
     }
     buildTypes {
         getByName("release") {
