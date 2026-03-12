@@ -7,8 +7,8 @@ import com.sixclassguys.maplecalendar.data.remote.dto.MapleBgmResponse
 import com.sixclassguys.maplecalendar.data.remote.dto.SliceResponse
 import com.sixclassguys.maplecalendar.util.ApiException
 import com.sixclassguys.maplecalendar.util.MapleBgmLikeStatus
+import com.sixclassguys.maplecalendar.util.handleResponse
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -24,33 +24,14 @@ class PlaylistDataSourceImpl(
 ) : PlaylistDataSource {
 
     override suspend fun getMapleBgmDetail(accessToken: String, bgmId: Long): MapleBgmResponse {
-        val response = try {
+        return try {
             httpClient.get("playlist/bgm/$bgmId") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -59,35 +40,16 @@ class PlaylistDataSourceImpl(
         page: Int,
         size: Int
     ): SliceResponse<MapleBgmResponse> {
-        val response = try {
+        return try {
             httpClient.get("playlist/top") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("page", page)
                 parameter("size", size)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -96,35 +58,16 @@ class PlaylistDataSourceImpl(
         page: Int,
         size: Int
     ): SliceResponse<MapleBgmResponse> {
-        val response = try {
+        return try {
             httpClient.get("playlist/recent") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("page", page)
                 parameter("size", size)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -134,36 +77,17 @@ class PlaylistDataSourceImpl(
         page: Int,
         size: Int
     ): SliceResponse<MapleBgmResponse> {
-        val response = try {
+        return try {
             httpClient.get("playlist/search") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("query", query)
                 parameter("page", page)
                 parameter("size", size)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -172,65 +96,27 @@ class PlaylistDataSourceImpl(
         bgmId: Long,
         status: MapleBgmLikeStatus
     ): MapleBgmResponse {
-        val response = try {
+        return try {
             httpClient.post("playlist/bgm/$bgmId/like") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("status", status)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
     override suspend fun getMyPlaylists(accessToken: String): List<MapleBgmPlaylistResponse> {
-        val response = try {
+        return try {
             httpClient.get("playlist/mylists") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -238,33 +124,14 @@ class PlaylistDataSourceImpl(
         accessToken: String,
         playlistId: Long
     ): MapleBgmPlaylistResponse {
-        val response = try {
+        return try {
             httpClient.get("playlist/mylists/$playlistId") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -272,36 +139,17 @@ class PlaylistDataSourceImpl(
         accessToken: String,
         request: CreateMapleBgmPlaylistRequest
     ): List<MapleBgmPlaylistResponse> {
-        val response = try {
+        return try {
             httpClient.post("playlist/mylists") {
                 header("Authorization", "Bearer $accessToken")
                 setBody(request)
 
                 contentType(ContentType.Application.Json)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -309,33 +157,14 @@ class PlaylistDataSourceImpl(
         accessToken: String,
         playlistId: Long
     ): List<MapleBgmPlaylistResponse> {
-        val response = try {
+        return try {
             httpClient.delete("playlist/mylists/$playlistId") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -344,33 +173,14 @@ class PlaylistDataSourceImpl(
         playlistId: Long,
         bgmId: Long
     ): MapleBgmPlaylistResponse {
-        val response = try {
+        return try {
             httpClient.post("playlist/mylists/$playlistId/bgms/$bgmId") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -379,33 +189,14 @@ class PlaylistDataSourceImpl(
         playlistId: Long,
         bgmId: Long
     ): MapleBgmPlaylistResponse {
-        val response = try {
+        return try {
             httpClient.delete("playlist/mylists/$playlistId/bgms/$bgmId") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -414,36 +205,17 @@ class PlaylistDataSourceImpl(
         playlistId: Long,
         request: MapleBgmPlaylistUpdateRequests
     ): MapleBgmPlaylistResponse {
-        val response = try {
+        return try {
             httpClient.patch("playlist/mylists/$playlistId") {
                 header("Authorization", "Bearer $accessToken")
                 setBody(request)
 
                 contentType(ContentType.Application.Json)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 }

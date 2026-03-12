@@ -13,9 +13,9 @@ import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyResponse
 import com.sixclassguys.maplecalendar.data.remote.dto.BossPartyScheduleResponse
 import com.sixclassguys.maplecalendar.data.remote.dto.SliceResponse
 import com.sixclassguys.maplecalendar.util.ApiException
+import com.sixclassguys.maplecalendar.util.handleResponse
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.sendSerialized
 import io.ktor.client.plugins.websocket.webSocketSession
@@ -35,8 +35,6 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.utils.io.InternalAPI
-import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeFully
 import io.ktor.websocket.CloseReason
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
@@ -53,33 +51,14 @@ class BossDataSourceImpl(
     private var session: DefaultClientWebSocketSession? = null
 
     override suspend fun getBossParties(accessToken: String): List<BossPartyResponse> {
-        val response = try {
+        return try {
             httpClient.get("boss-parties") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -87,36 +66,17 @@ class BossDataSourceImpl(
         accessToken: String,
         request: BossPartyCreateRequest
     ): BossPartyCreateResponse {
-        val response = try {
+        return try {
             httpClient.post("boss-parties") {
                 header("Authorization", "Bearer $accessToken")
                 setBody(request)
 
                 contentType(ContentType.Application.Json)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -124,33 +84,14 @@ class BossDataSourceImpl(
         accessToken: String,
         bossPartyId: Long
     ): BossPartyDetailResponse {
-        val response = try {
+        return try {
             httpClient.get("boss-parties/$bossPartyId") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -160,36 +101,17 @@ class BossDataSourceImpl(
         month: Int,
         day: Int
     ): List<BossPartyScheduleResponse> {
-        val response = try {
+        return try {
             httpClient.get("boss-parties/schedules") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("year", year)
                 parameter("month", month)
                 parameter("day", day)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -197,33 +119,14 @@ class BossDataSourceImpl(
         accessToken: String,
         bossPartyId: Long
     ): List<BossPartyAlarmTimeResponse> {
-        val response = try {
+        return try {
             httpClient.get("boss-parties/$bossPartyId/alarm-times") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -231,33 +134,14 @@ class BossDataSourceImpl(
         accessToken: String,
         bossPartyId: Long
     ): Boolean {
-        val response = try {
+        return try {
             httpClient.patch("boss-parties/$bossPartyId/alarm-times/toggle") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -266,36 +150,17 @@ class BossDataSourceImpl(
         bossPartyId: Long,
         request: BossPartyAlarmTimeRequest
     ): List<BossPartyAlarmTimeResponse> {
-        val response = try {
+        return try {
             httpClient.post("boss-parties/$bossPartyId/alarm-times") {
                 header("Authorization", "Bearer $accessToken")
                 setBody(request)
 
                 contentType(ContentType.Application.Json)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -304,36 +169,17 @@ class BossDataSourceImpl(
         bossPartyId: Long,
         request: BossPartyAlarmPeriodRequest
     ): List<BossPartyAlarmTimeResponse> {
-        val response = try {
+        return try {
             httpClient.patch("boss-parties/$bossPartyId/alarm-period") {
                 header("Authorization", "Bearer $accessToken")
                 setBody(request)
 
                 contentType(ContentType.Application.Json)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -342,33 +188,14 @@ class BossDataSourceImpl(
         bossPartyId: Long,
         alarmId: Long
     ): List<BossPartyAlarmTimeResponse> {
-        val response = try {
+        return try {
             httpClient.delete("boss-parties/$bossPartyId/alarm-times/$alarmId") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -377,34 +204,15 @@ class BossDataSourceImpl(
         bossPartyId: Long,
         characterId: Long
     ) {
-        val response = try {
+        return try {
             httpClient.post("boss-parties/$bossPartyId/invite") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("characterId", characterId)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -412,33 +220,14 @@ class BossDataSourceImpl(
         accessToken: String,
         bossPartyId: Long
     ): Long {
-        val response = try {
+        return try {
             httpClient.post("boss-parties/$bossPartyId/accept") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -446,33 +235,14 @@ class BossDataSourceImpl(
         accessToken: String,
         bossPartyId: Long
     ): List<BossPartyResponse> {
-        val response = try {
+        return try {
             httpClient.delete("boss-parties/$bossPartyId/decline") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -481,64 +251,26 @@ class BossDataSourceImpl(
         bossPartyId: Long,
         characterId: Long
     ) {
-        val response = try {
+        return try {
             httpClient.delete("boss-parties/$bossPartyId/members/$characterId") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
     override suspend fun leaveParty(accessToken: String, bossPartyId: Long): List<BossPartyResponse> {
-        val response = try {
+        return try {
             httpClient.delete("boss-parties/$bossPartyId/leave") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -547,34 +279,15 @@ class BossDataSourceImpl(
         bossPartyId: Long,
         targetCharacterId: Long
     ) {
-        val response = try {
+        return try {
             httpClient.patch("boss-parties/$bossPartyId/transfer") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("targetCharacterId", targetCharacterId)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -584,35 +297,16 @@ class BossDataSourceImpl(
         page: Int,
         size: Int
     ): SliceResponse<BossPartyChatMessageResponse> {
-        val response = try {
+        return try {
             httpClient.get("boss-parties/$bossPartyId/chat-messages") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("page", page)
                 parameter("size", size)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -637,33 +331,14 @@ class BossDataSourceImpl(
     }
 
     override suspend fun updateChatAlarmSetting(accessToken: String, bossPartyId: Long): Boolean {
-        val response = try {
+        return try {
             httpClient.patch("boss-parties/$bossPartyId/chat-messages/toggle") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -682,64 +357,26 @@ class BossDataSourceImpl(
     }
 
     override suspend fun hideMessage(accessToken: String, bossPartyId: Long, messageId: Long) {
-        val response = try {
+        return try {
             httpClient.patch("boss-parties/$bossPartyId/chat-messages/$messageId") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
     override suspend fun deleteMessage(accessToken: String, bossPartyId: Long, messageId: Long) {
-        val response = try {
+        return try {
             httpClient.delete("boss-parties/$bossPartyId/chat-messages/$messageId") {
                 header("Authorization", "Bearer $accessToken")
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -779,35 +416,16 @@ class BossDataSourceImpl(
         page: Int,
         size: Int
     ): SliceResponse<BossPartyBoardResponse> {
-        val response = try {
+        return try {
             httpClient.get("boss-parties/$bossPartyId/board") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("page", page)
                 parameter("size", size)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -818,7 +436,7 @@ class BossDataSourceImpl(
         contentJson: String,
         imageFiles: List<ByteArray>
     ): BossPartyBoardResponse {
-        val response = try {
+        return try {
             httpClient.post("boss-parties/$bossPartyId/board") {
                 header("Authorization", "Bearer $accessToken")
 
@@ -842,32 +460,11 @@ class BossDataSourceImpl(
                         }
                     )
                 )
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        Napier.d("Response: $response")
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 
@@ -877,34 +474,15 @@ class BossDataSourceImpl(
         boardId: Long,
         likeType: String
     ): BossPartyBoardResponse {
-        val response = try {
+        return try {
             httpClient.put("boss-parties/$bossPartyId/board/$boardId/like") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("likeType", likeType)
-            }
+            }.handleResponse()
+        } catch (e: ApiException) {
+            throw e
         } catch (e: Exception) {
-            // 아예 서버에 접속조차 못하는 상황 (인터넷 끊김 등)
-            throw ApiException(message = "$e: 인터넷 연결을 확인해주세요.")
-        }
-
-        return when (response.status.value) {
-            in 200..299 -> {
-                response.body()
-            }
-
-            400 -> throw ApiException(400, "잘못된 요청입니다. 입력값을 확인해주세요.")
-            401 -> throw ApiException(401, "인증 정보가 만료되었습니다. 다시 로그인해주세요.")
-            404 -> throw ApiException(404, "요청하신 이벤트 데이터를 찾을 수 없습니다.")
-            in 500..599 -> {
-                throw ApiException(response.status.value, "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            }
-
-            else -> {
-                throw ApiException(
-                    response.status.value,
-                    "알 수 없는 오류가 발생했습니다. (Code: ${response.status.value})"
-                )
-            }
+            throw ApiException(0, "$e: 인터넷 연결을 확인해주세요.")
         }
     }
 }
