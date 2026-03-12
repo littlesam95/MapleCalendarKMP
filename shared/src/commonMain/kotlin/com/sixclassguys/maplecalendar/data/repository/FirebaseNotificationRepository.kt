@@ -6,7 +6,7 @@ import com.sixclassguys.maplecalendar.data.remote.dto.FcmTokenRequest
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.repository.NotificationRepository
 import com.sixclassguys.maplecalendar.getPlatform
-import com.sixclassguys.maplecalendar.util.ApiException
+import com.sixclassguys.maplecalendar.util.handleApiError
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.messaging.messaging
 import io.github.aakira.napier.Napier
@@ -14,7 +14,6 @@ import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -30,13 +29,7 @@ class FirebaseNotificationRepository(
         val isNotificationMode = dataStore.isNotificationMode.first()
 
         emit(ApiState.Success(isNotificationMode))
-    }.catch { e ->
-        val errorState = when (e) {
-            is ApiException -> ApiState.Error(e.message)
-            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-        }
-        emit(errorState)
-    }
+    }.handleApiError()
 
     override suspend fun getSavedFcmToken(): Flow<ApiState<String?>> = flow {
         emit(ApiState.Loading)
@@ -44,13 +37,7 @@ class FirebaseNotificationRepository(
         val apiKey = dataStore.lastSentToken.first()
 
         emit(ApiState.Success(apiKey))
-    }.catch { e ->
-        val errorState = when (e) {
-            is ApiException -> ApiState.Error(e.message)
-            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-        }
-        emit(errorState)
-    }
+    }.handleApiError()
 
     override suspend fun getFcmToken(): String? {
         return try {
@@ -68,57 +55,37 @@ class FirebaseNotificationRepository(
         val lastToken = dataStore.lastSentToken.first()
 
         if (lastToken != token) {
-            try {
-                val response = notificationDataSource.registerToken(
-                    FcmTokenRequest(
-                        token = token,
-                        platform = getPlatform().name
-                    )
-                )
-
-                if (response.status.isSuccess()) {
-                    dataStore.saveToken(token) // 성공했을 경우에만 DataStore에 저장
-                    emit(ApiState.Success(Unit)) // 성공 알림
-                } else {
-                    emit(ApiState.Error("알림 토큰 등록에 실패했어요.")) // 서버 측 에러
-                }
-            } catch (e: Exception) {
-                emit(ApiState.Error(e.message ?: "알 수 없는 에러")) // 네트워크 에러 등
-            }
-        } else {
-            Napier.d("같은 토큰이 있음")
-            emit(ApiState.Success(Unit)) // 토큰이 같으면 서버에 전송할 필요 없음
-        }
-    }.catch { e ->
-        val errorState = when (e) {
-            is ApiException -> ApiState.Error(e.message)
-            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-        }
-        emit(errorState)
-    }.flowOn(Dispatchers.IO)
-
-    override suspend fun unregisterToken(token: String): Flow<ApiState<Unit>> = flow {
-        emit(ApiState.Loading) // 로딩 시작 알림
-
-        try {
-            val accessToken = dataStore.accessToken.first()
-            val response = notificationDataSource.unregisterToken(
-                accessToken = accessToken,
-                request = FcmTokenRequest(
+            val response = notificationDataSource.registerToken(
+                FcmTokenRequest(
                     token = token,
                     platform = getPlatform().name
                 )
             )
 
-            emit(ApiState.Success(response))
-        } catch (e: Exception) {
-            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
+            if (response.status.isSuccess()) {
+                dataStore.saveToken(token) // 성공했을 경우에만 DataStore에 저장
+                emit(ApiState.Success(Unit)) // 성공 알림
+            } else {
+                emit(ApiState.Error("알림 토큰 등록에 실패했어요.")) // 서버 측 에러
+            }
+        } else {
+            Napier.d("같은 토큰이 있음")
+            emit(ApiState.Success(Unit)) // 토큰이 같으면 서버에 전송할 필요 없음
         }
-    }.catch { e ->
-        val errorState = when (e) {
-            is ApiException -> ApiState.Error(e.message)
-            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-        }
-        emit(errorState)
-    }
+    }.handleApiError().flowOn(Dispatchers.IO)
+
+    override suspend fun unregisterToken(token: String): Flow<ApiState<Unit>> = flow {
+        emit(ApiState.Loading) // 로딩 시작 알림
+
+        val accessToken = dataStore.accessToken.first()
+        val response = notificationDataSource.unregisterToken(
+            accessToken = accessToken,
+            request = FcmTokenRequest(
+                token = token,
+                platform = getPlatform().name
+            )
+        )
+
+        emit(ApiState.Success(response))
+    }.handleApiError()
 }

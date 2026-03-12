@@ -7,9 +7,8 @@ import com.sixclassguys.maplecalendar.data.remote.dto.toDomain
 import com.sixclassguys.maplecalendar.domain.model.ApiState
 import com.sixclassguys.maplecalendar.domain.model.MapleEvent
 import com.sixclassguys.maplecalendar.domain.repository.AlarmRepository
-import com.sixclassguys.maplecalendar.util.ApiException
+import com.sixclassguys.maplecalendar.util.handleApiError
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 
@@ -25,47 +24,27 @@ class AlarmRepositoryImpl(
     ): Flow<ApiState<MapleEvent>> = flow {
         emit(ApiState.Loading)
 
-        try {
-            val accessToken = dataStore.accessToken.first()
-            val response = dataSource.submitEventAlarm(
-                accessToken = accessToken,
-                request = AlarmRequest(
-                    eventId = eventId,
-                    isEnabled = isEnabled,
-                    alarmTimes = alarmTimes
-                )
+        val accessToken = dataStore.accessToken.first()
+        val response = dataSource.submitEventAlarm(
+            accessToken = accessToken,
+            request = AlarmRequest(
+                eventId = eventId,
+                isEnabled = isEnabled,
+                alarmTimes = alarmTimes
             )
-            val event = response.toDomain()
+        )
+        val event = response.toDomain()
 
-            emit(ApiState.Success(event, "알람을 예약했어요."))
-        } catch (e: Exception) {
-            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
-        }
-    }.catch { e ->
-        val errorState = when (e) {
-            is ApiException -> ApiState.Error(e.message)
-            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-        }
-        emit(errorState)
-    }
+        emit(ApiState.Success(event, "알람을 예약했어요."))
+    }.handleApiError()
 
     override suspend fun toggleEventAlarm(eventId: Long): Flow<ApiState<MapleEvent>> = flow {
         emit(ApiState.Loading)
 
-        try {
-            val accessToken = dataStore.accessToken.first()
-            val response = dataSource.toggleEventAlarm(accessToken, eventId)
-            val event = response.toDomain()
+        val accessToken = dataStore.accessToken.first()
+        val response = dataSource.toggleEventAlarm(accessToken, eventId)
+        val event = response.toDomain()
 
-            emit(ApiState.Success(event, "알람 수신 여부를 변경했어요."))
-        } catch (e: Exception) {
-            emit(ApiState.Error(e.message ?: "인증 서버와 통신 중 오류가 발생했습니다."))
-        }
-    }.catch { e ->
-        val errorState = when (e) {
-            is ApiException -> ApiState.Error(e.message)
-            else -> ApiState.Error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-        }
-        emit(errorState)
-    }
+        emit(ApiState.Success(event, "알람 수신 여부를 변경했어요."))
+    }.handleApiError()
 }
