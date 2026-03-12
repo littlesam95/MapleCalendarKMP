@@ -92,10 +92,7 @@ fun LoginScreen(
     Scaffold(
         containerColor = MapleWhite,
         snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier.navigationBarsPadding()
-            )
+            SnackbarHost(hostState = snackbarHostState)
         }
     ) { padding ->
         Column(

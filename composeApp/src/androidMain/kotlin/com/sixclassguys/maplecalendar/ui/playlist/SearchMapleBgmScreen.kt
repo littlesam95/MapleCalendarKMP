@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -104,6 +105,9 @@ fun SearchMapleBgmScreen(
                 onQueryChange = { viewModel.onIntent(PlaylistIntent.SearchMapleBgms(it)) },
                 focusRequester = focusRequester
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         },
         containerColor = MapleWhite
     ) { padding ->
