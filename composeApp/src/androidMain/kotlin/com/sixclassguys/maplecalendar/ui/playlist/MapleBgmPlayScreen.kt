@@ -92,11 +92,11 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 @Composable
 fun MapleBgmPlayScreen(
     viewModel: PlaylistViewModel,
-    snackbarHostState: SnackbarHostState,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val currentPos by viewModel.currentPosition.collectAsStateWithLifecycle(0L)
     val duration by viewModel.duration.collectAsStateWithLifecycle(0L)
@@ -115,7 +115,7 @@ fun MapleBgmPlayScreen(
 
     LaunchedEffect(uiState.errorMessage) {
         val message = uiState.errorMessage
-        if (message != null) {
+        if ((message != null) && !uiState.showAddMapleBgmToPlaylistDialog && !uiState.showNewPlaylistDialog) {
             snackbarHostState.showSnackbar(message = message)
             viewModel.onIntent(PlaylistIntent.InitMessage)
         }
@@ -141,7 +141,8 @@ fun MapleBgmPlayScreen(
         containerColor = MapleWhite
     ) { padding ->
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(padding)
         ) {
             Column(
@@ -156,12 +157,19 @@ fun MapleBgmPlayScreen(
                         CompressedPlayerHeader(
                             bgm = uiState.selectedBgm,
                             isPlaying = uiState.isPlaying,
-                            onTogglePlay = { viewModel.onIntent(PlaylistIntent.TogglePlayPause(uiState.isPlaying)) }
+                            onTogglePlay = {
+                                viewModel.onIntent(
+                                    PlaylistIntent.TogglePlayPause(
+                                        uiState.isPlaying
+                                    )
+                                )
+                            }
                         )
                     } else {
                         // [기존 확장된 화면] 기존에 작성했던 1~6번 전체 레이아웃
                         Column(
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
                                 .background(MapleWhite)
                                 .padding(
                                     start = 16.dp,
@@ -190,7 +198,10 @@ fun MapleBgmPlayScreen(
                                         onBack()
                                     }
                                 }) {
-                                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Close")
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                        contentDescription = "Close"
+                                    )
                                 }
                                 IconButton(onClick = { /* 메뉴 팝업 */ }) {
                                     Icon(Icons.Default.MoreVert, contentDescription = "Menu")
@@ -239,12 +250,14 @@ fun MapleBgmPlayScreen(
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    val isLiked = uiState.selectedBgm?.likeStatus == MapleBgmLikeStatus.LIKE
+                                    val isLiked =
+                                        uiState.selectedBgm?.likeStatus == MapleBgmLikeStatus.LIKE
                                     Icon(
                                         imageVector = if (isLiked) Icons.Default.ThumbUp else Icons.Outlined.ThumbUp,
                                         contentDescription = null,
                                         tint = if (isLiked) MapleOrange else MapleGray,
-                                        modifier = Modifier.size(20.dp)
+                                        modifier = Modifier
+                                            .size(20.dp)
                                             .clickable {
                                                 viewModel.onIntent(
                                                     PlaylistIntent.ToggleMapleBgmLikeStatus(
@@ -258,7 +271,8 @@ fun MapleBgmPlayScreen(
                                         modifier = Modifier.padding(start = 4.dp, end = 16.dp)
                                     )
 
-                                    val isDisliked = uiState.selectedBgm?.likeStatus == MapleBgmLikeStatus.DISLIKE
+                                    val isDisliked =
+                                        uiState.selectedBgm?.likeStatus == MapleBgmLikeStatus.DISLIKE
                                     Icon(
                                         imageVector = if (isDisliked) Icons.Default.ThumbDown else Icons.Outlined.ThumbDown,
                                         contentDescription = null,
@@ -282,22 +296,36 @@ fun MapleBgmPlayScreen(
                                 Row(
                                     modifier = Modifier.clickable {
                                         if (uiState.myPlaylists.isEmpty()) {
-                                            Toast.makeText(context, "플레이리스트가 비어있어요.", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "플레이리스트가 비어있어요.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         } else {
                                             viewModel.onIntent(PlaylistIntent.ShowAddMapleBgmToPlaylistDialog)
                                         }
                                     },
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null)
-                                    Text(" 내 플레이리스트에 저장", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.PlaylistAdd,
+                                        contentDescription = null
+                                    )
+                                    Text(
+                                        " 내 플레이리스트에 저장",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
                                 }
                             }
 
                             Spacer(Modifier.height(32.dp))
 
                             // 5. 슬라이더 및 시간
-                            PlayerSlider(currentPos, duration, onSeek = { viewModel.onIntent(PlaylistIntent.SeekTo(it)) })
+                            PlayerSlider(
+                                currentPos,
+                                duration,
+                                onSeek = { viewModel.onIntent(PlaylistIntent.SeekTo(it)) })
 
                             Spacer(Modifier.weight(1f))
 
@@ -353,7 +381,13 @@ fun MapleBgmPlayScreen(
                                         contentDescription = ""
                                     )
                                 }
-                                IconButton(onClick = { viewModel.onIntent(PlaylistIntent.ToggleRepeat(uiState.repeatMode)) }) {
+                                IconButton(onClick = {
+                                    viewModel.onIntent(
+                                        PlaylistIntent.ToggleRepeat(
+                                            uiState.repeatMode
+                                        )
+                                    )
+                                }) {
                                     Icon(
                                         imageVector = if (uiState.repeatMode == RepeatMode.ONE) Icons.Default.RepeatOne else Icons.Default.Repeat,
                                         tint = if (uiState.repeatMode != RepeatMode.NONE) MapleOrange else MapleGray,
@@ -371,18 +405,35 @@ fun MapleBgmPlayScreen(
                         playlist = uiState.currentPlaylist,
                         onToggle = { isPlaylistVisible = false },
                         onItemClick = { bgm ->
-                            viewModel.onIntent(PlaylistIntent.PlayMapleBgm(bgm,uiState.currentPlaylist))
+                            viewModel.onIntent(
+                                PlaylistIntent.PlayMapleBgm(
+                                    bgm,
+                                    uiState.currentPlaylist
+                                )
+                            )
                         },
                         onMove = { from, to ->
                             if (uiState.currentPlaylist.size > 1) {
-                                viewModel.onIntent(PlaylistIntent.UpdateMapleBgmPlaylist(uiState.selectedPlaylist?.id ?: 0L, from, to))
+                                viewModel.onIntent(
+                                    PlaylistIntent.UpdateMapleBgmPlaylist(
+                                        uiState.selectedPlaylist?.id ?: 0L, from, to
+                                    )
+                                )
                             }
                         },
                         onRemove = { mapleBgm ->
                             if (uiState.selectedBgm?.id == mapleBgm.id) {
-                                Toast.makeText(context, "현재 재생 중인 곡은 삭제할 수 없어요.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "현재 재생 중인 곡은 삭제할 수 없어요.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             } else {
-                                viewModel.onIntent(PlaylistIntent.RemoveMapleBgmFromPlaylist(uiState.selectedPlaylist?.id ?: 0L, mapleBgm.id))
+                                viewModel.onIntent(
+                                    PlaylistIntent.RemoveMapleBgmFromPlaylist(
+                                        uiState.selectedPlaylist?.id ?: 0L, mapleBgm.id
+                                    )
+                                )
                             }
                         }
                     )
@@ -507,7 +558,12 @@ fun ColumnScope.PlaylistPanelExpanded(
             color = Color.White
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("현재 재생 목록", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(
+                    "현재 재생 목록",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
                 Spacer(Modifier.height(16.dp))
 
                 LazyColumn(
@@ -535,15 +591,22 @@ fun ColumnScope.PlaylistPanelExpanded(
                             SwipeToDismissBox(
                                 state = dismissState,
                                 backgroundContent = {
-                                    val isDismissing = dismissState.targetValue != SwipeToDismissBoxValue.Settled
+                                    val isDismissing =
+                                        dismissState.targetValue != SwipeToDismissBoxValue.Settled
                                     Box(
-                                        modifier = Modifier.fillMaxSize()
+                                        modifier = Modifier
+                                            .fillMaxSize()
                                             .clip(RoundedCornerShape(8.dp))
                                             .background(if (isDismissing) Color.Red.copy(alpha = 0.8f) else Color.Transparent),
                                         contentAlignment = Alignment.CenterEnd
                                     ) {
                                         if (isDismissing) {
-                                            Icon(Icons.Default.Delete, null, tint = Color.White, modifier = Modifier.padding(16.dp))
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                null,
+                                                tint = Color.White,
+                                                modifier = Modifier.padding(16.dp)
+                                            )
                                         }
                                     }
                                 },
@@ -627,7 +690,8 @@ fun PlaylistItemRow(
         color = if (isDragging) MapleGray else if (isPlaying) MapleOrange.copy(alpha = 0.1f) else MapleWhite
     ) {
         Row(
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier
+                .fillMaxWidth()
                 .height(72.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(if (isPlaying) MapleOrange.copy(alpha = 0.2f) else Color.Transparent)
@@ -659,7 +723,8 @@ fun PlaylistItemRow(
                 imageVector = Icons.Default.DragHandle,
                 contentDescription = null,
                 tint = MapleGray,
-                modifier = handleModifier.size(36.dp)
+                modifier = handleModifier
+                    .size(36.dp)
                     .padding(8.dp) // 여기서 드래그 감지
             )
         }

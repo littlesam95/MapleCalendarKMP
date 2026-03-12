@@ -102,7 +102,7 @@ fun BossPartyListScreen(
 
     LaunchedEffect(uiState.errorMessage) {
         val message = uiState.errorMessage
-        if (message != null) {
+        if ((message != null) && !uiState.showBossInvitationDialog) {
             snackbarHostState.showSnackbar(message = message)
             viewModel.onIntent(BossIntent.InitMessage)
         }

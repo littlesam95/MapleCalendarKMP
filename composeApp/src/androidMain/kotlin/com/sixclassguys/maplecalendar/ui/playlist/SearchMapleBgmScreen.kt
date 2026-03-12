@@ -45,11 +45,11 @@ import com.sixclassguys.maplecalendar.ui.component.EmptyEventScreen
 
 @Composable
 fun SearchMapleBgmScreen(
-    viewModel: PlaylistViewModel,
-    snackbarHostState: SnackbarHostState
+    viewModel: PlaylistViewModel
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current // 1. 포커스 매니저 선언
     val scrollState = rememberLazyListState()

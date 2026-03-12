@@ -41,6 +41,7 @@ import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleStatBackground
 import com.sixclassguys.maplecalendar.theme.MapleStatTitle
 import com.sixclassguys.maplecalendar.theme.MapleWhite
+import com.sixclassguys.maplecalendar.theme.PretendardFamily
 import com.sixclassguys.maplecalendar.theme.Typography
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,7 +104,6 @@ fun AddMusicDialog(
                         }
 
                         else -> {
-
                             Column(
                                 modifier = Modifier.padding(16.dp)
                             ) {
@@ -156,7 +156,18 @@ fun AddMusicDialog(
                                     }
                                 }
 
-                                Spacer(Modifier.height(24.dp))
+                                Spacer(Modifier.height(16.dp))
+
+                                if (uiState.errorMessage != null) {
+                                    Text(
+                                        text = uiState.errorMessage!!,
+                                        color = MapleOrange, // 혹은 MapleOrange 계열
+                                        fontSize = 13.sp,
+                                        fontFamily = PretendardFamily,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.padding(bottom = 8.dp)
+                                    )
+                                }
 
                                 // 3. 음악 추가하기 버튼 (오렌지색)
                                 Button(

@@ -167,7 +167,7 @@ fun MapleEventDetailScreen(
 
     LaunchedEffect(uiState.errorMessage) {
         val message = uiState.errorMessage
-        if (message != null) {
+        if ((message != null) && !uiState.showAlarmDialog) {
             snackbarHostState.showSnackbar(message = message)
             viewModel.onIntent(CalendarIntent.InitMessage)
         }

@@ -319,8 +319,18 @@ fun BossPartyCreateDialog(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
+                if (uiState.errorMessage != null) {
+                    Text(
+                        text = uiState.errorMessage!!,
+                        color = MapleOrange, // 혹은 MapleOrange 계열
+                        fontSize = 13.sp,
+                        fontFamily = PretendardFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+                    )
+                }
 
                 // 4. 생성 버튼 (ViewModel의 생성 로직 실행)
                 Button(

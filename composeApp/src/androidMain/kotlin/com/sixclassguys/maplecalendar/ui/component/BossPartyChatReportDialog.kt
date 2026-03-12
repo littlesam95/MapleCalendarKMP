@@ -47,6 +47,7 @@ import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleStatBackground
 import com.sixclassguys.maplecalendar.theme.MapleStatTitle
 import com.sixclassguys.maplecalendar.theme.MapleWhite
+import com.sixclassguys.maplecalendar.theme.PretendardFamily
 import com.sixclassguys.maplecalendar.theme.Typography
 import com.sixclassguys.maplecalendar.util.ReportReason
 
@@ -219,7 +220,18 @@ fun BossPartyChatReportDialog(
                                     )
                                 }
 
-                                Spacer(modifier = Modifier.height(24.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                if (uiState.errorMessage != null) {
+                                    Text(
+                                        text = uiState.errorMessage!!,
+                                        color = MapleOrange, // 혹은 MapleOrange 계열
+                                        fontSize = 13.sp,
+                                        fontFamily = PretendardFamily,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+                                    )
+                                }
 
                                 // 신고하기 버튼
                                 Button(

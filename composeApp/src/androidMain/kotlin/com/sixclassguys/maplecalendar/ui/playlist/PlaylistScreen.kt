@@ -123,7 +123,7 @@ fun PlaylistScreen(
 
     LaunchedEffect(uiState.errorMessage) {
         val message = uiState.errorMessage
-        if (message != null) {
+        if ((message != null) && !uiState.showAddMapleBgmToPlaylistDialog && !uiState.showNewPlaylistDialog) {
             snackbarHostState.showSnackbar(message = message)
             viewModel.onIntent(PlaylistIntent.InitMessage)
         }

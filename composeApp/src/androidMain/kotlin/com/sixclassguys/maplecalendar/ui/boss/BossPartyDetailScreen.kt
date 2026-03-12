@@ -259,7 +259,7 @@ fun BossPartyDetailScreen(
 
     LaunchedEffect(uiState.errorMessage) {
         val message = uiState.errorMessage
-        if (message != null) {
+        if ((message != null) && !uiState.showBossAlarmDialog && !uiState.showCharacterInvitationDialog && !uiState.showBossPartyChatReport && !uiState.showBossPartyBoardDialog) {
             snackbarHostState.showSnackbar(message = message)
             viewModel.onIntent(BossIntent.InitMessage)
         }
@@ -303,7 +303,13 @@ fun BossPartyDetailScreen(
         PullToRefreshBox(
             state = pullToRefreshState,
             isRefreshing = uiState.isRefreshing,
-            onRefresh = { viewModel.onIntent(BossIntent.RefreshBossPartyDetail(uiState.selectedBossParty?.id ?: 0L)) },
+            onRefresh = {
+                viewModel.onIntent(
+                    BossIntent.RefreshBossPartyDetail(
+                        uiState.selectedBossParty?.id ?: 0L
+                    )
+                )
+            },
             indicator = {
                 PullToRefreshDefaults.Indicator(
                     state = pullToRefreshState,
@@ -316,7 +322,8 @@ fun BossPartyDetailScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .nestedScroll(nestedScrollConnection)
             ) {
                 // 메인 컨텐츠 (알림, 파티원, 채팅, 게시판)
@@ -365,12 +372,23 @@ fun BossPartyDetailScreen(
                                                 viewModel.onIntent(BossIntent.ToggleBossPartyAlarm)
                                             }
                                         } else {
-                                            Toast.makeText(context, "전체 알림을 먼저 허용해주세요.", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "전체 알림을 먼저 허용해주세요.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     },
                                     onAddAlarm = { viewModel.onIntent(BossIntent.ShowAlarmCreateDialog) },
-                                    onDeleteAlarm = { viewModel.onIntent(BossIntent.DeleteBossPartyAlarm(it)) },
-                                    modifier = Modifier.fillMaxWidth()
+                                    onDeleteAlarm = {
+                                        viewModel.onIntent(
+                                            BossIntent.DeleteBossPartyAlarm(
+                                                it
+                                            )
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                         .height(availableHeight)
                                 )
                             }
@@ -384,24 +402,44 @@ fun BossPartyDetailScreen(
                                     isLeader = uiState.selectedBossParty?.isLeader ?: false,
                                     members = uiState.selectedBossParty?.members ?: emptyList(),
                                     onAddMember = {
-                                        val nowMember = uiState.selectedBossParty?.members?.size ?: 0
+                                        val nowMember =
+                                            uiState.selectedBossParty?.members?.size ?: 0
                                         val boss = uiState.selectedBossParty?.boss
                                         val bossDifficulty = uiState.selectedBossParty?.difficulty
-                                        val difficultyIndex = boss?.difficulties?.indexOf(bossDifficulty) ?: 0
-                                        val maxMember = uiState.selectedBossParty?.boss?.memberCounts[difficultyIndex] ?: 0
+                                        val difficultyIndex =
+                                            boss?.difficulties?.indexOf(bossDifficulty) ?: 0
+                                        val maxMember =
+                                            uiState.selectedBossParty?.boss?.memberCounts[difficultyIndex]
+                                                ?: 0
                                         if (uiState.selectedBossParty?.isLeader == false) {
-                                            Toast.makeText(context, "파티장만 초대가 가능해요.", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "파티장만 초대가 가능해요.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         } else if (nowMember >= maxMember) {
-                                            Toast.makeText(context, "입장 인원 수가 최대에요.", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "입장 인원 수가 최대에요.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         } else {
                                             viewModel.onIntent(BossIntent.ShowCharacterInviteDialog)
                                         }
                                     },
                                     onTransferLeader = { characterId ->
-                                        viewModel.onIntent(BossIntent.TransferBossPartyLeader(characterId))
+                                        viewModel.onIntent(
+                                            BossIntent.TransferBossPartyLeader(
+                                                characterId
+                                            )
+                                        )
                                     },
                                     onRemoveMember = { characterId ->
-                                        viewModel.onIntent(BossIntent.KickBossPartyMember(characterId))
+                                        viewModel.onIntent(
+                                            BossIntent.KickBossPartyMember(
+                                                characterId
+                                            )
+                                        )
                                     },
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -437,7 +475,11 @@ fun BossPartyDetailScreen(
                                                 viewModel.onIntent(BossIntent.ToggleBossPartyChatAlarm)
                                             }
                                         } else {
-                                            Toast.makeText(context, "전체 알림을 먼저 허용해주세요.", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "전체 알림을 먼저 허용해주세요.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     },
                                     onHide = { bossPartyChatId ->
@@ -448,7 +490,11 @@ fun BossPartyDetailScreen(
                                         )
                                     },
                                     onReport = { chat ->
-                                        viewModel.onIntent(BossIntent.ShowBossPartyChatReportDialog(chat))
+                                        viewModel.onIntent(
+                                            BossIntent.ShowBossPartyChatReportDialog(
+                                                chat
+                                            )
+                                        )
                                     },
                                     onDelete = { bossPartyChatId ->
                                         viewModel.onIntent(
@@ -457,7 +503,8 @@ fun BossPartyDetailScreen(
                                             )
                                         )
                                     },
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                         .height(availableHeight)
                                 )
                             }
@@ -481,9 +528,14 @@ fun BossPartyDetailScreen(
                                         viewModel.onIntent(BossIntent.LikeBossPartyBoardPost(postId))
                                     },
                                     onDislike = { postId ->
-                                        viewModel.onIntent(BossIntent.DislikeBossPartyBoardPost(postId))
+                                        viewModel.onIntent(
+                                            BossIntent.DislikeBossPartyBoardPost(
+                                                postId
+                                            )
+                                        )
                                     },
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                         .height(availableHeight)
                                 )
                             }
@@ -495,14 +547,16 @@ fun BossPartyDetailScreen(
                 if (uiState.selectedBossPartyDetailMenu == BossPartyTab.CHAT) {
                     // Surface나 Box로 감싸고 align(Alignment.BottomCenter) 부여
                     Surface(
-                        modifier = Modifier.padding(bottom = padding.calculateBottomPadding())
+                        modifier = Modifier
+                            .padding(bottom = padding.calculateBottomPadding())
                             .align(Alignment.BottomCenter) // 하단 고정
                             .fillMaxWidth()
                             .height(inputBarHeight),
                         color = MapleStatBackground // 와이어프레임의 어두운 배경색 유지
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -562,7 +616,8 @@ fun BossPartyDetailScreen(
 
     if (uiState.isLoading) {
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .background(MapleBlack.copy(alpha = 0.7f)) // 화면 어둡게 처리
                 .pointerInput(Unit) {}, // 터치 이벤트 전파 방지 (클릭 막기)
             contentAlignment = Alignment.Center
@@ -602,7 +657,13 @@ fun BossPartyDetailScreen(
             chat = uiState.selectBossPartyChatToReport,
             onDismiss = { viewModel.onIntent(BossIntent.DismissBossPartyChatReportDialog) },
             onReportSubmit = { chatId, reason, reasonDetail ->
-                viewModel.onIntent(BossIntent.ReportBossPartyChatMessage(chatId, reason, reasonDetail))
+                viewModel.onIntent(
+                    BossIntent.ReportBossPartyChatMessage(
+                        chatId,
+                        reason,
+                        reasonDetail
+                    )
+                )
             }
         )
     }

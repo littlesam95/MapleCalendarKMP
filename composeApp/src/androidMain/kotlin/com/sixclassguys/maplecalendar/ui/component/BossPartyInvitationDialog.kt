@@ -93,6 +93,14 @@ fun BossPartyInvitationDialog(
         }
     }
 
+    LaunchedEffect(uiState.errorMessage) {
+        val message = uiState.errorMessage
+        if (message != null) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.onIntent(BossIntent.InitMessage)
+        }
+    }
+
     Dialog(onDismissRequest = {
         if (!uiState.isLoading) {
             onDismiss()

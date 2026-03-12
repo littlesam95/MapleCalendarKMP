@@ -113,7 +113,7 @@ fun BossPartyCreateScreen(
 
     LaunchedEffect(uiState.errorMessage) {
         val message = uiState.errorMessage
-        if (message != null) {
+        if ((message != null) && !uiState.showCreateDialog) {
             snackbarHostState.showSnackbar(message = message)
             viewModel.onIntent(BossIntent.InitMessage)
         }

@@ -58,6 +58,7 @@ import com.sixclassguys.maplecalendar.theme.MapleOrange
 import com.sixclassguys.maplecalendar.theme.MapleStatBackground
 import com.sixclassguys.maplecalendar.theme.MapleStatTitle
 import com.sixclassguys.maplecalendar.theme.MapleWhite
+import com.sixclassguys.maplecalendar.theme.PretendardFamily
 import com.sixclassguys.maplecalendar.theme.Typography
 import com.sixclassguys.maplecalendar.utils.minusMonths
 import com.sixclassguys.maplecalendar.utils.plusMonths
@@ -357,7 +358,18 @@ fun AlarmSettingDialog(
                                         }
                                     }
 
-                                    Spacer(modifier = Modifier.height(24.dp))
+                                    Spacer(Modifier.height(16.dp))
+
+                                    if (uiState.errorMessage != null) {
+                                        Text(
+                                            text = uiState.errorMessage!!,
+                                            color = MapleOrange, // 혹은 MapleOrange 계열
+                                            fontSize = 13.sp,
+                                            fontFamily = PretendardFamily,
+                                            fontWeight = FontWeight.SemiBold,
+                                            modifier = Modifier.padding(bottom = 8.dp)
+                                        )
+                                    }
 
                                     // 💡 제출 버튼
                                     Button(

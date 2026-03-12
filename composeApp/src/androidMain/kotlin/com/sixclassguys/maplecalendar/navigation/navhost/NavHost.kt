@@ -133,8 +133,7 @@ fun NavHost(
 
         composable(Navigation.SearchMapleBgm.destination) {
             SearchMapleBgmScreen(
-                viewModel = playlistViewModel,
-                snackbarHostState = snackbarHostState
+                viewModel = playlistViewModel
             )
         }
 
