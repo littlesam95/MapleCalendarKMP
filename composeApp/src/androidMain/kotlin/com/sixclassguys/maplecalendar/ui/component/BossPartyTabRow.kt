@@ -18,6 +18,7 @@ import com.sixclassguys.maplecalendar.util.BossPartyTab
 
 @Composable
 fun BossPartyDetailTabRow(
+    modifier: Modifier,
     selectedTab: BossPartyTab,
     onTabSelected: (BossPartyTab) -> Unit
 ) {

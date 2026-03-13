@@ -22,6 +22,9 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -51,6 +54,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -62,6 +66,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -120,6 +125,7 @@ fun BossPartyDetailScreen(
     val screenHeightDp = configuration.screenHeightDp.dp
 
     val density = LocalDensity.current
+    var availableContentHeightPx by remember { mutableIntStateOf(0) }
     val collapsedHeightPx = with(density) { collapsedTopBarHeight.toPx() }
     val expandedHeightPx = with(density) { expandedTopBarHeight.toPx() }
     val maxScrollOffsetPx = expandedHeightPx - collapsedHeightPx
@@ -295,17 +301,28 @@ fun BossPartyDetailScreen(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
+        bottomBar = {
+            if (uiState.selectedBossPartyDetailMenu == BossPartyTab.CHAT) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth()
+                        .navigationBarsPadding(), // 시스템 바 위로 띄움
+                    color = MapleStatBackground
+                ) {
+                    // ... 기존 TextField와 Button 로직 (inputBarHeight 높이 유지)
+                }
+            } else {
+                // 다른 탭일 때도 시스템 바만큼 공간을 확보하고 싶다면 Spacer
+                Spacer(modifier = Modifier.navigationBarsPadding())
+            }
+        },
         containerColor = MapleTheme.colors.surface
     ) { padding ->
         PullToRefreshBox(
             state = pullToRefreshState,
             isRefreshing = uiState.isRefreshing,
             onRefresh = {
-                viewModel.onIntent(
-                    BossIntent.RefreshBossPartyDetail(
-                        uiState.selectedBossParty?.id ?: 0L
-                    )
-                )
+                val bossPartyId = uiState.selectedBossParty?.id ?: 0L
+                viewModel.onIntent(BossIntent.RefreshBossPartyDetail(bossPartyId))
             },
             indicator = {
                 PullToRefreshDefaults.Indicator(
@@ -319,24 +336,27 @@ fun BossPartyDetailScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = Modifier.fillMaxSize()
                     .nestedScroll(nestedScrollConnection)
             ) {
                 // 메인 컨텐츠 (알림, 파티원, 채팅, 게시판)
                 LazyColumn(
                     state = scrollState,
-                    modifier = Modifier.fillMaxSize(), // 🚀 offset 제거
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
-                        // 🚀 헤더가 확장된 높이만큼 상단 패딩을 주어 시작 지점을 맞춥니다.
+                        // 헤더가 확장된 높이만큼 상단 패딩을 주어 시작 지점을 맞춤
                         top = with(density) { (expandedHeightPx + toolbarOffsetHeightPx).toDp() },
-                        // 🚀 채팅 탭일 때만 입력바 높이만큼 하단 패딩 부여
-                        bottom = if (uiState.selectedBossPartyDetailMenu == BossPartyTab.CHAT) inputBarHeight else 16.dp
+                        // 채팅 탭일 때만 입력바 높이만큼 하단 패딩 부여
+                        bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() +
+                            if (uiState.selectedBossPartyDetailMenu == BossPartyTab.CHAT) inputBarHeight else 0.dp
                     )
                 ) {
                     // 탭 메뉴 (Sticky Header)
                     stickyHeader {
                         BossPartyDetailTabRow(
+                            modifier = Modifier.onGloballyPositioned { coordinates ->
+                                // 🌟 탭 바의 하단 위치를 기준으로 가용 높이 계산의 시작점을 잡을 수 있습니다.
+                            },
                             selectedTab = uiState.selectedBossPartyDetailMenu,
                             onTabSelected = { menu ->
                                 viewModel.onIntent(BossIntent.SelectBossPartyDetailMenu(menu))
@@ -350,44 +370,51 @@ fun BossPartyDetailScreen(
                             item {
                                 val availableHeight =
                                     screenHeightDp - systemBarsHeight - collapsedTopBarHeight - 48.dp
-                                BossPartyAlarmContent(
-                                    alarms = uiState.bossPartyAlarmTimes,
-                                    isAlarmOn = uiState.isBossPartyDetailAlarmOn,
-                                    isLeader = uiState.selectedBossParty?.isLeader ?: false,
-                                    snackbarHostState = snackbarHostState,
-                                    onToggleAlarm = {
-                                        if (uiState.isGlobalAlarmEnabled) {
-                                            if (uiState.isBossPartyDetailAlarmOn) {
-                                                // Android 13 이상 대응 (Tiramisu = 33)
-                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                                    launcherToAlarm.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                val headerRealTimeHeightDp = with(density) { (expandedHeightPx + toolbarOffsetHeightPx).toDp() }
+                                val dynamicMinHeight = with(density) { availableContentHeightPx.toDp() } - headerRealTimeHeightDp
+                                Box(
+                                    modifier = Modifier.fillMaxWidth()
+                                        // 🌟 dynamicMinHeight를 적용하여 헤더 아래 남는 공간에 딱 맞춤
+                                        .heightIn(min = if (dynamicMinHeight > 0.dp) dynamicMinHeight else 0.dp)
+                                ) {
+                                    BossPartyAlarmContent(
+                                        alarms = uiState.bossPartyAlarmTimes,
+                                        isAlarmOn = uiState.isBossPartyDetailAlarmOn,
+                                        isLeader = uiState.selectedBossParty?.isLeader ?: false,
+                                        snackbarHostState = snackbarHostState,
+                                        onToggleAlarm = {
+                                            if (uiState.isGlobalAlarmEnabled) {
+                                                if (uiState.isBossPartyDetailAlarmOn) {
+                                                    // Android 13 이상 대응 (Tiramisu = 33)
+                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                                        launcherToAlarm.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                                    } else {
+                                                        viewModel.onIntent(BossIntent.ToggleBossPartyAlarm)
+                                                    }
                                                 } else {
+                                                    // OFF로 바꿀 때는 권한 요청 필요 없음
                                                     viewModel.onIntent(BossIntent.ToggleBossPartyAlarm)
                                                 }
                                             } else {
-                                                // OFF로 바꿀 때는 권한 요청 필요 없음
-                                                viewModel.onIntent(BossIntent.ToggleBossPartyAlarm)
+                                                Toast.makeText(
+                                                    context,
+                                                    "전체 알림을 먼저 허용해주세요.",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "전체 알림을 먼저 허용해주세요.",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    },
-                                    onAddAlarm = { viewModel.onIntent(BossIntent.ShowAlarmCreateDialog) },
-                                    onDeleteAlarm = {
-                                        viewModel.onIntent(
-                                            BossIntent.DeleteBossPartyAlarm(
-                                                it
+                                        },
+                                        onAddAlarm = { viewModel.onIntent(BossIntent.ShowAlarmCreateDialog) },
+                                        onDeleteAlarm = {
+                                            viewModel.onIntent(
+                                                BossIntent.DeleteBossPartyAlarm(
+                                                    it
+                                                )
                                             )
-                                        )
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(availableHeight)
-                                )
+                                        },
+                                        modifier = Modifier.fillParentMaxHeight()
+                                            .fillMaxWidth()
+                                    )
+                                }
                             }
                         }
 
@@ -438,9 +465,8 @@ fun BossPartyDetailScreen(
                                             )
                                         )
                                     },
-                                    modifier = Modifier
+                                    modifier = Modifier.fillParentMaxHeight()
                                         .fillMaxWidth()
-                                        .height(availableHeight)
                                 )
                             }
                         }
@@ -500,9 +526,8 @@ fun BossPartyDetailScreen(
                                             )
                                         )
                                     },
-                                    modifier = Modifier
+                                    modifier = Modifier.fillParentMaxHeight()
                                         .fillMaxWidth()
-                                        .height(availableHeight)
                                 )
                             }
                         }
@@ -531,16 +556,14 @@ fun BossPartyDetailScreen(
                                             )
                                         )
                                     },
-                                    modifier = Modifier
+                                    modifier = Modifier.fillParentMaxHeight()
                                         .fillMaxWidth()
-                                        .height(availableHeight)
                                 )
                             }
                         }
                     }
                 }
 
-                // 2. 하단 고정 입력창 (CHAT 탭일 때만 노출)
                 if (uiState.selectedBossPartyDetailMenu == BossPartyTab.CHAT) {
                     // Surface나 Box로 감싸고 align(Alignment.BottomCenter) 부여
                     Surface(
@@ -608,13 +631,32 @@ fun BossPartyDetailScreen(
                     onLeave = { viewModel.onIntent(BossIntent.LeaveBossParty) }
                 )
             }
+
+            // 2. 하단 고정 입력창 (CHAT 탭일 때만 노출)
+            Column(modifier = Modifier.fillMaxSize().padding(top = collapsedTopBarHeight + 48.dp)) {
+                Box(
+                    modifier = Modifier.weight(1f) // 🌟 탭바 아래부터 하단 입력바 위까지의 순수 공간
+                        .fillMaxWidth()
+                        .onGloballyPositioned { coordinates ->
+                            // 실제 기기에서 렌더링된 이 Box의 높이가 바로 우리가 원하는 컨텐츠 높이입니다.
+                            availableContentHeightPx = coordinates.size.height
+                        }
+                )
+                // 채팅 탭일 때만 입력바 공간만큼 띄워줌
+                if (uiState.selectedBossPartyDetailMenu == BossPartyTab.CHAT) {
+                    Spacer(modifier = Modifier.height(inputBarHeight + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()))
+                } else {
+                    Spacer(modifier = Modifier.navigationBarsPadding().height(16.dp))
+                }
+            }
         }
+
+        Spacer(modifier = Modifier.navigationBarsPadding())
     }
 
     if (uiState.isLoading) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
                 .background(MapleTheme.colors.onSurface.copy(alpha = 0.7f)) // 화면 어둡게 처리
                 .pointerInput(Unit) {}, // 터치 이벤트 전파 방지 (클릭 막기)
             contentAlignment = Alignment.Center
