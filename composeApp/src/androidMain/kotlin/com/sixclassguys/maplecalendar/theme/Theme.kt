@@ -17,9 +17,9 @@ import com.sixclassguys.maplecalendar.R
 
 // 1. 다크모드용 팔레트
 private val DarkMapleColorPalette = darkColorScheme(
-    primary = MapleOrange,
+    primary = MapleDarkOrange,
     onPrimary = MapleWhite,
-    secondary = MapleLightOrange,
+    secondary = MapleOrange,
     surface = Color(0xFF1E1E1E),     // 다크모드 카드 배경
     background = Color(0xFF121212),  // 다크모드 전체 배경
     onSurface = MapleWhite,
