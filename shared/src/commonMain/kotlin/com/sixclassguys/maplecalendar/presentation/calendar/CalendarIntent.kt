@@ -18,6 +18,8 @@ sealed class CalendarIntent {
 
     data class FetchNexonOpenApiKeyFailed(val message: String) : CalendarIntent()
 
+    data object InitCalendarInfo : CalendarIntent()
+
     data object FetchGlobalAlarmStatus : CalendarIntent()
 
     data class FetchGlobalAlarmStatusSuccess(val isEnabled: Boolean) : CalendarIntent()

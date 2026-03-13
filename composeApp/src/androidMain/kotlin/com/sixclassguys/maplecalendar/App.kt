@@ -154,7 +154,7 @@ fun App() {
                         navController = navController,
                         isLoginSuccess = homeUiState.isLoginSuccess,
                         onFetchEvent = {
-                            calendarViewModel.onIntent(CalendarIntent.FetchGlobalAlarmStatus)
+                            calendarViewModel.onIntent(CalendarIntent.InitCalendarInfo)
                         }
                     )
                 }

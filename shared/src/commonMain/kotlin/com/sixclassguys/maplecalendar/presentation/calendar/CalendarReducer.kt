@@ -1,12 +1,16 @@
 package com.sixclassguys.maplecalendar.presentation.calendar
 
 import com.sixclassguys.maplecalendar.domain.model.ApiState
+import com.sixclassguys.maplecalendar.domain.model.BossPartySchedule
+import com.sixclassguys.maplecalendar.domain.model.MapleEvent
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.todayIn
+import kotlin.Int
 
 class CalendarReducer {
 
@@ -26,8 +30,12 @@ class CalendarReducer {
         val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
         var targetMonth = today.monthNumber + offset
         var targetYear = today.year
-        while (targetMonth > 12) { targetMonth -= 12; targetYear++ }
-        while (targetMonth < 1) { targetMonth += 12; targetYear-- }
+        while (targetMonth > 12) {
+            targetMonth -= 12; targetYear++
+        }
+        while (targetMonth < 1) {
+            targetMonth += 12; targetYear--
+        }
         return LocalDate(targetYear, targetMonth, 1)
     }
 
@@ -39,8 +47,12 @@ class CalendarReducer {
         val paddingDays = if (firstDayOfWeek == 7) 0 else firstDayOfWeek
 
         repeat(paddingDays) { days.add(null) }
-        for (day in 1..daysInMonth) { days.add(LocalDate(year, month, day)) }
-        while (days.size % 7 != 0) { days.add(null) }
+        for (day in 1..daysInMonth) {
+            days.add(LocalDate(year, month, day))
+        }
+        while (days.size % 7 != 0) {
+            days.add(null)
+        }
         return days
     }
 
@@ -81,6 +93,28 @@ class CalendarReducer {
                     isLoading = false,
                     isRefreshing = false,
                     errorMessage = intent.message
+                )
+            }
+
+            is CalendarIntent.InitCalendarInfo -> {
+                currentState.copy(
+                    isLoading = false,
+                    isRefreshing = false,
+                    monthOffset = 0,
+                    year = 0,
+                    month = Month.JANUARY,
+                    days = emptyList(),
+                    eventsMapByDay = emptyMap(),
+                    bossSchedulesMapByDay = emptyMap(),
+                    eventsMapByMonth = emptyMap(),
+                    selectedDate = getTodayDate(),
+                    selectedEvent = null,
+                    isNotificationEnabled = false,
+                    showAlarmDialog = false,
+                    scheduledNotifications = emptyList(),
+                    showBottomSheet = false,
+                    successMessage = null,
+                    errorMessage = null
                 )
             }
 

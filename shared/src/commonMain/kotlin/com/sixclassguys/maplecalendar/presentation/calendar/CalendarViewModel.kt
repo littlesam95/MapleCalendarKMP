@@ -37,10 +37,11 @@ class CalendarViewModel(
     val uiState = _uiState.asStateFlow()
 
     init {
-        // onIntent(CalendarIntent.FetchNexonOpenApiKey
         viewModelScope.launch {
             eventBus.events.collect { eventId ->
-                onIntent(CalendarIntent.SelectEvent(eventId))
+                if (_uiState.value.selectedEvent?.id == eventId) {
+                    onIntent(CalendarIntent.SelectEvent(eventId))
+                }
             }
         }
     }
@@ -202,6 +203,10 @@ class CalendarViewModel(
 
             is CalendarIntent.FetchNexonOpenApiKey -> {
                 getNexonOpenApiKey()
+            }
+
+            is CalendarIntent.InitCalendarInfo -> {
+                onIntent(CalendarIntent.FetchGlobalAlarmStatus)
             }
 
             is CalendarIntent.FetchGlobalAlarmStatus -> {
