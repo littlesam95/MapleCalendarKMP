@@ -316,6 +316,14 @@ class HomeViewModel(
                 toggleGlobalAlarmStatus()
             }
 
+            is HomeIntent.LoadEvents -> {
+                getTodayEvents()
+            }
+
+            is HomeIntent.FetchBossPartySchedules -> {
+                getTodayBossSchedules()
+            }
+
             else -> {}
         }
     }

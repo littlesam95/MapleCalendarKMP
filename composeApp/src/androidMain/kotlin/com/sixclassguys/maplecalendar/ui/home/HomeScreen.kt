@@ -54,6 +54,13 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
 
+    LaunchedEffect(Unit) {
+        if (uiState.member != null) {
+            viewModel.onIntent(HomeIntent.LoadEvents)
+            viewModel.onIntent(HomeIntent.FetchBossPartySchedules)
+        }
+    }
+
     LaunchedEffect(uiState.isNavigateToLogin) {
         if (uiState.isNavigateToLogin) {
             onNavigateToLogin()
