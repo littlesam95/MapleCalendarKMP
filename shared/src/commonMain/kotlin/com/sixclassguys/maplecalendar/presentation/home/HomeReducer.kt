@@ -227,6 +227,7 @@ class HomeReducer {
                 isAutoLoginFinished = false,
                 isLoginSuccess = false,
                 nexonApiKey = null,
+                member = null,
                 characterBasic = null,
                 characterDojangRanking = null,
                 characterOverallRanking = null,

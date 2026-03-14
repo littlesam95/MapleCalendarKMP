@@ -55,8 +55,8 @@ fun HomeScreen(
     val pullToRefreshState = rememberPullToRefreshState()
 
     LaunchedEffect(Unit) {
+        viewModel.onIntent(HomeIntent.LoadEvents)
         if (uiState.member != null) {
-            viewModel.onIntent(HomeIntent.LoadEvents)
             viewModel.onIntent(HomeIntent.FetchBossPartySchedules)
         }
     }
