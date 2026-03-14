@@ -306,7 +306,7 @@ fun NavHost(
                         val memberJson = Json.encodeToString(member)
                         homeViewModel.savedStateHandle["login_member"] = memberJson
                         navController.navigate(Navigation.Home.destination) {
-                            popUpTo(navController.graph.startDestinationId) {
+                            popUpTo(navController.graph.id) {
                                 inclusive = true
                             }
                             // 홈 화면이 이미 스택에 있다면 새로 만들지 않고 재사용(중복 방지)
