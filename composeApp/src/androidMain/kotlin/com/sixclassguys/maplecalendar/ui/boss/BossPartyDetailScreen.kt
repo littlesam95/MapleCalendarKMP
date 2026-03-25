@@ -100,7 +100,8 @@ import org.koin.compose.getKoin
 @Composable
 fun BossPartyDetailScreen(
     viewModel: BossViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToImageDetail: (String) -> Unit
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -556,6 +557,7 @@ fun BossPartyDetailScreen(
                                             )
                                         )
                                     },
+                                    onNavigateToImageDetail = onNavigateToImageDetail,
                                     modifier = Modifier.fillParentMaxHeight()
                                         .fillMaxWidth()
                                 )

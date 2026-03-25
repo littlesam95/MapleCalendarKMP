@@ -1,6 +1,7 @@
 package com.sixclassguys.maplecalendar.ui.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +32,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -53,6 +53,7 @@ fun BossPartyAlbumContent(
     onSubmitBoard: () -> Unit,
     onLike: (Long) -> Unit,
     onDislike: (Long) -> Unit,
+    onNavigateToImageDetail: (String) -> Unit,
     modifier: Modifier
 ) {
     LaunchedEffect(Unit) {
@@ -74,7 +75,7 @@ fun BossPartyAlbumContent(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "MEMBER",
+                text = "ALBUM",
                 color = MapleStatTitle,
                 style = Typography.titleMedium
             )
@@ -102,7 +103,7 @@ fun BossPartyAlbumContent(
             } else {
                 // 🚀 이제 내부에서 items를 사용하여 개별 스크롤을 지원합니다.
                 itemsIndexed(posts, key = { _, post -> post.id }) { index, post ->
-                    BossPartyAlbumItem(post, onLike, onDislike)
+                    BossPartyAlbumItem(post, onLike, onDislike, onNavigateToImageDetail)
 
                     // 🚀 여기서 직접 체크!
                     // 마지막에서 1~2번째 아이템이 "그려지는 순간" 다음 페이지를 부릅니다.
@@ -135,7 +136,8 @@ fun BossPartyAlbumContent(
 fun BossPartyAlbumItem(
     post: BossPartyBoard,
     onLike: (Long) -> Unit,
-    onDislike: (Long) -> Unit
+    onDislike: (Long) -> Unit,
+    onNavigateToImageDetail: (String) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -153,7 +155,8 @@ fun BossPartyAlbumItem(
                 contentDescription = "Post Image",
                 modifier = Modifier.fillMaxWidth()
                     .aspectRatio(1.2f)
-                    .clip(RoundedCornerShape(16.dp)),
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable { onNavigateToImageDetail(post.imageUrls[0]) },
                 contentScale = ContentScale.Crop
             )
 

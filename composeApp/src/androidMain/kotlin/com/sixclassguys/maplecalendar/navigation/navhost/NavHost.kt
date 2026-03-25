@@ -30,6 +30,7 @@ import com.sixclassguys.maplecalendar.presentation.setting.SettingViewModel
 import com.sixclassguys.maplecalendar.ui.board.BoardScreen
 import com.sixclassguys.maplecalendar.ui.boss.BossPartyCreateScreen
 import com.sixclassguys.maplecalendar.ui.boss.BossPartyDetailScreen
+import com.sixclassguys.maplecalendar.ui.boss.BossPartyImageDetailScreen
 import com.sixclassguys.maplecalendar.ui.boss.BossPartyListScreen
 import com.sixclassguys.maplecalendar.ui.calendar.MapleCalendarScreen
 import com.sixclassguys.maplecalendar.ui.calendar.MapleEventDetailScreen
@@ -245,7 +246,18 @@ fun NavHost(
                     onBack = {
                         bossViewModel.onIntent(BossIntent.DisconnectBossPartyChat)
                         navController.popBackStack()
+                    },
+                    onNavigateToImageDetail = { imageUrl ->
+                        bossViewModel.onIntent(BossIntent.SelectBossPartyBoardImage(imageUrl))
+                        navController.navigate(Navigation.BossPartyImageDetail.destination)
                     }
+                )
+            }
+
+            composable(Navigation.BossPartyImageDetail.destination) {
+                BossPartyImageDetailScreen(
+                    viewModel = bossViewModel,
+                    onBack = { navController.popBackStack() }
                 )
             }
         }
