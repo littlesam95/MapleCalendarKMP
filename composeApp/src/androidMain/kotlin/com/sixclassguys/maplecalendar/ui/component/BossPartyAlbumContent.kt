@@ -1,5 +1,7 @@
 package com.sixclassguys.maplecalendar.ui.component
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +47,7 @@ import com.sixclassguys.maplecalendar.theme.PretendardFamily
 import com.sixclassguys.maplecalendar.theme.Typography
 import com.sixclassguys.maplecalendar.utils.formatToYmd
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BossPartyAlbumContent(
     posts: List<BossPartyBoard>,
@@ -133,6 +136,7 @@ fun BossPartyAlbumContent(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BossPartyAlbumItem(
     post: BossPartyBoard,

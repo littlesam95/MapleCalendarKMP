@@ -342,7 +342,6 @@ class BossReducer {
 
         is BossIntent.FetchBossPartyDetailSuccess -> {
             currentState.copy(
-                isLoading = true,
                 selectedBossParty = intent.bossPartyDetail,
                 selectedBossPartyDetailMenu = BossPartyTab.ALARM,
                 isBossPartyDetailAlarmOn = intent.bossPartyDetail.isPartyAlarmEnabled,

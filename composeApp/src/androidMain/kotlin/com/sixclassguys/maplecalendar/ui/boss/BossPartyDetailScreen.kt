@@ -68,7 +68,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -119,16 +118,6 @@ fun BossPartyDetailScreen(
     val collapsedTopBarHeight = 48.dp
     val expandedTopBarHeight = 420.dp
     val inputBarHeight = 80.dp // 하단 입력바 예상 높이
-
-    val configuration = LocalConfiguration.current
-
-    // 1. 시스템 바 높이 추출 (상단 상태바 + 하단 네비게이션 바)
-    val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
-    val systemBarsHeight =
-        systemBarsPadding.calculateTopPadding() + systemBarsPadding.calculateBottomPadding()
-
-    // 2. 전체 화면 높이 (Dp)
-    val screenHeightDp = configuration.screenHeightDp.dp
 
     val density = LocalDensity.current
     var availableContentHeightPx by remember { mutableIntStateOf(0) }
@@ -360,8 +349,8 @@ fun BossPartyDetailScreen(
                     // 탭 메뉴 (Sticky Header)
                     stickyHeader {
                         BossPartyDetailTabRow(
-                            modifier = Modifier.onGloballyPositioned { coordinates ->
-                                // 🌟 탭 바의 하단 위치를 기준으로 가용 높이 계산의 시작점을 잡을 수 있습니다.
+                            modifier = Modifier.onGloballyPositioned {
+                                // 탭 바의 하단 위치를 기준으로 가용 높이 계산의 시작점을 잡는다.
                             },
                             selectedTab = uiState.selectedBossPartyDetailMenu,
                             onTabSelected = { menu ->
@@ -374,8 +363,6 @@ fun BossPartyDetailScreen(
                     when (uiState.selectedBossPartyDetailMenu) {
                         BossPartyTab.ALARM -> {
                             item {
-                                val availableHeight =
-                                    screenHeightDp - systemBarsHeight - collapsedTopBarHeight - 48.dp
                                 val headerRealTimeHeightDp = with(density) { (expandedHeightPx + toolbarOffsetHeightPx).toDp() }
                                 val dynamicMinHeight = with(density) { availableContentHeightPx.toDp() } - headerRealTimeHeightDp
                                 Box(
@@ -426,8 +413,6 @@ fun BossPartyDetailScreen(
 
                         BossPartyTab.MEMBER -> {
                             item {
-                                val availableHeight =
-                                    screenHeightDp - systemBarsHeight - collapsedTopBarHeight - 48.dp
                                 BossPartyMemberContent(
                                     isLeader = uiState.selectedBossParty?.isLeader ?: false,
                                     members = uiState.selectedBossParty?.members ?: emptyList(),
@@ -479,8 +464,6 @@ fun BossPartyDetailScreen(
 
                         BossPartyTab.CHAT -> {
                             item {
-                                val availableHeight =
-                                    screenHeightDp - systemBarsHeight - collapsedTopBarHeight - 48.dp - inputBarHeight
                                 BossPartyChatContent(
                                     isAlarmOn = uiState.isBossPartyChatAlarmOn,
                                     chats = uiState.bossPartyChats,
@@ -540,8 +523,6 @@ fun BossPartyDetailScreen(
 
                         BossPartyTab.ALBUM -> {
                             item {
-                                val availableHeight =
-                                    screenHeightDp - systemBarsHeight - collapsedTopBarHeight - 48.dp
                                 BossPartyAlbumContent(
                                     posts = uiState.bossPartyBoards,
                                     isLastPage = uiState.isBossPartyBoardLastPage,
