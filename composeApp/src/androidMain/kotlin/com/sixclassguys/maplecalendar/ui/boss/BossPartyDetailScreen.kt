@@ -634,7 +634,7 @@ fun BossPartyDetailScreen(
                     currentHeightPx = expandedHeightPx + toolbarOffsetHeightPx,
                     scrollPercentage = scrollPercentage,
                     onBack = onBack,
-                    onShare = { /* 공유 로직 */ },
+                    onShare = { Toast.makeText(context, "준비중인 기능이에요.", Toast.LENGTH_SHORT).show() },
                     onLeave = { viewModel.onIntent(BossIntent.LeaveBossParty) }
                 )
             }
