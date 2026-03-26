@@ -43,6 +43,7 @@ import com.sixclassguys.maplecalendar.theme.MapleStatTitle
 import com.sixclassguys.maplecalendar.theme.MapleTheme
 import com.sixclassguys.maplecalendar.theme.PretendardFamily
 import com.sixclassguys.maplecalendar.theme.Typography
+import com.sixclassguys.maplecalendar.utils.formatToYmd
 
 @Composable
 fun BossPartyAlbumContent(
@@ -203,7 +204,7 @@ fun BossPartyAlbumItem(
                 modifier = Modifier.padding(vertical = 4.dp)
             )
             Text(
-                text = post.createdAt,
+                text = formatToYmd(post.createdAt),
                 fontSize = 11.sp,
                 color = MapleTheme.colors.outline,
                 fontFamily = PretendardFamily,
